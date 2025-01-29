@@ -4,6 +4,11 @@ New at release 1.3.6
 
 New/Modified Features:
 
+ - Implemented support for Firmware Retraction (also requires a slicer add-in to enable G10/G11 codes for Klipper firmware retraction)
+    - Uncommented and completed the [firmware retraction] section in printer.cfg, to set defaults 
+ - Limited scrolling upward of gcode files on Print screen, because scroll_index became undefined at -6 and crashed t5uid1
+    - Added exception-handling to full_update() in t5uid1.py, to prevent crashing on Unicode errors, in case something similar occurs in future
+
  - Modified the scripts by which Print Time Remaining was calculated, to make it more closely track Slicer-Estimated Print Time Remaining (using M73 Rx messages from the slicer.)
    - If the M73 R value is lower than the current estimated time remaining, estimated time remaining is now reset to the M73 value
    - BUT: If the M73 R value is actually higher than the current estimated time remaining, the estimated time is NOT reset to align with that, unless and until that estimate runs down to zero.

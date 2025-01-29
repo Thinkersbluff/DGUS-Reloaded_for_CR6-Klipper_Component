@@ -129,7 +129,7 @@ class T5UID1:
 
         self.gcode = self.printer.lookup_object('gcode')
         self.configfile = self.printer.lookup_object('configfile')
-        
+
         self.toolhead = None
         self.heaters = self.printer.load_object(config, 'heaters')
         self.pause_resume = self.printer.load_object(config, 'pause_resume')
@@ -184,6 +184,7 @@ class T5UID1:
         self._gui_version = 0
         self._os_version = 0
         self._current_page = ""
+        self._page_history = []
         self._variable_data = {}
         self._status_data = {}
         self._vars = {}
@@ -207,7 +208,7 @@ class T5UID1:
 
         self._original_M73 = None
         self._original_M117 = None
-        
+
 
         global_context = {
             'get_variable': self.get_variable,
@@ -225,6 +226,7 @@ class T5UID1:
         context_input.update({
             'page_name': self.page_name,
             'switch_page': self.switch_page,
+            'return_to_previous_page': self.return_to_previous_page,
             'play_sound': self.play_sound,
             'set_volume': self.set_volume,
             'set_brightness': self.set_brightness,
@@ -254,6 +256,7 @@ class T5UID1:
         context_routine.update({
             'page_name': self.page_name,
             'switch_page': self.switch_page,
+            'return_to_previous_page': self.return_to_previous_page,
             'play_sound': self.play_sound,
             'set_volume': self.set_volume,
             'set_brightness': self.set_brightness,
@@ -532,10 +535,11 @@ class T5UID1:
 
     def full_update(self):
         """Refresh all data on current page. Reset update_timer."""
-        self.send_page_vars(complete=True)
-        self.reactor.update_timer(self._update_timer,
-                                  self.reactor.monotonic()
-                                      + self._update_interval)
+        try:
+            self.send_page_vars(complete=True)
+            self.reactor.update_timer(self._update_timer, self.reactor.monotonic() + self._update_interval)
+        except UnicodeEncodeError as e:
+            logging.exception("Unicode encoding error during full update: %s", e)
 
     def start_routine(self, routine):
         """Launch called routine. Abort and raise error if cannot"""
@@ -593,7 +597,7 @@ class T5UID1:
         self._files=[]
         for root, dirs, filenames in os.walk(os.path.expanduser(directory)):
             for filename in filenames:
-               if filename.endswith('.gcode'):
+                if filename.endswith('.gcode'):
                     self._files.append(os.path.join(root, filename))
 
         # If fewer than 5 files were found, pad the rest of the _files list with 'None'
@@ -607,10 +611,10 @@ class T5UID1:
             reverse=True
             ) + [None] * (5 - len([f for f in self._files if f is not None]))
 
-        return (self._files)
+        return self._files
 
-    def specific_fpname(self, i, index): 
-        # Allow for scrolling up and down the list in increments of 1 position
+    def specific_fpname(self, i, index):
+        """Allow for scrolling up and down the files list in increments of 1 position"""
         # Manage the value of scroll_index as a variable in a vars_in.cfg script, in response to button-presses
         try: 
             if i + index < len(self._files):
@@ -624,18 +628,18 @@ class T5UID1:
             return None
 
     def delete_file(self, index):
-            self._scroll_index = index
-            try: # Find the file path in _files based on the index + _scroll_index 
-                file_path = self._files[self._scroll_index] 
-                if file_path is not None: 
-                    # Delete the file
-                    os.remove(file_path)
-                    logging.info(f"Deleted file: {file_path}") 
-                    # Update the _files list 
-                    self._files[self._scroll_index] = None 
-                else: logging.warning("No file to delete at the specified index.") 
-            except Exception as e: 
-                logging.exception("Failed to delete file at index %s: %s", index, str(e))
+        self._scroll_index = index
+        try: # Find the file path in _files based on the index + _scroll_index 
+            file_path = self._files[self._scroll_index] 
+            if file_path is not None:
+                # Delete the file
+                os.remove(file_path)
+                logging.info(f"Deleted file: {file_path}") 
+                # Update the _files list 
+                self._files[self._scroll_index] = None 
+            else: logging.warning("No file to delete at the specified index.") 
+        except Exception as e: 
+            logging.exception("Failed to delete file at index %s: %s", index, str(e))
 
     def check_paused(self):
         """Manage the printer if and while paused"""
@@ -819,9 +823,13 @@ class T5UID1:
         self._t5uid1_write(command, command_data)
 
     def switch_page(self, name, send=True):
-        """Switch to named page. Flag if page name not known"""
+        """Switch to named page. Flag if page name not known.  Remember where we came from, so we can get back."""
+
+        # If the name of the page to which we must switch is not contained within the known dictionary of self._pages, then exit with an error
         if name not in self._pages:
             raise ValueError("invalid page")
+        
+        # ?? Maybe a test routine ??  If told not to send the switch page message to the display, just return what would have been sent.
         if not send:
             return self.t5uid1_command_write(T5UID1_ADDR_PAGE,
                                              bytearray([
@@ -829,22 +837,43 @@ class T5UID1:
                                                  0x00, self._pages[name].id
                                              ]),
                                              send)
+
+        # If switching to the current page, no action required. Exit routine    
         if name == self._current_page:
             return
+
+        # Push the current page identity to the navigation history stack before switching (to facilitate always returning to the calling page)
+        if self._current_page: 
+            self._page_history.append(self._current_page)
+
+        # ?? Not clear why exit this routine if there are no (optional) "enter_pre" routines defined for the new page
         if not self._start_page_routines(name, "enter_pre"):
             return
+        
+        # Update - in the display memory - the variables listed in pages.cfg, for the page to which we are switching
         self.send_page_vars(name, complete=True)
+
+        # Command the display to switch to the new page
         self.t5uid1_command_write(T5UID1_ADDR_PAGE,
                                   bytearray([
                                       0x5a, 0x01,
                                       0x00, self._pages[name].id
                                   ]),
                                   send)
+        
+        # If we are switching away from an existing page with ongoing routines, stop those routines
+        # Since we are leaving the current page, run the "leave" routines for this page
         if self._current_page:
             self._stop_page_routines(self._current_page)
             self._start_page_routines(self._current_page, "leave")
+
+        # Change the self._current_page variable value to the ID of the new page to which we have switched
         self._current_page = name
+
+        # Start running the "enter" routines for the new page
         self._start_page_routines(name, "enter")
+
+        # Reset the timer that controls refreshing the var_auto variables every 2 seconds, while we remain on this new page
         self.reactor.update_timer(self._update_timer,
                                   self.reactor.monotonic()
                                       + self._update_interval)
@@ -852,6 +881,17 @@ class T5UID1:
     def abort_page_switch(self):
         """Send message to calling routine, if abort page switch"""
         return "DGUS_ABORT_PAGE_SWITCH"
+
+    def return_to_previous_page(self):
+        """Pop the last entry off the page navigation stack as the ID of the page to which we want to return"""
+        # If the stack is empty, we have nowhere left to go back to. Exit routine.
+        if not self._page_history:
+            return  # No previous page to return to
+
+        # The last page we were on must have been the one from which we came, let's go back there.
+        previous_page = self._page_history.pop()
+        self.switch_page(previous_page, send=True)
+
 
     def play_sound(self, start, slen=1, volume=-1, send=True):
         """Play sound defined by the calling function."""
