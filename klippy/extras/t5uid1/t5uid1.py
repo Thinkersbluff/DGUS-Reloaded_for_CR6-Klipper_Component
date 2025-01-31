@@ -6,7 +6,6 @@
 #
 # This file may be distributed under the terms of the GNU GPLv3 license.
 import logging
-import math# math library is not used. Consider removing this import.
 import os
 import struct
 import textwrap
@@ -14,6 +13,7 @@ import jinja2
 import mcu
 from . import var, page, routine, dgus_reloaded
 from .. import gcode_macro, heaters
+
 
 T5UID1_firmware_cfg = {
     'dgus_reloaded': dgus_reloaded.configuration
@@ -184,6 +184,7 @@ class T5UID1:
         self._gui_version = 0
         self._os_version = 0
         self._current_page = ""
+        self._page_history = []
         self._variable_data = {}
         self._status_data = {}
         self._vars = {}
@@ -196,6 +197,7 @@ class T5UID1:
         self._print_pause_time = -1
         self._print_end_time = -1
         self._print_time_remaining = 0
+        self._startup_duration = 0
         self._latest_rvalue = 0
         self._slicer_estimated_print_time = 0
         self._boot_page = self._timeout_page = self._shutdown_page = None
@@ -207,6 +209,9 @@ class T5UID1:
         self._original_M73 = None
         self._original_M117 = None
 
+        # Added at v1.3.6 to parse variables.cfg
+        self.variables_file = '/home/pi/klipper/klippy/extras/t5uid1/dgus_reloaded/variables.cfg'
+
         global_context = {
             'get_variable': self.get_variable,
             'set_variable': self.set_variable,
@@ -216,13 +221,14 @@ class T5UID1:
             'stop_routine': self.stop_routine,
             'set_message': self.set_message,
             'bitwise_and': bitwise_and,
-            'bitwise_or': bitwise_or
+            'bitwise_or': bitwise_or,
         }
 
         context_input = dict(global_context)
         context_input.update({
             'page_name': self.page_name,
             'switch_page': self.switch_page,
+            'return_to_previous_page': self.return_to_previous_page,
             'play_sound': self.play_sound,
             'set_volume': self.set_volume,
             'set_brightness': self.set_brightness,
@@ -232,7 +238,9 @@ class T5UID1:
             'heater_min_extrude_temp': self.heater_min_extrude_temp,
             'capture_gcode_files': self.capture_gcode_files,
             'delete_file' : self.delete_file,
-            'is_busy': self.is_busy
+            'is_busy': self.is_busy,
+            'get_material_presets': self.get_material_presets,
+            'update_material_presets': self.update_material_presets
         })
 
         context_output = dict(global_context)
@@ -245,13 +253,16 @@ class T5UID1:
             'pid_param': self.pid_param,
             'get_duration': get_duration,
             'get_remaining': get_remaining,
-            'specific_fpname': self.specific_fpname
+            'specific_fpname': self.specific_fpname,
+            'get_material_presets': self.get_material_presets,
+            'update_material_presets': self.update_material_presets
         })
 
         context_routine = dict(global_context)
         context_routine.update({
             'page_name': self.page_name,
             'switch_page': self.switch_page,
+            'return_to_previous_page': self.return_to_previous_page,
             'play_sound': self.play_sound,
             'set_volume': self.set_volume,
             'set_brightness': self.set_brightness,
@@ -259,7 +270,9 @@ class T5UID1:
             'full_update': self.full_update,
             'is_busy': self.is_busy,
             'check_paused': self.check_paused,
-            'capture_gcode_files': self.capture_gcode_files
+            'capture_gcode_files': self.capture_gcode_files,
+            'get_material_presets': self.get_material_presets,
+            'update_material_presets': self.update_material_presets
         })
 
         self._status_data.update({
@@ -530,10 +543,11 @@ class T5UID1:
 
     def full_update(self):
         """Refresh all data on current page. Reset update_timer."""
-        self.send_page_vars(complete=True)
-        self.reactor.update_timer(self._update_timer,
-                                  self.reactor.monotonic()
-                                      + self._update_interval)
+        try:
+            self.send_page_vars(complete=True)
+            self.reactor.update_timer(self._update_timer, self.reactor.monotonic() + self._update_interval)
+        except UnicodeEncodeError as e:
+            logging.exception("Unicode encoding error during full update: %s", e)
 
     def start_routine(self, routine):
         """Launch called routine. Abort and raise error if cannot"""
@@ -591,7 +605,7 @@ class T5UID1:
         self._files=[]
         for root, dirs, filenames in os.walk(os.path.expanduser(directory)):
             for filename in filenames:
-               if filename.endswith('.gcode'):
+                if filename.endswith('.gcode'):
                     self._files.append(os.path.join(root, filename))
 
         # If fewer than 5 files were found, pad the rest of the _files list with 'None'
@@ -605,10 +619,10 @@ class T5UID1:
             reverse=True
             ) + [None] * (5 - len([f for f in self._files if f is not None]))
 
-        return (self._files)
+        return self._files
 
-    def specific_fpname(self, i, index): 
-        # Allow for scrolling up and down the list in increments of 1 position
+    def specific_fpname(self, i, index):
+        """Allow for scrolling up and down the files list in increments of 1 position"""
         # Manage the value of scroll_index as a variable in a vars_in.cfg script, in response to button-presses
         try: 
             if i + index < len(self._files):
@@ -622,18 +636,18 @@ class T5UID1:
             return None
 
     def delete_file(self, index):
-            self._scroll_index = index
-            try: # Find the file path in _files based on the index + _scroll_index 
-                file_path = self._files[self._scroll_index] 
-                if file_path is not None: 
-                    # Delete the file
-                    os.remove(file_path)
-                    logging.info(f"Deleted file: {file_path}") 
-                    # Update the _files list 
-                    self._files[self._scroll_index] = None 
-                else: logging.warning("No file to delete at the specified index.") 
-            except Exception as e: 
-                logging.exception("Failed to delete file at index %s: %s", index, str(e))
+        self._scroll_index = index
+        try: # Find the file path in _files based on the index + _scroll_index 
+            file_path = self._files[self._scroll_index] 
+            if file_path is not None:
+                # Delete the file
+                os.remove(file_path)
+                logging.info(f"Deleted file: {file_path}") 
+                # Update the _files list 
+                self._files[self._scroll_index] = None 
+            else: logging.warning("No file to delete at the specified index.") 
+        except Exception as e: 
+            logging.exception("Failed to delete file at index %s: %s", index, str(e))
 
     def check_paused(self):
         """Manage the printer if and while paused"""
@@ -674,6 +688,32 @@ class T5UID1:
             # the above process will also  measure the new print paused time.
             self._print_pause_time = -1
 
+    def get_start_countdown_status(self):
+        """Check whether to start the Splicer-Estimated Print Time Remaining countdown timer""" 
+        variables_file = '/home/pi/klipper/klippy/extras/t5uid1/dgus_reloaded/variables.cfg' 
+        start_countdown_timer = None 
+        try: 
+            with open(variables_file, 'r') as file: 
+                for line in file: 
+                    if 'start_countdown_timer' in line: 
+                        # Strip out unnecessary characters and split the line key, 
+                        key, value = line.strip().split(' = ') 
+                        if key == 'start_countdown_timer': 
+                            start_countdown_timer = value.strip().lower() == 'true' 
+                            break 
+
+        except FileNotFoundError: 
+            print(f"File not found: {variables_file}") 
+        except Exception as e: 
+            print(f"Error reading {variables_file}: {e}") 
+        
+        # If the variable isn't found, handle the case 
+        if start_countdown_timer is None: 
+            print("Variable 'start_countdown_timer' not found.") 
+            start_countdown_timer = False
+
+        return start_countdown_timer
+
     def get_status(self, eventtime):
         """Update the values of the displayed printer status variables"""
         pages = { p: self._pages[p].id for p in self._pages }
@@ -689,13 +729,26 @@ class T5UID1:
         # iff "eventtime"= "current_time"
         else:
             self._print_duration = eventtime - self._print_start_time
-        # Since the slicer estimated print time and the M73 R values are in minutes, not seconds, 
-        # compute _print_time_remaining in minutes
-        self._print_time_remaining = self._slicer_estimated_print_time - self._print_duration/60
-        # If_ slicer_estimated_print_time proves too low, revert to using the M73 R factor rather than displaying zero or negative times
-        if self._print_time_remaining < 0:
-            self._print_time_remaining = self._latest_rvalue
-            
+ 
+        start_counting=self.get_start_countdown_status()
+        if not start_counting:
+            self._print_time_remaining = self._slicer_estimated_print_time
+            self._startup_duration = self._print_duration
+        else:
+        # If_ slicer_estimated_print_time is too low, revert to using the latest M73 R factor 
+        # rather than displaying zero or negative times
+            if self._print_time_remaining > self._latest_rvalue or self._print_time_remaining <= 0:
+                self._print_time_remaining = self._latest_rvalue
+            else:
+            # Since the slicer estimated print time and the M73 R values are in minutes, not seconds, 
+            # compute _print_time_remaining in minutes. 
+            # Add back-in the time spent warming-up before starting the print
+                self._print_time_remaining = (
+                self._slicer_estimated_print_time 
+                - self._print_duration/60 
+                + self._startup_duration/60 
+                + 0.6
+                )
         # update() the res dictionary based on the keys and current values declared
         # within the {} braces here:
         res.update({
@@ -778,9 +831,13 @@ class T5UID1:
         self._t5uid1_write(command, command_data)
 
     def switch_page(self, name, send=True):
-        """Switch to named page. Flag if page name not known"""
+        """Switch to named page. Flag if page name not known.  Remember where we came from, so we can get back."""
+
+        # If the name of the page to which we must switch is not contained within the known dictionary of self._pages, then exit with an error
         if name not in self._pages:
             raise ValueError("invalid page")
+        
+        # ?? Maybe a test routine ??  If told not to send the switch page message to the display, just return what would have been sent.
         if not send:
             return self.t5uid1_command_write(T5UID1_ADDR_PAGE,
                                              bytearray([
@@ -788,22 +845,43 @@ class T5UID1:
                                                  0x00, self._pages[name].id
                                              ]),
                                              send)
+
+        # If switching to the current page, no action required. Exit routine    
         if name == self._current_page:
             return
+
+        # Push the current page identity to the navigation history stack before switching (to facilitate always returning to the calling page)
+        if self._current_page: 
+            self._page_history.append(self._current_page)
+
+        # ?? Not clear why exit this routine if there are no (optional) "enter_pre" routines defined for the new page
         if not self._start_page_routines(name, "enter_pre"):
             return
+        
+        # Update - in the display memory - the variables listed in pages.cfg, for the page to which we are switching
         self.send_page_vars(name, complete=True)
+
+        # Command the display to switch to the new page
         self.t5uid1_command_write(T5UID1_ADDR_PAGE,
                                   bytearray([
                                       0x5a, 0x01,
                                       0x00, self._pages[name].id
                                   ]),
                                   send)
+        
+        # If we are switching away from an existing page with ongoing routines, stop those routines
+        # Since we are leaving the current page, run the "leave" routines for this page
         if self._current_page:
             self._stop_page_routines(self._current_page)
             self._start_page_routines(self._current_page, "leave")
+
+        # Change the self._current_page variable value to the ID of the new page to which we have switched
         self._current_page = name
+
+        # Start running the "enter" routines for the new page
         self._start_page_routines(name, "enter")
+
+        # Reset the timer that controls refreshing the var_auto variables every 2 seconds, while we remain on this new page
         self.reactor.update_timer(self._update_timer,
                                   self.reactor.monotonic()
                                       + self._update_interval)
@@ -811,6 +889,17 @@ class T5UID1:
     def abort_page_switch(self):
         """Send message to calling routine, if abort page switch"""
         return "DGUS_ABORT_PAGE_SWITCH"
+
+    def return_to_previous_page(self):
+        """Pop the last entry off the page navigation stack as the ID of the page to which we want to return"""
+        # If the stack is empty, we have nowhere left to go back to. Exit routine.
+        if not self._page_history:
+            return  # No previous page to return to
+
+        # The last page we were on must have been the one from which we came, let's go back there.
+        previous_page = self._page_history.pop()
+        self.switch_page(previous_page, send=True)
+
 
     def play_sound(self, start, slen=1, volume=-1, send=True):
         """Play sound defined by the calling function."""
@@ -1059,9 +1148,10 @@ class T5UID1:
         self._print_end_time = -1
 
         # If the gcode includes M73 R messages, then capture the first one as the slicer's estimated total print time
-        if self._print_time_remaining > 0:
-            self._slicer_estimated_print_time = self._print_time_remaining
-        else: self._print_time_remaining = 0
+        if self._latest_rvalue > 0:
+            self._slicer_estimated_print_time = self._latest_rvalue
+        else:
+            self._slicer_estimated_print_time = 0
 
         self._is_printing = True
         self.check_paused()
@@ -1087,15 +1177,14 @@ class T5UID1:
         if 'print_end' in self._routines:
             self.start_routine('print_end')
 
-    def cmd_M73(self, gcmd):
-        """Custom M73 function"""
-        # The message format may be M73 P_ R_ or M73 P_ or M73 R_
-        if gcmd.get_int('P', 0):
-            progress = gcmd.get_int('P', 0)
-            self._print_progress = min(100, max(0, progress))
-        if gcmd.get_int('R', 0):
+    def cmd_M73(self, gcmd): 
+        """Custom M73 function""" 
+        # The message format may be M73 P_ R_ or M73 P_ or M73 R_ 
+        if gcmd.get_int('P', 0): 
+            progress = gcmd.get_int('P', 0) 
+            self._print_progress = min(100, max(0, progress)) 
+        if gcmd.get_int('R', 0): 
             self._latest_rvalue = gcmd.get_int('R', 0)
-            self._print_time_remaining = max(0, self._latest_rvalue)
         if self._original_M73 is not None:
             self._original_M73(gcmd)
 
@@ -1128,6 +1217,68 @@ class T5UID1:
             self.play_sound(start, slen, volume)
         except Exception as e:
             raise gcmd.error(str(e))
+   
+    def get_material_presets(self, parameter_name, default_value):
+        """Get the material preset value from the [Presets] section of presets.cfg"""
+        variables_file = '/home/pi/klipper/klippy/extras/t5uid1/dgus_reloaded/presets.cfg'
+        parameter_value = default_value
+        in_presets_section = False
+        try:
+            with open(variables_file, 'r') as file:
+                for line in file:
+                    line = line.strip()
+                    if line == "[presets]":
+                        in_presets_section = True
+                    elif line.startswith("[") and line.endswith("]"):
+                        in_presets_section = False
+                    elif in_presets_section and parameter_name in line:
+                        key, value = line.split(' = ')
+                        if key == parameter_name:
+                            parameter_value = value.strip().strip("'").strip('"')
+                            break
+        except FileNotFoundError:
+            print(f"File not found: {variables_file}")
+        except Exception as e:
+            print(f"Error reading {variables_file}: {e}")
+        print(f"Parameter {parameter_name} has value: {parameter_value}")  # Debugging line
+        return parameter_value
+
+    def update_material_presets(self, parameter_name, new_value):
+        """Update the default material settings in presets.cfg"""
+        variables_file = '/home/pi/klipper/klippy/extras/t5uid1/dgus_reloaded/presets.cfg'
+        lines = []
+        in_presets_section = False
+        updated = False
+
+        try:
+            with open(variables_file, 'r') as file:
+                lines = file.readlines()
+
+            with open(variables_file, 'w') as file:
+                for line in lines:
+                    line_stripped = line.strip()
+                    if line_stripped == "[presets]":
+                        in_presets_section = True
+                    elif line_stripped.startswith("[") and line_stripped.endswith("]"):
+                        in_presets_section = False
+                    if in_presets_section and parameter_name in line_stripped:
+                        key, value = line.strip().split(' = ')
+                        if key == parameter_name:
+                            file.write(f"{parameter_name} = {new_value}\n")
+                            updated = True
+                        else:
+                            file.write(line)
+                    else:
+                        file.write(line)
+                if in_presets_section and not updated:
+                    # Append the new parameter to the [Presets] section if it wasn't updated
+                    file.write(f"{parameter_name} = {new_value}\n")
+                    
+        except FileNotFoundError:
+            print(f"File not found: {variables_file}")
+        except Exception as e:
+            print(f"Error reading {variables_file}: {e}")
+
 
 def load_config(config):
     """Load the DGUS-Reloaded.cfg file settings into this instance of T5UID1"""
