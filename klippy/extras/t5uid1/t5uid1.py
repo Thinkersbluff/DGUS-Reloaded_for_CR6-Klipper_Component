@@ -6,7 +6,6 @@
 #
 # This file may be distributed under the terms of the GNU GPLv3 license.
 import logging
-import math# math library is not used. Consider removing this import.
 import os
 import struct
 import textwrap
@@ -14,6 +13,7 @@ import jinja2
 import mcu
 from . import var, page, routine, dgus_reloaded
 from .. import gcode_macro, heaters
+
 
 T5UID1_firmware_cfg = {
     'dgus_reloaded': dgus_reloaded.configuration
@@ -209,6 +209,8 @@ class T5UID1:
         self._original_M73 = None
         self._original_M117 = None
 
+        # Added at v1.3.6 to parse variables.cfg
+        self.variables_file = '/home/pi/klipper/klippy/extras/t5uid1/dgus_reloaded/variables.cfg'
 
         global_context = {
             'get_variable': self.get_variable,
@@ -219,7 +221,7 @@ class T5UID1:
             'stop_routine': self.stop_routine,
             'set_message': self.set_message,
             'bitwise_and': bitwise_and,
-            'bitwise_or': bitwise_or
+            'bitwise_or': bitwise_or,
         }
 
         context_input = dict(global_context)
@@ -236,7 +238,9 @@ class T5UID1:
             'heater_min_extrude_temp': self.heater_min_extrude_temp,
             'capture_gcode_files': self.capture_gcode_files,
             'delete_file' : self.delete_file,
-            'is_busy': self.is_busy
+            'is_busy': self.is_busy,
+            'get_material_presets': self.get_material_presets,
+            'update_material_presets': self.update_material_presets
         })
 
         context_output = dict(global_context)
@@ -249,7 +253,9 @@ class T5UID1:
             'pid_param': self.pid_param,
             'get_duration': get_duration,
             'get_remaining': get_remaining,
-            'specific_fpname': self.specific_fpname
+            'specific_fpname': self.specific_fpname,
+            'get_material_presets': self.get_material_presets,
+            'update_material_presets': self.update_material_presets
         })
 
         context_routine = dict(global_context)
@@ -264,7 +270,9 @@ class T5UID1:
             'full_update': self.full_update,
             'is_busy': self.is_busy,
             'check_paused': self.check_paused,
-            'capture_gcode_files': self.capture_gcode_files
+            'capture_gcode_files': self.capture_gcode_files,
+            'get_material_presets': self.get_material_presets,
+            'update_material_presets': self.update_material_presets
         })
 
         self._status_data.update({
@@ -1209,6 +1217,68 @@ class T5UID1:
             self.play_sound(start, slen, volume)
         except Exception as e:
             raise gcmd.error(str(e))
+   
+    def get_material_presets(self, parameter_name, default_value):
+        """Get the material preset value from the [Presets] section of presets.cfg"""
+        variables_file = '/home/pi/klipper/klippy/extras/t5uid1/dgus_reloaded/presets.cfg'
+        parameter_value = default_value
+        in_presets_section = False
+        try:
+            with open(variables_file, 'r') as file:
+                for line in file:
+                    line = line.strip()
+                    if line == "[presets]":
+                        in_presets_section = True
+                    elif line.startswith("[") and line.endswith("]"):
+                        in_presets_section = False
+                    elif in_presets_section and parameter_name in line:
+                        key, value = line.split(' = ')
+                        if key == parameter_name:
+                            parameter_value = value.strip().strip("'").strip('"')
+                            break
+        except FileNotFoundError:
+            print(f"File not found: {variables_file}")
+        except Exception as e:
+            print(f"Error reading {variables_file}: {e}")
+        print(f"Parameter {parameter_name} has value: {parameter_value}")  # Debugging line
+        return parameter_value
+
+    def update_material_presets(self, parameter_name, new_value):
+        """Update the default material settings in presets.cfg"""
+        variables_file = '/home/pi/klipper/klippy/extras/t5uid1/dgus_reloaded/presets.cfg'
+        lines = []
+        in_presets_section = False
+        updated = False
+
+        try:
+            with open(variables_file, 'r') as file:
+                lines = file.readlines()
+
+            with open(variables_file, 'w') as file:
+                for line in lines:
+                    line_stripped = line.strip()
+                    if line_stripped == "[presets]":
+                        in_presets_section = True
+                    elif line_stripped.startswith("[") and line_stripped.endswith("]"):
+                        in_presets_section = False
+                    if in_presets_section and parameter_name in line_stripped:
+                        key, value = line.strip().split(' = ')
+                        if key == parameter_name:
+                            file.write(f"{parameter_name} = {new_value}\n")
+                            updated = True
+                        else:
+                            file.write(line)
+                    else:
+                        file.write(line)
+                if in_presets_section and not updated:
+                    # Append the new parameter to the [Presets] section if it wasn't updated
+                    file.write(f"{parameter_name} = {new_value}\n")
+                    
+        except FileNotFoundError:
+            print(f"File not found: {variables_file}")
+        except Exception as e:
+            print(f"Error reading {variables_file}: {e}")
+
 
 def load_config(config):
     """Load the DGUS-Reloaded.cfg file settings into this instance of T5UID1"""
