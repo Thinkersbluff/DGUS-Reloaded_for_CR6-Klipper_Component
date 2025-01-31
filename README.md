@@ -3,7 +3,7 @@ Over the past year, it has become clear that:
 1. It is neither possible nor necessary to keep this fork up to date with the Master branch at Klipper3D.org
 2. Users can instead perform and maintain a clean copy of the latest Klipper on their systems, and install/maintain the DGUS-Reloaded t5uiud1 application files as if it was a "Plug-In"
 3. For as long as the firmware.bin file included with this distribution continues to work with Klipper, there is no need to use Makemenuconfig to create a new firmware.bin.  In fact, one could not create a firmware.bin file that works with the DGUS-Reloaded DWIN_SET firmware from any other version of Klipper than the obsolete version available from this repository.
-4. The perspective from whicb the following README was originally written is therefore lkkely somewhat confusing.  It is on my "to-do" list, to revamp it completely.  In the short term, I hope that the recommended installation instructions provided in this README will provide you with sufficient information to figure out how to use the ASSETS provided, to install and configure DGUS-Reloaded onto your own system, as others have done.
+4. The perspective from which the following README was originally written is therefore likely somewhat confusing.  It is on my "to-do" list, to revamp it completely.  In the short term, I hope that the recommended installation instructions provided in this README will provide you with sufficient information to figure out how to use the ASSETS provided, to install and configure DGUS-Reloaded onto your own system, as others have done.
 
 
 # DGUS-reloaded-Klipper, CR6Community Edition!
