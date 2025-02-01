@@ -1,4 +1,4 @@
-Last Updated : 22 Dec 2024
+Last Updated : 31 Jan 2025
 
 These files were built by updating the pin numbers in the ERA/4.5.3 files to be those of the 4.5.2 board.
 [Only impacted the Nozzle Heater, Bed and Part Fan pins]
