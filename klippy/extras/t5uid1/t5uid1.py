@@ -205,6 +205,9 @@ class T5UID1:
         self._is_connected = False
         self._files = [None] * 5
         self._sort_index = 0
+        self._threshold = 0.0
+        self._abl_macro_list = []
+        self._abl_profile_list = []
 
         self._original_M73 = None
         self._original_M117 = None
@@ -237,10 +240,12 @@ class T5UID1:
             'heater_max_temp': self.heater_max_temp,
             'heater_min_extrude_temp': self.heater_min_extrude_temp,
             'capture_gcode_files': self.capture_gcode_files,
-            'delete_file' : self.delete_file,
+            'delete_file': self.delete_file,
             'is_busy': self.is_busy,
             'get_material_presets': self.get_material_presets,
-            'update_material_presets': self.update_material_presets
+            'update_material_presets': self.update_material_presets,
+            'get_abl_green_threshold': self.get_abl_green_threshold,
+            'get_abl_profiles': self.get_abl_profiles
         })
 
         context_output = dict(global_context)
@@ -255,7 +260,8 @@ class T5UID1:
             'get_remaining': get_remaining,
             'specific_fpname': self.specific_fpname,
             'get_material_presets': self.get_material_presets,
-            'update_material_presets': self.update_material_presets
+            'update_material_presets': self.update_material_presets,
+            'set_mesh_point_colour': self.set_mesh_point_colour 
         })
 
         context_routine = dict(global_context)
@@ -272,7 +278,8 @@ class T5UID1:
             'check_paused': self.check_paused,
             'capture_gcode_files': self.capture_gcode_files,
             'get_material_presets': self.get_material_presets,
-            'update_material_presets': self.update_material_presets
+            'update_material_presets': self.update_material_presets,
+            'get_abl_profiles': self.get_abl_profiles
         })
 
         self._status_data.update({
@@ -690,29 +697,21 @@ class T5UID1:
 
     def get_start_countdown_status(self):
         """Check whether to start the Splicer-Estimated Print Time Remaining countdown timer""" 
-        variables_file = '/home/pi/klipper/klippy/extras/t5uid1/dgus_reloaded/variables.cfg' 
-        start_countdown_timer = None 
-        try: 
-            with open(variables_file, 'r') as file: 
-                for line in file: 
-                    if 'start_countdown_timer' in line: 
-                        # Strip out unnecessary characters and split the line key, 
-                        key, value = line.strip().split(' = ') 
-                        if key == 'start_countdown_timer': 
-                            start_countdown_timer = value.strip().lower() == 'true' 
-                            break 
-
-        except FileNotFoundError: 
+        variables_file = '/home/pi/klipper/klippy/extras/t5uid1/dgus_reloaded/variables.cfg'
+        start_countdown_timer = None
+        try:
+            with open(variables_file, 'r', encoding="utf-8") as file:
+                for line in file:
+                    if 'start_countdown_timer' in line:
+                        # Strip out unnecessary characters and split the line key,
+                        key, value = line.strip().split(' = ')
+                        if key == 'start_countdown_timer':
+                            start_countdown_timer = value.strip().lower() == 'true'
+                            return start_countdown_timer
+        except FileNotFoundError:
             print(f"File not found: {variables_file}") 
-        except Exception as e: 
+        except Exception as e:
             print(f"Error reading {variables_file}: {e}") 
-        
-        # If the variable isn't found, handle the case 
-        if start_countdown_timer is None: 
-            print("Variable 'start_countdown_timer' not found.") 
-            start_countdown_timer = False
-
-        return start_countdown_timer
 
     def get_status(self, eventtime):
         """Update the values of the displayed printer status variables"""
@@ -730,7 +729,7 @@ class T5UID1:
         else:
             self._print_duration = eventtime - self._print_start_time
  
-        start_counting=self.get_start_countdown_status()
+        start_counting = self.get_start_countdown_status()
         if not start_counting:
             self._print_time_remaining = self._slicer_estimated_print_time
             self._startup_duration = self._print_duration
@@ -765,7 +764,8 @@ class T5UID1:
             'is_printing': self._is_printing,
             'print_progress': self._print_progress,
             'print_duration': max(0, self._print_duration),
-            'time_remaining': self._print_time_remaining
+            'time_remaining': self._print_time_remaining,
+            '_threshold': self._threshold
         })
         return res
 
@@ -1121,6 +1121,7 @@ class T5UID1:
         # If there is a probe, and if the probe is currently performing multiple probes,
         # return True, else return False
         return (self.probe is not None and self.probe.probe_session.homing_helper.multi_probe_pending)
+
     def cmd_DGUS_ABORT_PAGE_SWITCH(self, gcmd):
         """define abort_page_switch as a no-op function"""
         pass
@@ -1224,7 +1225,7 @@ class T5UID1:
         parameter_value = default_value
         in_presets_section = False
         try:
-            with open(variables_file, 'r') as file:
+            with open(variables_file, 'r', encoding="utf-8") as file:
                 for line in file:
                     line = line.strip()
                     if line == "[presets]":
@@ -1235,7 +1236,7 @@ class T5UID1:
                         key, value = line.split(' = ')
                         if key == parameter_name:
                             parameter_value = value.strip().strip("'").strip('"')
-                            break
+                            return parameter_value
         except FileNotFoundError:
             print(f"File not found: {variables_file}")
         except Exception as e:
@@ -1251,18 +1252,19 @@ class T5UID1:
         updated = False
 
         try:
-            with open(variables_file, 'r') as file:
+            with open(variables_file, 'r', encoding="utf-8") as file:
                 lines = file.readlines()
 
-            with open(variables_file, 'w') as file:
+            with open(variables_file, 'w', encoding="utf-8") as file:
                 for line in lines:
                     line_stripped = line.strip()
                     if line_stripped == "[presets]":
                         in_presets_section = True
                     elif line_stripped.startswith("[") and line_stripped.endswith("]"):
                         in_presets_section = False
+
                     if in_presets_section and parameter_name in line_stripped:
-                        key, value = line.strip().split(' = ')
+                        key, value = line_stripped.split(' = ')
                         if key == parameter_name:
                             file.write(f"{parameter_name} = {new_value}\n")
                             updated = True
@@ -1270,16 +1272,79 @@ class T5UID1:
                             file.write(line)
                     else:
                         file.write(line)
+
                 if in_presets_section and not updated:
-                    # Append the new parameter to the [Presets] section if it wasn't updated
+                    # Append the new parameter to the [presets] section if it wasn't updated
                     file.write(f"{parameter_name} = {new_value}\n")
-                    
+        except Exception as e:
+            print(f"Error updating presets: {e}")
+
+    def get_abl_profiles(self, macro_names, profile_names):
+        """Get the material preset value from the [Presets] section of presets.cfg"""
+        variables_file = '/home/pi/klipper/klippy/extras/t5uid1/dgus_reloaded/presets.cfg'
+        in_profiles_section = False
+        try:
+            with open(variables_file, 'r', encoding="utf-8") as file:
+                for line in file:
+                    line = line.strip()
+                    if line == "[profiles]":
+                        in_profiles_section = True
+                    elif line.startswith("[") and line.endswith("]"):
+                        in_profiles_section = False
+                    elif in_profiles_section and ' = ' in line:
+                        key, value = line.split(' = ')
+                        macro_names.append(key.strip())
+                        profile_names.append(value.strip().strip("'").strip('"'))
+        except FileNotFoundError:
+            self.set_message(f"File not found: {variables_file}")
+        except Exception as e:
+            self.set_message(f"Error reading {variables_file}: {e}")
+
+        return macro_names, profile_names
+
+    def set_mesh_point_colour(self, mesh_point_value):
+        '''Set the colour of each displayed bed mesh point according to its value in mm from center height'''
+        threshold = self.get_abl_green_threshold()  # threshold = target maximum bed mesh point value deviation from 0.000, in mm
+        #self.set_message(f"green threshold = {threshold}")
+        if self.bed_mesh is None:
+            return 65535  # default colour is white, when no matrix loaded
+        if mesh_point_value == 0:
+            return 65535
+        if abs(mesh_point_value) <= threshold:
+            return 2024  # colour is green, when mesh point is within threshold
+        if 1.5*threshold >= mesh_point_value > threshold:
+            return 64536 # colour is pinkish if less than 2 * threshold but > threshold
+        if mesh_point_value < 0 and threshold < abs(mesh_point_value) <= 1.5*threshold:
+            return 34815  # colour is light blue, when mesh point is negative but does not exceed 1.5 * the threshold
+        if mesh_point_value < 0:  # colour is deep blue, if mesh point is negative and exceeds 1.5 * the threshold
+            return 600
+        return 63488  # colour is red, when mesh point is positive and exceeds 2 * the threshold
+
+    def get_abl_green_threshold(self):
+        """Get the value of abl_green_threshold for get_mesh_point_colour()""" 
+        variables_file = '/home/pi/klipper/klippy/extras/t5uid1/dgus_reloaded/presets.cfg'
+        threshold = 0.00
+        try: 
+            with open(variables_file, 'r', encoding="utf-8") as file:
+                for line in file:
+                    if 'abl_green_threshold' in line:
+                        # Strip out unnecessary characters and split the line key,
+                        key, value = line.strip().split(' = ')
+                        threshold = float(value)
+                        self._threshold = threshold
+                        return threshold
+
         except FileNotFoundError:
             print(f"File not found: {variables_file}")
         except Exception as e:
             print(f"Error reading {variables_file}: {e}")
-
-
+        
+        # If the variable isn't found, force the value to 0.1
+        if threshold == 0.00:
+            print("Variable 'abl_green_threshold' not found or 0.00.")
+            threshold = 0.1
+        return threshold
+    
 def load_config(config):
     """Load the DGUS-Reloaded.cfg file settings into this instance of T5UID1"""
     return T5UID1(config)
