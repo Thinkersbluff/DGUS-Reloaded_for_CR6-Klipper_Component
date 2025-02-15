@@ -4,8 +4,6 @@ Over the past year, it has become clear that:
 2. Users can and should instead perform and maintain a clean copy of the latest Klipper on their systems, and install/maintain the DGUS-Reloaded t5uiud1 application files as if it was a "Plug-In"
 3. For as long as the firmware.bin file included with this distribution continues to work with Klipper, there is no need to use Make Menuconfig to compile a new firmware.bin at each new release of Klipper.  In fact, one could not create a firmware.bin file that works with the DGUS-Reloaded DWIN_SET firmware from any other version of Klipper than the obsolete version on this repository.
 
-As summarized in the DWIN_SET repository Readme, I recommend that you install and configure Mainsail and Klipper on your system first, and then return to the DWIN_SET component repository, to flash and integrate the stock TFT display into your system.
-
 
 # DGUS-reloaded-Klipper, CR6Community Edition!
 The Klipper in this repo is an old fork of Klipper3D/Master, which was modified [by Desuuuu](https://github.com/Desuuuu/klipper), to work with his version of the DGUS-reloaded python application (t5uid1) and a matching DWIN_SET application. 
@@ -88,10 +86,14 @@ Once you have installed Klipper and Mainsail, you should be able to browse to yo
           a)  You can upload files to ~/printer_data/config via the Mainsail MACHINE tab, rather than messing about with SFTP and nano, if you prefer.  
           b)  You can use a utility like [Winmerge](https://winmerge.org/downloads/?lang=en) to compare the new files with existing files, if you prefer to selectively modify the existing files, rather than replacing them.  
 8. Copy the t5uid1 folder and contents into the ~/klipper/klippy/extras directory on your host (e.g. by using an SFTP program logged into your host, to transfer those files from the folder DGUS-Reloaded_for_CR6-Klipper_Component-..../klippy/extras that you extracted from the downloaded release zip file on your system.)
-9. Follow the instructions on [https://github.com/matthewlloyd/Klipper-Stable-Z-Home](https://github.com/matthewlloyd/Klipper-Stable-Z-Home), to also install stable_z_home.py.  
-   NOTE: To Clone a Repo:  
-  i) log in to the Klipper host via SSH (e.g. Using PUtTy)  
- ii) At the Home directory, type:  <code>git clone https://github.com/matthewlloyd/Klipper-Stable-Z-Home.git</code>
+9. Follow the instructions on [https://github.com/matthewlloyd/Klipper-Stable-Z-Home](https://github.com/matthewlloyd/Klipper-Stable-Z-Home), to also install stable_z_home.py.
+   i.e.: 1. Clone the repo
+      NOTE: To Clone a Repo:  
+            i) log in to the Klipper host via SSH (e.g. Using PUtTy)  
+            ii) At the user's pi login home directory (e.g. in /home/pi), type:  <code>git clone https://github.com/matthewlloyd/Klipper-Stable-Z-Home.git</code>
+         2. Create a symlink to that new directory, in the /home/pi/klipper/klippy/extras folder
+    This picture highlights where the clone and the symlink should be (assuming your user name is "pi", as recommended):
+    ![host file structure for Safe_Z_Home](Where to symlink stable_z_home.py.png)
 10. In the "Related Changes" folder from the unzipped Source.zip archive, in the "Flash  motherbd" sub-folder of the motherboard sub-folder applicable to your printer,  find the  klipper.bin file and flash that file to your printer (the same way you would flash the Creality or Community Firmware to your motherboard.)
 11. Restart your printer.
 12. Restart Klipper.
