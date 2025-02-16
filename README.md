@@ -95,7 +95,7 @@ Once you have installed Klipper and Mainsail, you should be able to browse to yo
             i) log in to the Klipper host via SSH (e.g. Using PUtTy)  
            ii) At the user's pi login home directory (e.g. in /home/pi), type:  <code>git clone https://github.com/matthewlloyd/Klipper-Stable-Z-Home.git</code>
      
-    2. Create a symlink to the python script in that new directory, in the /home/pi/klipper/klippy/extras folder, with the following two commands:
+    2. Create a symlink in the /home/pi/klipper/klippy/extras folder, with the following two commands:
 
            cd ~/klipper/klippy/extras  
            ln -s ~/Klipper-Stable-Z-Home/stable_z_home.py
