@@ -63,7 +63,7 @@ As of February 2025, that still works (as long as you are using v1.3.2 or higher
 ## Guidelines for How to Install DGUS-Reloaded with the Latest Klipper
 Rather than install the full modified Klipper from this repository, you should instead follow these instructions to install the latest Klipper and then add the DGUS-Reloaded functionality to your system.  Moonraker will then automatically keep your Klipper installation up to date. 
 
-1. Download and unzip the Source.zip file for the latest release on this repository. (NOTE: The file and folder names in Sources.zip are quite verbose, so you may first need to significantly shorten the top-level folder name in the zipfile ((e.g. to DGUS-Reloaded), to successfully "extract all" the contents.)
+1. Download and unzip the Source.zip file for the latest release on this repository. (NOTE: The file and folder names in Sources.zip are quite verbose, so you may first need to significantly shorten the top-level folder name in the zipfile ((e.g. to DGUS-Reloaded), to successfully "extract all" the contents.)  
 
 2. If you have not already done so, now create a Linux computer host for Klipper.  (NOTE: If you already have the Klipper/Mainsail host configured and are now updating it to use DGUS-Reloaded, then skip to step 6.)
 
@@ -86,17 +86,26 @@ Once you have installed Klipper and Mainsail, you should be able to browse to yo
           a)  You can upload files to ~/printer_data/config via the Mainsail MACHINE tab, rather than messing about with SFTP and nano, if you prefer.  
           b)  You can use a utility like [Winmerge](https://winmerge.org/downloads/?lang=en) to compare the new files with existing files, if you prefer to selectively modify the existing files, rather than replacing them.  
 8. Copy the t5uid1 folder and contents into the ~/klipper/klippy/extras directory on your host (e.g. by using an SFTP program logged into your host, to transfer those files from the folder DGUS-Reloaded_for_CR6-Klipper_Component-..../klippy/extras that you extracted from the downloaded release zip file on your system.)
-9. Follow the instructions on [https://github.com/matthewlloyd/Klipper-Stable-Z-Home](https://github.com/matthewlloyd/Klipper-Stable-Z-Home), to also install stable_z_home.py.
-   i.e.: 1. Clone the repo
+9. Follow the instructions on [https://github.com/matthewlloyd/Klipper-Stable-Z-Home](https://github.com/matthewlloyd/Klipper-Stable-Z-Home), to also install stable_z_home.py.  
+
+   i.e.:
+    1. Clone the repo
+   
       NOTE: To Clone a Repo:  
             i) log in to the Klipper host via SSH (e.g. Using PUtTy)  
-            ii) At the user's pi login home directory (e.g. in /home/pi), type:  <code>git clone https://github.com/matthewlloyd/Klipper-Stable-Z-Home.git</code>
-         2. Create a symlink to that new directory, in the /home/pi/klipper/klippy/extras folder
-    This picture highlights where the clone and the symlink should be (assuming your user name is "pi", as recommended):
-    ![host file structure for Safe_Z_Home](Where to symlink stable_z_home.py.png)
-10. In the "Related Changes" folder from the unzipped Source.zip archive, in the "Flash  motherbd" sub-folder of the motherboard sub-folder applicable to your printer,  find the  klipper.bin file and flash that file to your printer (the same way you would flash the Creality or Community Firmware to your motherboard.)
-11. Restart your printer.
-12. Restart Klipper.
+           ii) At the user's pi login home directory (e.g. in /home/pi), type:  <code>git clone https://github.com/matthewlloyd/Klipper-Stable-Z-Home.git</code>
+     
+    2. Create a symlink in the /home/pi/klipper/klippy/extras folder, with the following two commands:
+
+           cd ~/klipper/klippy/extras  
+           ln -s ~/Klipper-Stable-Z-Home/stable_z_home.py
+
+    This picture highlights where the clone and the symlink should be (assuming your user name is "pi", as recommended):  
+    ![Where to symlink stable_z_home py](https://github.com/user-attachments/assets/d1991eb1-282e-47b8-b07d-51289273f077)
+
+11. In the "Related Changes" folder from the unzipped Source.zip archive, in the "Flash  motherbd" sub-folder of the motherboard sub-folder applicable to your printer,  find the  klipper.bin file and flash that file to your printer (the same way you would flash the Creality or Community Firmware to your motherboard.)
+12. Restart your printer.
+13. Restart Klipper.
 
 Klipper should now connect with your mcu and Mainsail should support printing.  Until you have the matching DWIN_SET installed on your stock display, however, the display will still not function with Klipper.  
 
