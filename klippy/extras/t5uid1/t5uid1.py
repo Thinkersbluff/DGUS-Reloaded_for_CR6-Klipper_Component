@@ -1120,7 +1120,7 @@ class T5UID1:
             return True
         # If there is a probe, and if the probe is currently performing multiple probes,
         # return True, else return False
-        return (self.probe is not None and self.probe.probe_session.homing_helper.multi_probe_pending)
+        return (self.probe is not None and self.probe.homing_helper.multi_probe_pending)
 
     def cmd_DGUS_ABORT_PAGE_SWITCH(self, gcmd):
         """define abort_page_switch as a no-op function"""
