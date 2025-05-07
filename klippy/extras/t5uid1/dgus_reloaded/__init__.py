@@ -47,9 +47,9 @@ constants = {
     'extruder_e1':      1,
 
     'heater_all':       -2,
-    'heater_bed':       -1,
+    'heater_bed':       1,
     'heater_h0':        0,
-    'heater_h1':        1,
+    'heater_h1':        2,
 
     'stepper_enable':   1,
     'stepper_disable':  2,
