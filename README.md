@@ -46,7 +46,7 @@ No.
 
 As of 30 Apr 2025:
 - Thinkersbluff is no longer able to merge Klipper3D.org updates into this repo.
-- The pre-built klipper.bin files available here DO, however, continue to work with Klipper as of v0.13.0-71-g3cf8899a
+- The pre-built klipper.bin files available here DO, however, continue to work with Klipper at v0.13.0-71-g3cf8899a
  
 At some future release of Klipper, changes to the klipper.bin or Make Menuconfig functionality may no longer work with the pre-built klipper.bin files available here.
 That may signal the end of this project, or it may force me (or one of you) to finally figure out what Desuuu did to the original Klipper files, that enabled the Klipper host to interact  with the stock TFT display firmware...
