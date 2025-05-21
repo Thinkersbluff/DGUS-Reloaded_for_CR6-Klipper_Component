@@ -238,6 +238,7 @@ class T5UID1:
             'bitwise_and': bitwise_and,
             'bitwise_or': bitwise_or,
             'get_printer_cfg_value': self.get_printer_cfg_value,
+            'replace_printer_cfg_value': self.replace_printer_cfg_value,
             'round_up': self.round_up,
         }
 
