@@ -5,12 +5,16 @@
 # Copyright (C) 2020  Desuuuu <contact@desuuuu.com>
 #
 # This file may be distributed under the terms of the GNU GPLv3 license.
+import decimal
 import logging
 import os
+import re
 import struct
 import textwrap
+
 import jinja2
 import mcu
+
 from . import var, page, routine, dgus_reloaded
 from .. import gcode_macro, heaters
 
@@ -112,6 +116,14 @@ class T5UID1GCodeMacro:
                                       trim_blocks=True,
                                       lstrip_blocks=True,
                                       extensions=['jinja2.ext.do'])
+        # Register the round_up filter. Added to enable use of round_up in vars_in.cfg, vars_out.cfg & routines.cfg
+        self.env.filters["round_up"] = self.round_up
+
+    def round_up(self, value, num_dec_places):
+        """Rounds up a number to a fixed number of decimal places"""
+        num = decimal.Decimal(value)
+        rounded_up = num.quantize(decimal.Decimal(str(num_dec_places)), rounding=decimal.ROUND_CEILING)
+        return rounded_up
 
     def load_template(self, config, option, default=None):
         """Load applicable jinja2 template"""
@@ -225,6 +237,8 @@ class T5UID1:
             'set_message': self.set_message,
             'bitwise_and': bitwise_and,
             'bitwise_or': bitwise_or,
+            'get_printer_cfg_value': self.get_printer_cfg_value,
+            'round_up': self.round_up,
         }
 
         context_input = dict(global_context)
@@ -245,7 +259,8 @@ class T5UID1:
             'get_material_presets': self.get_material_presets,
             'update_material_presets': self.update_material_presets,
             'get_abl_green_threshold': self.get_abl_green_threshold,
-            'get_abl_profiles': self.get_abl_profiles
+            'get_abl_profiles': self.get_abl_profiles,
+            'get_printer_cfg_value': self.get_printer_cfg_value
         })
 
         context_output = dict(global_context)
@@ -261,7 +276,8 @@ class T5UID1:
             'specific_fpname': self.specific_fpname,
             'get_material_presets': self.get_material_presets,
             'update_material_presets': self.update_material_presets,
-            'set_mesh_point_colour': self.set_mesh_point_colour 
+            'set_mesh_point_colour': self.set_mesh_point_colour,
+            'round_up': self.round_up
         })
 
         context_routine = dict(global_context)
@@ -279,7 +295,8 @@ class T5UID1:
             'capture_gcode_files': self.capture_gcode_files,
             'get_material_presets': self.get_material_presets,
             'update_material_presets': self.update_material_presets,
-            'get_abl_profiles': self.get_abl_profiles
+            'get_abl_profiles': self.get_abl_profiles,
+            'round_up': self.round_up
         })
 
         self._status_data.update({
@@ -709,9 +726,9 @@ class T5UID1:
                             start_countdown_timer = value.strip().lower() == 'true'
                             return start_countdown_timer
         except FileNotFoundError:
-            print(f"File not found: {variables_file}") 
+            logging.exception(f"File not found: {variables_file}") 
         except Exception as e:
-            print(f"Error reading {variables_file}: {e}") 
+            logging.exception(f"Error reading {variables_file}: {e}") 
 
     def get_status(self, eventtime):
         """Update the values of the displayed printer status variables"""
@@ -1238,10 +1255,10 @@ class T5UID1:
                             parameter_value = value.strip().strip("'").strip('"')
                             return parameter_value
         except FileNotFoundError:
-            print(f"File not found: {variables_file}")
+            logging.exception(f"File not found: {variables_file}")
         except Exception as e:
-            print(f"Error reading {variables_file}: {e}")
-        print(f"Parameter {parameter_name} has value: {parameter_value}")  # Debugging line
+            logging.exception(f"Error reading {variables_file}: {e}")
+        logging.warning(f"Parameter {parameter_name} has value: {parameter_value}")  # Debugging line
         return parameter_value
 
     def update_material_presets(self, parameter_name, new_value):
@@ -1277,7 +1294,7 @@ class T5UID1:
                     # Append the new parameter to the [presets] section if it wasn't updated
                     file.write(f"{parameter_name} = {new_value}\n")
         except Exception as e:
-            print(f"Error updating presets: {e}")
+            logging.exception(f"Error updating presets: {e}")
 
     def get_abl_profiles(self, macro_names, profile_names):
         """Get the material preset value from the [Presets] section of presets.cfg"""
@@ -1335,16 +1352,97 @@ class T5UID1:
                         return threshold
 
         except FileNotFoundError:
-            print(f"File not found: {variables_file}")
+            logging.exception(f"File not found: {variables_file}")
         except Exception as e:
-            print(f"Error reading {variables_file}: {e}")
-        
+            logging.exception(f"Error reading {variables_file}: {e}")
+
         # If the variable isn't found, force the value to 0.1
         if threshold == 0.00:
-            print("Variable 'abl_green_threshold' not found or 0.00.")
+            logging.exception(f"abl_green_threshold value missing or 0.00")
             threshold = 0.1
         return threshold
+
+    # Added at v0.4.8 to read extruder rotation distance. Generalized for future use.
+    # Take care to specify variable type in calling routine!! [This routine always returns a string]
+    def get_printer_cfg_value(self, section_name, parameter_name):
+        '''Find and return the current value of parameter_name in section_name'''
+        config_file_path = '/home/pi/printer_data/config/printer.cfg'
+        with open(config_file_path, "r") as f:
+            lines = f.readlines()
+            in_target_section = False
+            for line in lines:
+                line = line.strip()  # Remove leading/trailing spaces
+
+                # Skip comment lines (those that start with '#' or ';')
+                if line.startswith("#") or line.startswith(";"):
+                    continue
+
+                # Detect the start of the target section
+                if f"[{section_name}]" in line:
+                    in_target_section = True
+                    continue
+
+                # Stop searching if a new section starts
+                if in_target_section and line.startswith("["):
+                    break
+
+                # Search for the parameter within the target section
+                if in_target_section:
+                    match = re.match(rf"^\s*{parameter_name}\s*[:=]\s*([\d\.]+)", line)
+                    if match:
+                        return match.group(1)
+
+        return 0  # If parameter not found, return 0
     
+    def replace_printer_cfg_value(self, section_name, parameter_name, new_value):
+        '''Find and replace the current value of parameter_name in section_name with new_value'''
+        cfg_file_path = '/home/pi/printer_data/config/printer.cfg'
+        with open(cfg_file_path, "r") as file:
+            lines = file.readlines()
+
+        updated_lines = []
+        in_target_section = False
+
+        for line in lines:
+            # Preserve comments, "as-is"
+            if line.startswith("#") or line.startswith(";"):
+                updated_lines.append(line)
+                continue
+
+            # Detect the start of the target section
+            if f"[{section_name}]" in line:
+                in_target_section = True # We have now entered the named section
+                updated_lines.append(line)  # Keep named section header
+                continue
+
+            # Exit section if a new section starts
+            if in_target_section and line.startswith("["):
+                in_target_section = False  # We have now left the named section
+                updated_lines.append(line)  # Keep new section header
+
+            # Find - and replace with new_value - the current value of the named parameter inside the named section
+            if in_target_section:
+                match = re.match(rf"^\s*{parameter_name}\s*[:=]\s*([\d\.]+)", line)
+                if match:
+                    updated_lines.append(f"{parameter_name} = {new_value}\n")  # Replace current value with new_value
+                    continue  # Skip writing the old version of the matched line to the updated_lines[] dictionary
+
+            # Keep all other lines unchanged
+            updated_lines.append(line)
+
+        # Write updated contents back to printer.cfg
+        with open(cfg_file_path, "w") as file:
+            file.writelines(updated_lines)
+
+        # Example Usage
+        # update_printer_cfg("extruder", "rotation_distance", "35.801")
+
+    def round_up(self, value, num_dec_places):
+        '''Use to round variables up to the specified number of decimal places'''
+        num = decimal.Decimal(value)
+        rounded_up = num.quantize(decimal.Decimal(str(num_dec_places)), rounding=decimal.ROUND_CEILING)
+        return rounded_up
+
 def load_config(config):
     """Load the DGUS-Reloaded.cfg file settings into this instance of T5UID1"""
     return T5UID1(config)
