@@ -31,6 +31,8 @@ New/Modified Features at this release:
  - Specifically implemented functions which read the existing value of rotation_distance in the [extruder] section and which can replace the current value with a new one
  - Implemented handlers for the new controls and displays
 
+ - Added delayed_gcode macro to DGUS-Reloaded.cfg, to restore the default behaviour of Klipper to load the default bed_mesh profile at startup.
+   This partially restores the LOAD Profile functionality on the Automatic Bed Levelling page. 
  
 Bugs/Issues Resolved at This Release:
 
