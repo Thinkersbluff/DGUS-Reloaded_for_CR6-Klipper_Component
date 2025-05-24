@@ -27,20 +27,23 @@ New/Modified Features at this release:
 
  Added back-end processing support for the DWIN_SET v0.4.8 Release:
 
- - Added ability to read values from printer.cfg and to replace those values with new ones
+ - Added ability to read values from printer.cfg and to replace those values with new ones.  
  - Specifically implemented functions which read the existing value of rotation_distance in the [extruder] section and which can replace the current value with a new one
  - Implemented handlers for the new controls and displays
 
  - Added delayed_gcode macro to DGUS-Reloaded.cfg, to restore the default behaviour of Klipper to load the default bed_mesh profile at startup.
-   This partially restores the LOAD Profile functionality on the Automatic Bed Levelling page. 
  
 Bugs/Issues Resolved at This Release:
 
-  - #61 - "Extrude only move too long" if Auto Unload is Disabled at end of print
-	Modified the END_PRINT script in CR6.cfg, to replace M82 with M83 at line 356.
+  - #61: "Extrude only move too long" if Auto Unload is Disabled at end of print
+      - Modified the END_PRINT script in CR6.cfg, to replace M82 with M83 at line 356.
+
+  - #56: Current (Bed_Mesh) Profile name displayed = 'None', if no such mesh stored in printer.cfg (e.g. fresh after a new installation)
+    - Added a full set of bed_mesh profiles to printer.cfg, instead of removing that section of the file. Makes it easier for new users to get started.  
+    - Set all of those mesh values to zero, to enable warning users if they have not yet run all of the ABL macros on their own system since first installing DGUS-Reloaded.
+
 
 Known Issues at this Release: 
-- New Issue #56: Current (Bed_Mesh) Profile name displayed = 'None', if no such mesh stored in printer.cfg (e.g. fresh after a new installation)
 
 - No changes since v1.3.6:
  - The displayed slicer-estimated print time remaining value may toggle between two values, if the print is performed faster than the slicer anticipated (e.g. if the feed rate is increased to a value greater than 100%)
