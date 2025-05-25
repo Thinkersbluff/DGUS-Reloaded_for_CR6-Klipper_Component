@@ -257,8 +257,8 @@ class T5UID1:
             'capture_gcode_files': self.capture_gcode_files,
             'delete_file': self.delete_file,
             'is_busy': self.is_busy,
-            'get_material_presets': self.get_material_presets,
-            'update_material_presets': self.update_material_presets,
+            'get_preset_values': self.get_preset_values,
+            'update_preset_value': self.update_preset_value,
             'get_abl_green_threshold': self.get_abl_green_threshold,
             'get_abl_profiles': self.get_abl_profiles,
             'get_printer_cfg_value': self.get_printer_cfg_value
@@ -275,8 +275,8 @@ class T5UID1:
             'get_duration': get_duration,
             'get_remaining': get_remaining,
             'specific_fpname': self.specific_fpname,
-            'get_material_presets': self.get_material_presets,
-            'update_material_presets': self.update_material_presets,
+            'get_preset_values': self.get_preset_values,
+            'update_preset_value': self.update_preset_value,
             'set_mesh_point_colour': self.set_mesh_point_colour,
             'round_up': self.round_up
         })
@@ -294,8 +294,8 @@ class T5UID1:
             'is_busy': self.is_busy,
             'check_paused': self.check_paused,
             'capture_gcode_files': self.capture_gcode_files,
-            'get_material_presets': self.get_material_presets,
-            'update_material_presets': self.update_material_presets,
+            'get_preset_values': self.get_preset_values,
+            'update_preset_value': self.update_preset_value,
             'get_abl_profiles': self.get_abl_profiles,
             'round_up': self.round_up
         })
@@ -872,7 +872,7 @@ class T5UID1:
         if self._current_page: 
             self._page_history.append(self._current_page)
 
-        # ?? Not clear why exit this routine if there are no (optional) "enter_pre" routines defined for the new page
+        # If there are no (optional) "enter_pre" routines defined for the new page, then return
         if not self._start_page_routines(name, "enter_pre"):
             return
         
@@ -1237,7 +1237,7 @@ class T5UID1:
         except Exception as e:
             raise gcmd.error(str(e))
    
-    def get_material_presets(self, parameter_name, default_value):
+    def get_preset_values(self, parameter_name, default_value):
         """Get the material preset value from the [Presets] section of presets.cfg"""
         variables_file = '/home/pi/klipper/klippy/extras/t5uid1/dgus_reloaded/presets.cfg'
         parameter_value = default_value
@@ -1262,7 +1262,7 @@ class T5UID1:
         logging.warning(f"Parameter {parameter_name} has value: {parameter_value}")  # Debugging line
         return parameter_value
 
-    def update_material_presets(self, parameter_name, new_value):
+    def update_preset_value(self, parameter_name, new_value):
         """Update the default material settings in presets.cfg"""
         variables_file = '/home/pi/klipper/klippy/extras/t5uid1/dgus_reloaded/presets.cfg'
         lines = []
