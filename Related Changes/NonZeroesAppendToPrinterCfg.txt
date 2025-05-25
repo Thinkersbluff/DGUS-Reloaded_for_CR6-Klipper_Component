@@ -20,7 +20,7 @@
 #*# min_y = 10.0
 #*# max_y = 220.0
 #*#
-#*# [bed_mesh BED_MESH_PLA]
+#*# [bed_mesh BED_MESH_AT_60C]
 #*# version = 1
 #*# points =
 #*# 	0.038750, 0.062500, 0.043750, -0.021250, -0.051250
@@ -39,7 +39,7 @@
 #*# min_y = 10.0
 #*# max_y = 220.0
 #*#
-#*# [bed_mesh BED_MESH_PETG]
+#*# [bed_mesh BED_MESH_AT_80C]
 #*# version = 1
 #*# points =
 #*# 	0.050000, 0.083750, 0.061250, -0.003750, -0.046250
@@ -58,7 +58,7 @@
 #*# min_y = 10.0
 #*# max_y = 220.0
 #*#
-#*# [bed_mesh BED_MESH_WOOD]
+#*# [bed_mesh BED_MESH_AT_95C]
 #*# version = 1
 #*# points =
 #*# 	  -0.013750, 0.041250, 0.035000, -0.038750, -0.115000
