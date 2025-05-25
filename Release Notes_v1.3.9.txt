@@ -31,7 +31,6 @@ New/Modified Features at this release:
  - Specifically implemented functions which read the existing value of rotation_distance in the [extruder] section and which can replace the current value with a new one
  - Implemented handlers for the new controls and displays
 
- - Added delayed_gcode macro to DGUS-Reloaded.cfg, to restore the default behaviour of Klipper to load the default bed_mesh profile at startup.
  
 Bugs/Issues Resolved at This Release:
 
@@ -40,7 +39,7 @@ Bugs/Issues Resolved at This Release:
 
   - #56: Current (Bed_Mesh) Profile name displayed = 'None', if no such mesh stored in printer.cfg (e.g. fresh after a new installation)
     - Added a full set of bed_mesh profiles to printer.cfg, instead of removing that section of the file. Makes it easier for new users to get started.  
-    - Set all of those mesh values to zero, to enable warning users if they have not yet run all of the ABL macros on their own system since first installing DGUS-Reloaded.
+    - Set all of those mesh values to zero, to enable warning users if they have not yet run all of the ABL macros on their own system since first installing DGUS-Reloaded.  To get Klipper to load an "all-zeroes" mesh, I set the #1 mesh point in each profile to a slightly>0 value.  Still shows as 0.000 when rounded to 3 decimal places on the screen, but appears green instead of white.  This should be sufficient warning that the profile needs to be recalibrated...
 
 
 Known Issues at this Release: 
