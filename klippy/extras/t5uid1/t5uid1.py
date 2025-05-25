@@ -864,7 +864,7 @@ class T5UID1:
                                              ]),
                                              send)
 
-        # If switching to the current page, no action required. Exit routine    
+        # If switching to the current page, no action required. Exit routine
         if name == self._current_page:
             return
 
