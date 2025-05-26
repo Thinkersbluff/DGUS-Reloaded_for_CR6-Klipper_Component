@@ -1,4 +1,4 @@
-# Last Updated: 25 May 2025
+# Last Updated: 23 May 2025
 #
 # This file contains common pin mappings for the BIGTREETECH SKR CR6 # V1.0 motherboard. 
 
@@ -149,7 +149,7 @@ microsteps: 64
 
 # Orbiter extruder
 gear_ratio: 7.5:1
-rotation_distance : 35.800
+rotation_distance: 35.524
 
 # BMG extruder
 # gear_ratio: 51:17
@@ -217,15 +217,13 @@ retract_length: 1.0
 #   The length of filament (in mm) to retract when G10 is activated,
 #   and to unretract when G11 is activated (but see
 #   unretract_extra_length below). The default is 0 mm.
-retract_speed : 120
-#   The speed of retraction, in mm/s.
-#     The Klipper default is 20 mm/s. Orbiter v1.5 = 120 mm/s
-unretract_extra_length : 0.0
+retract_speed: 60
+#   The speed of retraction, in mm/s. The default is 20 mm/s.
+unretract_extra_length: 0.0
 #   The length (in mm) of *additional* filament to add when
 #   unretracting.
-unretract_speed : 120
-#   The speed of unretraction, in mm/s. 
-#     The Klipper default is 10 mm/s. Orbiter v1.5 = 120 mm/s
+unretract_speed: 30
+#   The speed of unretraction, in mm/s. The default is 10 mm/s.
 
 [tuning_tower]
 
