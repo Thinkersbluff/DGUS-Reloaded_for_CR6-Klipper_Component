@@ -261,7 +261,7 @@ class T5UID1:
             'update_preset_value': self.update_preset_value,
             'get_abl_green_threshold': self.get_abl_green_threshold,
             'get_abl_profiles': self.get_abl_profiles,
-            'get_printer_cfg_value': self.get_printer_cfg_value
+            'get_printer_cfg_value': self.get_printer_cfg_value,
         })
 
         context_output = dict(global_context)
@@ -278,7 +278,7 @@ class T5UID1:
             'get_preset_values': self.get_preset_values,
             'update_preset_value': self.update_preset_value,
             'set_mesh_point_colour': self.set_mesh_point_colour,
-            'round_up': self.round_up
+            'round_up': self.round_up,
         })
 
         context_routine = dict(global_context)
@@ -297,7 +297,7 @@ class T5UID1:
             'get_preset_values': self.get_preset_values,
             'update_preset_value': self.update_preset_value,
             'get_abl_profiles': self.get_abl_profiles,
-            'round_up': self.round_up
+            'round_up': self.round_up,
         })
 
         self._status_data.update({
@@ -606,7 +606,6 @@ class T5UID1:
         for routine in self._routines:
             if self._routines[routine].page == page:
                 self._routines[routine].stop()
-
 
     class sentinel:
         """Defines sentinel as no-op class"""
@@ -1237,7 +1236,7 @@ class T5UID1:
         except Exception as e:
             raise gcmd.error(str(e))
    
-    def get_preset_values(self, parameter_name, default_value):
+    def get_preset_values(self, parameter_name, default_value=None):
         """Get the material preset value from the [Presets] section of presets.cfg"""
         variables_file = '/home/pi/klipper/klippy/extras/t5uid1/dgus_reloaded/presets.cfg'
         parameter_value = default_value
