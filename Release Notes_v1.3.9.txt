@@ -1,4 +1,4 @@
-Last Updated:  21 May 25
+Last Updated:  25 May 25
 New at release 1.3.9
 
 WELCOME!
@@ -34,6 +34,8 @@ New/Modified Features at this release:
  
 Bugs/Issues Resolved at This Release:
 
+  - unload_filament_after_print stopped working on the Test Printer, during the development testing of v1.3.9. May also be a bug in 1.3.8, but did not stop to investigate that, just fixed it.  Needed to refactor that function to clone and synchronize the flag in presets.cfg into variables.cfg, so that the END_PRINT macro could find it and so that the user's last setting will persist over Host boot cycles and Firmware Restart cycles.  This time, for sure!
+
   - #61: "Extrude only move too long" if Auto Unload is Disabled at end of print
       - Modified the END_PRINT script in CR6.cfg, to replace M82 with M83 at line 356.
 
@@ -43,6 +45,10 @@ Bugs/Issues Resolved at This Release:
 
 
 Known Issues at this Release: 
+
+- Aural feedback on touch controls has changed at v1.3.9/0.4.8.  The changes may disturb users familiar with previous generations of DGUS-Reloaded and may be the subject of future adjustments, to get things "right".  The intention is to allow "debouncing" of touch controls.  Any activation delay is confusing, if the hardware is not configured to disable the "beep on touch" sound, but software beeps are not an option when a DWIN_SET button press causes a PopUp screen to appear, for instance.  This means that the keyboard key presses no longer give audio feedback, you must rely on reading the display to see whether you have double-keyed an entry.  On the other hand, I can now adjust the delay on each button, to debounce those keys.  Be patient with me, but be sure to comment, to explain any problems these changes give you.
+
+- CANCEL_PRINT ignores unload_filament_after_print.  Not by design, and not yet sure why, but seems appropriate anyway, so not in a rush to find/fix this.
 
 - No changes since v1.3.6:
  - The displayed slicer-estimated print time remaining value may toggle between two values, if the print is performed faster than the slicer anticipated (e.g. if the feed rate is increased to a value greater than 100%)
