@@ -656,29 +656,29 @@ class T5UID1:
                 if self._files[i + index] is not None:
                     return self._files[i + index].split('/')[-1]
                 else:
-                    return None 
+                    return None
             else: raise IndexError("Index out of range") 
         except Exception as e:
-            logging.exception("Unhandled exception in specific_fpname: %s, %s, %s", i, index, str(e)) 
+            logging.exception("Unhandled exception in specific_fpname: %s, %s, %s", i, index, str(e))
             return None
         
     def specific_mpname(self, visible_start, position_in_list):
         """Retrieve the name of the macro to be displayed at position_in_list"""
-        try: 
+        try:
             index = visible_start + position_in_list  # Correctly calculate the index
-            
+
             # Ensure index is within bounds
             if 0 <= index < len(self._macros):  
-                result = self._macros[index] if self._macros[index] is not None else " _ "
+                result = self._macros[index] if self._macros[index] is not None else ""
             else:
-                result = " _ "  # Return an empty string instead of None for out-of-range indices
-            
+                result = ""  # Return an empty string instead of None for out-of-range indices
+
             logging.info("specific_mpname returning: '%s' for index %d", result, index)
             return result
 
         except Exception as e:
-            logging.exception("Unhandled exception in specific_mpname: %s, %s, %s", visible_start, position_in_list, str(e)) 
-            return " _ "  # Return an empty string instead of None
+            logging.exception("Unhandled exception in specific_mpname: %s, %s, %s", visible_start, position_in_list, str(e))
+            return ""  # Return an empty string instead of None
 
     def delete_file(self, index):
         self._scroll_index = index
@@ -1500,22 +1500,6 @@ class T5UID1:
 
         return self._macros
     
-    def get_macro_registration_status(self, macro_menu_names):
-        """Create a dictionary with macro names as keys and their registration status as values."""
-        try:
-            if not macro_menu_names:
-                return {}
-
-            registered_macros = printer.objects.query().get("gcode_macro", {})
-            logging.info("Checking registration status for %d macros", len(macro_menu_names))
-
-            macro_status = {macro: (macro in registered_macros) for macro in macro_menu_names}
-            return macro_status
-
-        except Exception as e:
-            logging.exception("Error retrieving macro statuses: %s", str(e))
-            return {}
-
 def load_config(config):
     """Load the DGUS-Reloaded.cfg file settings into this instance of T5UID1"""
     return T5UID1(config)
