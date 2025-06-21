@@ -296,7 +296,6 @@ class T5UID1:
             'check_paused': self.check_paused,
             'capture_gcode_files': self.capture_gcode_files,
             'capture_macros_list': self.capture_macros_list,
-            'get_macro_registration_status': self.get_macro_registration_status,
             'get_preset_values': self.get_preset_values,
             'update_preset_value': self.update_preset_value,
             'get_abl_profiles': self.get_abl_profiles,
@@ -1496,7 +1495,7 @@ class T5UID1:
 
                 # Capture all macro names listed within the target section into self._macros[]
                 if in_target_section and line:
-                    self._macros.append(line)
+                    self._macros.append(line.upper())
 
         return self._macros
     
