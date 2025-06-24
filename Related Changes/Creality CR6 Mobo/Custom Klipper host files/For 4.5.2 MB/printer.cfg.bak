@@ -1,4 +1,4 @@
-# Last Updated: 23 May 2025
+# Last Updated: 12 June 2025
 #
 # This file contains common pin mappings for the Creality 4.5.2 motherboard. 
 # The pin mappings for the BTT SKR CR6 motherboard are available in the Related Changes folder printer.cfg file for that board
@@ -112,7 +112,7 @@ max_extrude_cross_section: 1.0 # mm^2
 max_extrude_only_velocity:120 # mm/s  NOTE: 120mm/s is the max retraction speed recommended for an Orbiter v1.5 extruder. You may need to reduce this to 60 for a stock extruder?
 max_extrude_only_accel: 3500 # mm/s/s
 step_pin: PC2
-dir_pin: !PB9
+dir_pin: !PB9    # NOTE: You will need to remove the ! from this setting, if your extruder runs backwards
 enable_pin: !PC3
 microsteps: 16
 
@@ -125,7 +125,7 @@ microsteps: 16
 
 # Orbiter extruder
 gear_ratio: 7.5:1
-rotation_distance: 35.524
+rotation_distance : 35.800
 
 # BMG extruder
 # gear_ratio: 51:17
@@ -186,13 +186,15 @@ retract_length: 1.0
 #   The length of filament (in mm) to retract when G10 is activated,
 #   and to unretract when G11 is activated (but see
 #   unretract_extra_length below). The default is 0 mm.
-retract_speed: 60
-#   The speed of retraction, in mm/s. The default is 20 mm/s.
-unretract_extra_length: 0.0
+retract_speed : 120
+#   The speed of retraction, in mm/s.
+#     The Klipper default is 20 mm/s. Orbiter v1.5 = 120 mm/s
+unretract_extra_length : 0.0
 #   The length (in mm) of *additional* filament to add when
 #   unretracting.
-unretract_speed: 30
-#   The speed of unretraction, in mm/s. The default is 10 mm/s.
+unretract_speed : 120
+#   The speed of unretraction, in mm/s. 
+#     The Klipper default is 10 mm/s. Orbiter v1.5 = 120 mm/s
 
 [tuning_tower]
 

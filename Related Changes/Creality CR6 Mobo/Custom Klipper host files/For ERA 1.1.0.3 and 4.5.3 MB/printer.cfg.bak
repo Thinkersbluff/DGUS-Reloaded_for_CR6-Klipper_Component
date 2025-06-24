@@ -1,4 +1,4 @@
-# Last Updated: 23 May 2025
+# Last Updated: 12 June 2025
 #
 # This file contains common pin mappings for the Creality 1.1.0.3 ERA motherboard. 
 # These same pin mappings should also work for the Creality 4.5.3 motherboard.
@@ -115,7 +115,7 @@ max_extrude_cross_section: 1.0 # mm^2
 max_extrude_only_velocity:120 # mm/s  NOTE: 120mm/s is the max retraction speed recommended for an Orbiter v1.5 extruder. You may need to reduce this to 60 for a stock extruder?
 max_extrude_only_accel: 3500 # mm/s/s
 step_pin: PC2
-dir_pin: !PB9
+dir_pin: !PB9  # NOTE: You will need to remove the ! from this setting, if your extruder runs backwards
 enable_pin: !PC3
 microsteps: 16
 
@@ -128,7 +128,7 @@ microsteps: 16
 
 # Orbiter extruder
 gear_ratio: 7.5:1
-rotation_distance: 35.524
+rotation_distance : 35.800
 
 # BMG extruder
 # gear_ratio: 51:17

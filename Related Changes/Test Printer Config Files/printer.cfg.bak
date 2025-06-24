@@ -1,4 +1,4 @@
-# Last Updated: 25 May 2025
+# Last Updated: 21 June 2025
 #
 # This file contains common pin mappings for the Creality 1.1.0.3 ERA motherboard. 
 # These same pin mappings should also work for the Creality 4.5.3 motherboard.
@@ -36,7 +36,7 @@
 # IF you do not have moonraker timelapse installed, comment out this optional cfg:
 [include timelapse.cfg]
 
-# IF you do not want to use tyhe Dev_Macros, you can comment out this optional cfg:
+# IF you do not want to use the Dev_Macros, you can comment out this optional cfg:
 [include Dev_Macros.cfg]
 
 # You may want to comment-out this include instruction, until you have completed the Resonance Compensation process referenced in InputShaper.cfg
@@ -104,18 +104,20 @@ full_steps_per_rotation : 200
 # Calibrate your Z Offset per: https://www.klipper3d.org/Probe_Calibrate.html#calibrating-probe-z-offset
 
 [probe]
-#z_offset : -0.20
+z_offset : -0.20
 
 
 # Extruder and HotEnd Settings #
 
+# NOTE: if you have a geared extruder like the Orbiter, you may need to remove the ! from the dir_pin setting, to reverse the motor direction
+# (I installed my Orbiter while still running Marlin and reversed the motor by switching two wires in the connector, so !PB9 works on my test printer.)
 [extruder]
 max_extrude_only_distance : 200.0
 max_extrude_cross_section : 1.0 # mm^2
 max_extrude_only_velocity : 120 # mm/s
 max_extrude_only_accel : 3500 # mm/s/s
 step_pin : PC2
-dir_pin : !PB9
+dir_pin : !PB9   
 enable_pin : !PC3
 microsteps : 16
 
@@ -147,10 +149,10 @@ sensor_type : PT1000
 sensor_pin : PB1
 
 # PID-Tune your Nozzle heater using the Calibrate-> PID Tuning menu and SAVE_CONFIG
-#control : pid
-#pid_Kp : 27.290
-#pid_Ki : 1.784
-#pid_Kd : 104.383
+control : pid
+pid_Kp : 27.290
+pid_Ki : 1.784
+pid_Kd : 104.383
 min_temp : 10
 
 # If you are not using an all-metal hotend capable of 320 deg, edit this parameter accordingly
@@ -276,11 +278,11 @@ default_prefix:
 #*# [bed_mesh default]
 #*# version = 1
 #*# points =
-#*# 	0.122500, 0.091250, 0.032500, -0.010000, 0.007500
-#*# 	0.100000, 0.046250, -0.010000, -0.065000, -0.043750
-#*# 	0.100000, 0.053750, -0.001250, -0.051250, -0.046250
-#*# 	0.108750, 0.067500, 0.018750, -0.016250, -0.021250
-#*# 	0.120000, 0.071250, 0.055000, 0.010000, -0.008750
+#*# 	0.000001, 0.000000, 0.000000, 0.000000, 0.000000
+#*# 	0.000000, 0.000000, 0.000000, 0.000000, 0.000000
+#*# 	0.000000, 0.000000, 0.000000, 0.000000, 0.000000
+#*# 	0.000000, 0.000000, 0.000000, 0.000000, 0.000000
+#*# 	0.000000, 0.000000, 0.000000, 0.000000, 0.000000
 #*# x_count = 5
 #*# y_count = 5
 #*# mesh_x_pps = 3
@@ -295,11 +297,11 @@ default_prefix:
 #*# [bed_mesh BED_MESH_AT_60C]
 #*# version = 1
 #*# points =
-#*# 	0.050000, 0.073750, 0.042500, -0.016250, -0.046250
-#*# 	0.083750, 0.078750, 0.032500, -0.028750, -0.050000
-#*# 	0.076250, 0.075000, 0.036250, -0.015000, -0.047500
-#*# 	0.065000, 0.090000, 0.050000, 0.006250, -0.026250
-#*# 	0.058750, 0.068750, 0.067500, 0.018750, -0.030000
+#*# 	0.000002, 0.000000, 0.000000, 0.000000, 0.000000
+#*# 	0.000000, 0.000000, 0.000000, 0.000000, 0.000000
+#*# 	0.000000, 0.000000, 0.000000, 0.000000, 0.000000
+#*# 	0.000000, 0.000000, 0.000000, 0.000000, 0.000000
+#*# 	0.000000, 0.000000, 0.000000, 0.000000, 0.000000
 #*# x_count = 5
 #*# y_count = 5
 #*# mesh_x_pps = 3
@@ -314,11 +316,11 @@ default_prefix:
 #*# [bed_mesh BED_MESH_AT_80C]
 #*# version = 1
 #*# points =
-#*# 	-0.077500, -0.016250, -0.015000, -0.082500, -0.156250
-#*# 	-0.046250, -0.000000, -0.022500, -0.085000, -0.133750
-#*# 	-0.048750, 0.012500, -0.008750, -0.066250, -0.120000
-#*# 	-0.056250, 0.006250, -0.006250, -0.062500, -0.123750
-#*# 	-0.078750, -0.015000, -0.006250, -0.056250, -0.143750
+#*# 	0.000003, 0.000000, 0.000000, 0.000000, 0.000000
+#*# 	0.000000, 0.000000, 0.000000, 0.000000, 0.000000
+#*# 	0.000000, 0.000000, 0.000000, 0.000000, 0.000000
+#*# 	0.000000, 0.000000, 0.000000, 0.000000, 0.000000
+#*# 	0.000000, 0.000000, 0.000000, 0.000000, 0.000000
 #*# x_count = 5
 #*# y_count = 5
 #*# mesh_x_pps = 3
@@ -333,11 +335,11 @@ default_prefix:
 #*# [bed_mesh BED_MESH_AT_95C]
 #*# version = 1
 #*# points =
-#*# 	-0.095000, 0.007500, 0.011250, -0.062500, -0.110000
-#*# 	-0.072500, 0.007500, 0.015000, -0.036250, -0.082500
-#*# 	-0.060000, 0.033750, 0.027500, -0.026250, -0.083750
-#*# 	-0.040000, 0.021250, 0.026250, -0.012500, -0.076250
-#*# 	-0.101250, -0.016250, 0.012500, -0.026250, -0.108750
+#*# 	0.000004, 0.000000, 0.000000, 0.000000, 0.000000
+#*# 	0.000000, 0.000000, 0.000000, 0.000000, 0.000000
+#*# 	0.000000, 0.000000, 0.000000, 0.000000, 0.000000
+#*# 	0.000000, 0.000000, 0.000000, 0.000000, 0.000000
+#*# 	0.000000, 0.000000, 0.000000, 0.000000, 0.000000
 #*# x_count = 5
 #*# y_count = 5
 #*# mesh_x_pps = 3
@@ -348,12 +350,3 @@ default_prefix:
 #*# max_x = 220.0
 #*# min_y = 10.0
 #*# max_y = 220.0
-#*#
-#*# [probe]
-#*# z_offset = -0.041
-#*#
-#*# [extruder]
-#*# control = pid
-#*# pid_kp = 28.482
-#*# pid_ki = 1.880
-#*# pid_kd = 107.876
