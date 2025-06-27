@@ -275,6 +275,7 @@ class T5UID1:
             'get_duration': get_duration,
             'get_remaining': get_remaining,
             'specific_fpname': self.specific_fpname,
+            'specific_mpname': self.specific_mpname,
             'get_preset_values': self.get_preset_values,
             'update_preset_value': self.update_preset_value,
             'set_mesh_point_colour': self.set_mesh_point_colour,
@@ -294,6 +295,7 @@ class T5UID1:
             'is_busy': self.is_busy,
             'check_paused': self.check_paused,
             'capture_gcode_files': self.capture_gcode_files,
+            'capture_macros_list': self.capture_macros_list,
             'get_preset_values': self.get_preset_values,
             'update_preset_value': self.update_preset_value,
             'get_abl_profiles': self.get_abl_profiles,
@@ -646,18 +648,36 @@ class T5UID1:
         return self._files
 
     def specific_fpname(self, i, index):
-        """Allow for scrolling up and down the files list in increments of 1 position"""
+        """Allow for scrolling up and down the Print files list in increments of 1 position"""
         # Manage the value of scroll_index as a variable in a vars_in.cfg script, in response to button-presses
         try: 
             if i + index < len(self._files):
                 if self._files[i + index] is not None:
                     return self._files[i + index].split('/')[-1]
                 else:
-                    return None 
+                    return None
             else: raise IndexError("Index out of range") 
         except Exception as e:
-            logging.exception("Unhandled exception in specific_fpname: %s, %s, %s", i, index, str(e)) 
+            logging.exception("Unhandled exception in specific_fpname: %s, %s, %s", i, index, str(e))
             return None
+        
+    def specific_mpname(self, visible_start, position_in_list):
+        """Retrieve the name of the macro to be displayed at position_in_list"""
+        try:
+            index = visible_start + position_in_list  # Correctly calculate the index
+
+            # Ensure index is within bounds
+            if 0 <= index < len(self._macros):  
+                result = self._macros[index] if self._macros[index] is not None else ""
+            else:
+                result = ""  # Return an empty string instead of None for out-of-range indices
+
+            logging.info("specific_mpname returning: '%s' for index %d", result, index)
+            return result
+
+        except Exception as e:
+            logging.exception("Unhandled exception in specific_mpname: %s, %s, %s", visible_start, position_in_list, str(e))
+            return ""  # Return an empty string instead of None
 
     def delete_file(self, index):
         self._scroll_index = index
@@ -1443,6 +1463,42 @@ class T5UID1:
         rounded_up = num.quantize(decimal.Decimal(str(num_dec_places)), rounding=decimal.ROUND_CEILING)
         return rounded_up
 
+    # Create one dedicated macros page for each of the workflow contexts.
+    # Call this routine with the applicable section_name when entering a workflow's dedicated macros page.
+    def capture_macros_list(self, section_name):
+        '''Before entering a Macro_Menu page, build a list of all macros listed in the named section'''
+        self._macros=[]   # Initialize an empty list
+        macros_file_path = '/home/pi/printer_data/config/DGUS_Menu_Macros.cfg'
+
+            # Ensure the DGUS_Menu_Macros.cfg file exists before attempting to open it
+        if not os.path.exists(macros_file_path):
+            raise self.printer.config_error("Error: DGUS_Menu_Macros.cfg file not found!")
+
+        with open(macros_file_path, "r") as f:
+            lines = f.readlines()
+            in_target_section = False
+            for line in lines:
+                line = line.strip()  # Remove leading/trailing spaces
+
+                # Skip comment lines (those that start with '#' or ';')
+                if line.startswith("#") or line.startswith(";") or line == "":
+                    continue
+
+                # Detect the start of the target section
+                if line == f"[{section_name}]":
+                    in_target_section = True
+                    continue
+
+                # Stop searching if a new section starts
+                if in_target_section and line.startswith("["):
+                    break
+
+                # Capture all macro names listed within the target section into self._macros[]
+                if in_target_section and line:
+                    self._macros.append(line.upper())
+
+        return self._macros
+    
 def load_config(config):
     """Load the DGUS-Reloaded.cfg file settings into this instance of T5UID1"""
     return T5UID1(config)

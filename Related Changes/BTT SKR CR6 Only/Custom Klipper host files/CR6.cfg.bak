@@ -1,4 +1,4 @@
-# Last modified: 6 May 2025
+# Last modified: 12 June 2025
 # 
 # NOTES:
 # 1. This file contains configs and macros specifically tuned for my CR6-SE
@@ -210,7 +210,6 @@ gcode:
   G90
   G0 Z20
   G0 X0 Y0 F3500
-  M140 S80
   M104 S0   #Ignore any nozzle expansion factor until homing before print. Make sure nozzle is clean before probing, though!
   M117 Heating bed to 80 degC
   M190 S80  # Heat bed before proceeding
@@ -235,7 +234,6 @@ gcode:
   G90
   G0 Z20
   G0 X0 Y0 F3500
-  M140 S95
   M104 S0   #Ignore any nozzle expansion factor until homing before print. Make sure nozzle is clean before probing, though!
   M117 Heating bed to 95 degC
   M190 S95  # Heat bed before proceeding
@@ -290,7 +288,7 @@ gcode:
   {% elif bedTemp >= 50 %}            # If printing PLA... 
     BED_MESH_PROFILE LOAD=BED_MESH_AT_60C   # ... load the bed mesh profile saved after using RUN_ABL_BED_60
   {% else %}                          # If printing at less than 50C bed temp (e.g. TPU at 30C) ...
-    BED_MESH_PROFILE LOAD=default        # ...load the mesh profile saved after using RUN_ABL_COLD or after using the DGUS_Reloaded "Run ABL" function
+    BED_MESH_PROFILE LOAD=default        # ...load the mesh profile saved after using RUN_ABL_COLD
   {% endif %}
 
   # Set movement to Absolute Positioning mode
@@ -347,10 +345,10 @@ gcode:
   G1 X5 Y5 F5000 ;Wipe out
   G1 Z10 F500 ;Raise Z 
   G90 ; Use absolute positioning
-  G1 X0 Y225 F2500 ;Present print
+  G1 X0 Y225 F5000 ;Present print
   {% if printer.extruder.can_extrude %}
     {% set svv = printer.save_variables.variables %}
-    {% if svv.unload_filament_after_print==1 %} 
+    {% if svv.unload_filament_after_print==1 %}
       UNLOAD_FILAMENT
     {% else %}
       M83 ; Use relative extruder movement
