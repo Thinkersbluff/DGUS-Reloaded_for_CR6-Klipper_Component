@@ -222,6 +222,8 @@ class T5UID1:
         self._abl_profile_list = []
         # Added at 1.4.1 to speed up loading macro menu pages
         self._macro_cache = {}
+        self._macro_cfg_mtime = None  # Last known modification time
+
 
         self._original_M73 = None
         self._original_M117 = None
@@ -1468,12 +1470,16 @@ class T5UID1:
         return rounded_up
 
     def _load_macro_menus(self):
+        '''Read the user-defined macro menus from DGUS_Menu_Macros.cfg into a dictionary'''
         macros_file_path = '/home/pi/printer_data/config/DGUS_Menu_Macros.cfg'
+        
         if not os.path.exists(macros_file_path):
             raise self.printer.config_error("Error: DGUS_Menu_Macros.cfg file not found!")
+        
+        self._macro_cache.clear()
+        current_section = None
 
         with open(macros_file_path, "r") as f:
-            current_section = None
             for line in f:
                 line = line.strip()
                 if line.startswith("#") or line.startswith(";") or line == "":
@@ -1482,22 +1488,27 @@ class T5UID1:
                 if line.startswith("[") and line.endswith("]"):
                     current_section = line[1:-1].strip()
                     self._macro_cache[current_section.upper()] = []
-                    continue
-
-                if current_section:
+                elif current_section:
                     self._macro_cache[current_section.upper()].append(line.upper())
+
+        # Save the last modified timestamp
+        self._macro_cfg_mtime = os.path.getmtime(macros_file_path)
 
     # Create one dedicated macros page for each of the workflow contexts.
     # Call this routine with the applicable section_name when entering a workflow's dedicated macros page.
     def capture_macros_list(self, section_name):
         '''Before entering a Macro_Menu page, build a list of all macros listed in the named section'''
-        if not self._macro_cache:
+
+        macros_file_path = '/home/pi/printer_data/config/DGUS_Menu_Macros.cfg'     
+        try:
+            current_mtime = os.path.getmtime(macros_file_path)
+        except FileNotFoundError:
+            raise self.printer.config_error("Error: DGUS_Menu_Macros.cfg file not found!")
+
+        if self._macro_cfg_mtime != current_mtime:
             self._load_macro_menus()
 
-        # Get the macros for the selected section
         macros = self._macro_cache.get(section_name.upper(), [])
-        
-        # Store that list for later reference
         self._current_macros = macros
         return macros
 

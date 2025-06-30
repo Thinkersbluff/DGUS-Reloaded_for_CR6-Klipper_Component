@@ -25,10 +25,13 @@ If you are here to update an existing installation of DGUS-Reloaded for CR6Commu
 
 New/Modified Features at this release:
 
-  - Refactored the code from v1.4.0 that captures DGUS_Macro_Menus.cfg, to read the file into a python dictionary one-time at boot, then read from the dictionary each time a macro page is selected.  Hoping, in that way, to make the system faster when building the macros page.
+  - Refactored the code from v1.4.0 that captures DGUS_Macro_Menus.cfg, hoping, to make the system faster when building the macros page:
+	- Used to read the cfg file each time the display switched to a macros page
+	- Now reads the file into a python dictionary one-time at boot, then reads from the dictionary each time a macro page is selected, but only if the DGUS_Menu_Macros.cfg file has changed since the last time it was read into the dictionary.  
+
   - Added a "leave" routine for the macros page, to clear the message line upon exiting the page.  Default otherwise is for all messages to persist for 10 seconds before being cleared by the message_timeout routine.
  
-Bugs/Issues Resolved at This Release:
+Bugs/Issues Resolved at This Release:	
 
  -  None
 
