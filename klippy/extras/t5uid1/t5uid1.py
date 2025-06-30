@@ -220,9 +220,12 @@ class T5UID1:
         self._threshold = 0.0
         self._abl_macro_list = []
         self._abl_profile_list = []
+        # Added at 1.4.1 to speed up loading macro menu pages
+        self._macro_cache = {}
 
         self._original_M73 = None
         self._original_M117 = None
+
 
         # Added at v1.3.6 to parse variables.cfg
         self.variables_file = '/home/pi/klipper/klippy/extras/t5uid1/dgus_reloaded/variables.cfg'
@@ -300,6 +303,7 @@ class T5UID1:
             'update_preset_value': self.update_preset_value,
             'get_abl_profiles': self.get_abl_profiles,
             'round_up': self.round_up,
+            '_load_macro_menus': self._load_macro_menus,
         })
 
         self._status_data.update({
@@ -667,8 +671,8 @@ class T5UID1:
             index = visible_start + position_in_list  # Correctly calculate the index
 
             # Ensure index is within bounds
-            if 0 <= index < len(self._macros):  
-                result = self._macros[index] if self._macros[index] is not None else ""
+            if 0 <= index < len(self._current_macros):  
+                result = self._current_macros[index] if self._current_macros[index] is not None else ""
             else:
                 result = ""  # Return an empty string instead of None for out-of-range indices
 
@@ -1463,41 +1467,40 @@ class T5UID1:
         rounded_up = num.quantize(decimal.Decimal(str(num_dec_places)), rounding=decimal.ROUND_CEILING)
         return rounded_up
 
-    # Create one dedicated macros page for each of the workflow contexts.
-    # Call this routine with the applicable section_name when entering a workflow's dedicated macros page.
-    def capture_macros_list(self, section_name):
-        '''Before entering a Macro_Menu page, build a list of all macros listed in the named section'''
-        self._macros=[]   # Initialize an empty list
+    def _load_macro_menus(self):
         macros_file_path = '/home/pi/printer_data/config/DGUS_Menu_Macros.cfg'
-
-            # Ensure the DGUS_Menu_Macros.cfg file exists before attempting to open it
         if not os.path.exists(macros_file_path):
             raise self.printer.config_error("Error: DGUS_Menu_Macros.cfg file not found!")
 
         with open(macros_file_path, "r") as f:
-            lines = f.readlines()
-            in_target_section = False
-            for line in lines:
-                line = line.strip()  # Remove leading/trailing spaces
-
-                # Skip comment lines (those that start with '#' or ';')
+            current_section = None
+            for line in f:
+                line = line.strip()
                 if line.startswith("#") or line.startswith(";") or line == "":
                     continue
 
-                # Detect the start of the target section
-                if line == f"[{section_name}]":
-                    in_target_section = True
+                if line.startswith("[") and line.endswith("]"):
+                    current_section = line[1:-1].strip()
+                    self._macro_cache[current_section.upper()] = []
                     continue
 
-                # Stop searching if a new section starts
-                if in_target_section and line.startswith("["):
-                    break
+                if current_section:
+                    self._macro_cache[current_section.upper()].append(line.upper())
 
-                # Capture all macro names listed within the target section into self._macros[]
-                if in_target_section and line:
-                    self._macros.append(line.upper())
+    # Create one dedicated macros page for each of the workflow contexts.
+    # Call this routine with the applicable section_name when entering a workflow's dedicated macros page.
+    def capture_macros_list(self, section_name):
+        '''Before entering a Macro_Menu page, build a list of all macros listed in the named section'''
+        if not self._macro_cache:
+            self._load_macro_menus()
 
-        return self._macros
+        # Get the macros for the selected section
+        macros = self._macro_cache.get(section_name.upper(), [])
+        
+        # Store that list for later reference
+        self._current_macros = macros
+        return macros
+
     
 def load_config(config):
     """Load the DGUS-Reloaded.cfg file settings into this instance of T5UID1"""
