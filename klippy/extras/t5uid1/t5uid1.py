@@ -1497,22 +1497,23 @@ class T5UID1:
     # Create one dedicated macros page for each of the workflow contexts.
     # Call this routine with the applicable section_name when entering a workflow's dedicated macros page.
     def capture_macros_list(self, section_name):
-        '''Before entering a Macro_Menu page, build a list of all macros listed in the named section'''
+        '''Build a list of all macros listed in the named section of DGUS_Menu_Macros.cfg'''
 
-        macros_file_path = '/home/pi/printer_data/config/DGUS_Menu_Macros.cfg'     
+        macros_file_path = '/home/pi/printer_data/config/DGUS_Menu_Macros.cfg'
         try:
             current_mtime = os.path.getmtime(macros_file_path)
         except FileNotFoundError:
             raise self.printer.config_error("Error: DGUS_Menu_Macros.cfg file not found!")
 
+        # IFF the cfg file has been modified, reload the dictionary
         if self._macro_cfg_mtime != current_mtime:
             self._load_macro_menus()
 
+        # Read the list of macros to be displayed for the selected context
         macros = self._macro_cache.get(section_name.upper(), [])
         self._current_macros = macros
         return macros
 
-    
 def load_config(config):
     """Load the DGUS-Reloaded.cfg file settings into this instance of T5UID1"""
     return T5UID1(config)
