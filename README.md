@@ -28,7 +28,7 @@ If your goal is to run Klipper on your CR6 without using the stock T5L DWIN disp
 Just install the master Klipper3D.org version and configure it for your CR6 printer per the [Klipper3d.org installation and configuration documentation](https://github.com/Klipper3d/klipper/blob/master/docs/index.md).
 
 Once you have the latest stock Klipper up and running on your system, you may enjoy browsing the Related Changes folder, here, to look for useful macros and settings.
-If you need to look for CR6 pin names to configure Klipper on your system, these files may be a helpful resourse.
+If you need to look for CR6 pin names to configure Klipper on your system, these files may be a helpful resource.
 
 This repository may also be very helpful to get you started with Klipper on the CR6: https://github.com/KoenVanduffel/CR-6_Klipper
 
@@ -58,7 +58,7 @@ I recommend that you instead follow the guidance below.
 
 ## Can I Install the Latest Klipper from Klipper3D/master and STILL Use DGUS-Reloaded for CR6?
 Yes, you can!  That is what I do, and I let Moonraker update my system, regularly.
-As of February 2025, that still works (as long as you are using v1.3.2 or higher of the Klipper component.)
+As of July 2025, that still works (as long as you are using v1.3.2 or higher of the Klipper component.)
 
 ## Guidelines for How to Install DGUS-Reloaded with the Latest Klipper
 Rather than install the full modified Klipper from this repository, you should instead follow these instructions to install the latest Klipper and then add the DGUS-Reloaded functionality to your system.  Moonraker will then automatically keep your Klipper installation up to date. 
