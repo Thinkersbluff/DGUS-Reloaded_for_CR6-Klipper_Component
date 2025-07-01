@@ -220,9 +220,14 @@ class T5UID1:
         self._threshold = 0.0
         self._abl_macro_list = []
         self._abl_profile_list = []
+        # Added at 1.4.1 to speed up loading macro menu pages
+        self._macro_cache = {}
+        self._macro_cfg_mtime = None  # Last known modification time
+
 
         self._original_M73 = None
         self._original_M117 = None
+
 
         # Added at v1.3.6 to parse variables.cfg
         self.variables_file = '/home/pi/klipper/klippy/extras/t5uid1/dgus_reloaded/variables.cfg'
@@ -300,6 +305,7 @@ class T5UID1:
             'update_preset_value': self.update_preset_value,
             'get_abl_profiles': self.get_abl_profiles,
             'round_up': self.round_up,
+            '_load_macro_menus': self._load_macro_menus,
         })
 
         self._status_data.update({
@@ -667,8 +673,8 @@ class T5UID1:
             index = visible_start + position_in_list  # Correctly calculate the index
 
             # Ensure index is within bounds
-            if 0 <= index < len(self._macros):  
-                result = self._macros[index] if self._macros[index] is not None else ""
+            if 0 <= index < len(self._current_macros):  
+                result = self._current_macros[index] if self._current_macros[index] is not None else ""
             else:
                 result = ""  # Return an empty string instead of None for out-of-range indices
 
@@ -683,7 +689,7 @@ class T5UID1:
         self._scroll_index = index
         try: # Find the file path in _files based on the index + _scroll_index 
             file_path = self._files[self._scroll_index] 
-            if file_path is not None:
+            if file_path is not None and file_path != "None":
                 # Delete the file
                 os.remove(file_path)
                 logging.info(f"Deleted file: {file_path}") 
@@ -1463,42 +1469,51 @@ class T5UID1:
         rounded_up = num.quantize(decimal.Decimal(str(num_dec_places)), rounding=decimal.ROUND_CEILING)
         return rounded_up
 
-    # Create one dedicated macros page for each of the workflow contexts.
-    # Call this routine with the applicable section_name when entering a workflow's dedicated macros page.
-    def capture_macros_list(self, section_name):
-        '''Before entering a Macro_Menu page, build a list of all macros listed in the named section'''
-        self._macros=[]   # Initialize an empty list
+    def _load_macro_menus(self):
+        '''Read the user-defined macro menus from DGUS_Menu_Macros.cfg into a dictionary'''
         macros_file_path = '/home/pi/printer_data/config/DGUS_Menu_Macros.cfg'
-
-            # Ensure the DGUS_Menu_Macros.cfg file exists before attempting to open it
+        
         if not os.path.exists(macros_file_path):
             raise self.printer.config_error("Error: DGUS_Menu_Macros.cfg file not found!")
+        
+        self._macro_cache.clear()
+        current_section = None
 
         with open(macros_file_path, "r") as f:
-            lines = f.readlines()
-            in_target_section = False
-            for line in lines:
-                line = line.strip()  # Remove leading/trailing spaces
-
-                # Skip comment lines (those that start with '#' or ';')
+            for line in f:
+                line = line.strip()
                 if line.startswith("#") or line.startswith(";") or line == "":
                     continue
 
-                # Detect the start of the target section
-                if line == f"[{section_name}]":
-                    in_target_section = True
-                    continue
+                if line.startswith("[") and line.endswith("]"):
+                    current_section = line[1:-1].strip()
+                    self._macro_cache[current_section.upper()] = []
+                elif current_section:
+                    self._macro_cache[current_section.upper()].append(line.upper())
 
-                # Stop searching if a new section starts
-                if in_target_section and line.startswith("["):
-                    break
+        # Save the last modified timestamp
+        self._macro_cfg_mtime = os.path.getmtime(macros_file_path)
 
-                # Capture all macro names listed within the target section into self._macros[]
-                if in_target_section and line:
-                    self._macros.append(line.upper())
+    # Create one dedicated macros page for each of the workflow contexts.
+    # Call this routine with the applicable section_name when entering a workflow's dedicated macros page.
+    def capture_macros_list(self, section_name):
+        '''Build a list of all macros listed in the named section of DGUS_Menu_Macros.cfg'''
 
-        return self._macros
-    
+        macros_file_path = '/home/pi/printer_data/config/DGUS_Menu_Macros.cfg'
+        try:
+            current_mtime = os.path.getmtime(macros_file_path)
+        except FileNotFoundError:
+            raise self.printer.config_error("Error: DGUS_Menu_Macros.cfg file not found!")
+
+        # IFF the cfg file has been modified, reload the dictionary
+        if self._macro_cfg_mtime != current_mtime:
+            self._load_macro_menus()
+
+        # Read the list of macros to be displayed for the selected context
+        macros = self._macro_cache.get(section_name.upper(), [])
+        self._current_macros = macros
+        return macros
+
 def load_config(config):
     """Load the DGUS-Reloaded.cfg file settings into this instance of T5UID1"""
     return T5UID1(config)
