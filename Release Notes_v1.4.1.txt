@@ -30,6 +30,8 @@ New/Modified Features at this release:
 	- Now reads the file into a python dictionary one-time at boot, then reads from the dictionary each time a macro page is selected, but only if the DGUS_Menu_Macros.cfg file has changed since the last time it was read into the dictionary.  
 
   - Added a "leave" routine for the macros page, to clear the message line upon exiting the page.  Default otherwise is for all messages to persist for 10 seconds before being cleared by the message_timeout routine.
+
+  - Refactored the Print Menu functions to support the revised look and operation at DWIN_SET v0.5.0
  
 Bugs/Issues Resolved at This Release:	
 
