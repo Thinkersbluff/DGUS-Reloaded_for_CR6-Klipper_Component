@@ -1,5 +1,5 @@
-Last Updated:  27 June 25
-New at release 1.4.0
+Last Updated:  30 June 25
+New at release 1.4.1
 
 WELCOME!
 
@@ -25,13 +25,15 @@ If you are here to update an existing installation of DGUS-Reloaded for CR6Commu
 
 New/Modified Features at this release:
 
- Added back-end processing support for the DWIN_SET v0.4.9 Release:
+  - Refactored the code from v1.4.0 that captures DGUS_Macro_Menus.cfg, hoping, to make the system faster when building the macros page:
+	- Used to read the cfg file each time the display switched to a macros page
+	- Now reads the file into a python dictionary one-time at boot, then reads from the dictionary each time a macro page is selected, but only if the DGUS_Menu_Macros.cfg file has changed since the last time it was read into the dictionary.  
 
- - Implements support for building user-defined lists of macros and Klipper commands and running those macros/commands from various screens
- - Ensures that the selected macro/command is known to Klipper, before running it
+  - Added a "leave" routine for the macros page, to clear the message line upon exiting the page.  Default otherwise is for all messages to persist for 10 seconds before being cleared by the message_timeout routine.
 
+  - Refactored the Print Menu functions to support the revised look and operation at DWIN_SET v0.5.0
  
-Bugs/Issues Resolved at This Release:
+Bugs/Issues Resolved at This Release:	
 
  -  None
 
