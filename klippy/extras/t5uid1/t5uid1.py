@@ -689,7 +689,7 @@ class T5UID1:
         self._scroll_index = index
         try: # Find the file path in _files based on the index + _scroll_index 
             file_path = self._files[self._scroll_index] 
-            if file_path is not None:
+            if file_path is not None and file_path != "None":
                 # Delete the file
                 os.remove(file_path)
                 logging.info(f"Deleted file: {file_path}") 
