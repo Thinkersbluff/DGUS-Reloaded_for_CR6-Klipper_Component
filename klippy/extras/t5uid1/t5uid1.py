@@ -250,6 +250,7 @@ class T5UID1:
             'replace_printer_cfg_value': self.replace_printer_cfg_value,
             'round_up': self.round_up,
             'debounce_switch_page': self.debounce_switch_page,
+            'get_now': self.get_now,
         }
 
         context_input = dict(global_context)
@@ -1540,6 +1541,10 @@ class T5UID1:
         macros = self._macro_cache.get(section_name.upper(), [])
         self._current_macros = macros
         return macros
+
+    def get_now(self):
+        curtime = self.reactor.monotonic()
+        return curtime
 
 def load_config(config):
     """Load the DGUS-Reloaded.cfg file settings into this instance of T5UID1"""
