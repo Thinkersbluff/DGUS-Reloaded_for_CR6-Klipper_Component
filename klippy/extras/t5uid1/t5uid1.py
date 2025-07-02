@@ -12,6 +12,9 @@ import re
 import struct
 import textwrap
 
+import time
+import traceback
+
 import jinja2
 import mcu
 
@@ -224,6 +227,7 @@ class T5UID1:
         self._macro_cache = {}
         self._macro_cfg_mtime = None  # Last known modification time
 
+        self._last_debounced_page_switch = {}
 
         self._original_M73 = None
         self._original_M117 = None
@@ -245,6 +249,7 @@ class T5UID1:
             'get_printer_cfg_value': self.get_printer_cfg_value,
             'replace_printer_cfg_value': self.replace_printer_cfg_value,
             'round_up': self.round_up,
+            'debounce_switch_page': self.debounce_switch_page,
         }
 
         context_input = dict(global_context)
@@ -267,6 +272,7 @@ class T5UID1:
             'get_abl_green_threshold': self.get_abl_green_threshold,
             'get_abl_profiles': self.get_abl_profiles,
             'get_printer_cfg_value': self.get_printer_cfg_value,
+            'debounce_switch_page': self.debounce_switch_page,
         })
 
         context_output = dict(global_context)
@@ -285,6 +291,7 @@ class T5UID1:
             'update_preset_value': self.update_preset_value,
             'set_mesh_point_colour': self.set_mesh_point_colour,
             'round_up': self.round_up,
+            'debounce_switch_page': self.debounce_switch_page,
         })
 
         context_routine = dict(global_context)
@@ -306,6 +313,7 @@ class T5UID1:
             'get_abl_profiles': self.get_abl_profiles,
             'round_up': self.round_up,
             '_load_macro_menus': self._load_macro_menus,
+            'debounce_switch_page': self.debounce_switch_page,
         })
 
         self._status_data.update({
@@ -873,14 +881,34 @@ class T5UID1:
             return (command, command_data)
         self._t5uid1_write(command, command_data)
 
+    def debounce_switch_page(self, name, interval=0.5):
+        '''Call this method directly from user-activated controls which used to call for switch_page, to debounce those controls for the specified interval'''
+        now = time.monotonic()
+        last_time = self._last_debounced_page_switch.get(name, float('-inf'))
+
+        if now - last_time < interval:
+            logging.debug("Debounced duplicate icon tap for '%s' at %.3f", name, now)
+            return
+
+        self._last_debounced_page_switch[name] = now
+        self.switch_page(name)    
+
     def switch_page(self, name, send=True):
         """Switch to named page. Flag if page name not known.  Remember where we came from, so we can get back."""
+        
+        # Log each call of switch_page, for troubleshooting
+        logging.warning("switch_page('%s') requested. Stack trace:\n%s", name, ''.join(traceback.format_stack()))
 
+        # If switching to the current page, no action required. Exit routine
+        if name == self._current_page:
+            logging.exception("Ignored request to switch again to current page '%s' at time '%s'.", name, now)
+            return
+        
         # If the name of the page to which we must switch is not contained within the known dictionary of self._pages, then exit with an error
         if name not in self._pages:
             raise ValueError("invalid page")
         
-        # ?? Maybe a test routine ??  If told not to send the switch page message to the display, just return what would have been sent.
+        # ?? If told not to send the switch page message to the display, just return what would have been sent.
         if not send:
             return self.t5uid1_command_write(T5UID1_ADDR_PAGE,
                                              bytearray([
@@ -888,11 +916,7 @@ class T5UID1:
                                                  0x00, self._pages[name].id
                                              ]),
                                              send)
-
-        # If switching to the current page, no action required. Exit routine
-        if name == self._current_page:
-            return
-
+     
         # Push the current page identity to the navigation history stack before switching (to facilitate always returning to the calling page)
         if self._current_page: 
             self._page_history.append(self._current_page)
@@ -920,6 +944,9 @@ class T5UID1:
 
         # Change the self._current_page variable value to the ID of the new page to which we have switched
         self._current_page = name
+
+        # Log to which page we just switched and at what time
+        logging.info("Switched to page: %s at time %.3f", name, time.monotonic())
 
         # Start running the "enter" routines for the new page
         self._start_page_routines(name, "enter")
