@@ -1,4 +1,4 @@
-Last Updated:  1 July 25
+Last Updated:  3 July 25
 New at release 1.4.3
 
 WELCOME!
@@ -25,16 +25,20 @@ If you are here to update an existing installation of DGUS-Reloaded for CR6Commu
 
 New/Modified Features at this release:
 
- - Added debounce_switch_page() method to t5uid1.py
- - Called debounce_switch_page() method from t5uid1_var __display_macros_menu in vars_in.cfg, to demonstrate how to debounce the macro menu select controls.
+ 1. Added debounce_switch_page() method to t5uid1.py
+    Called debounce_switch_page() method from t5uid1_var __display_macros_menu in vars_in.cfg, to demonstrate how to debounce the macro menu select controls.
+    Called debounce_switch_page() method from t5uid1_var __switch_page, to debounce all controls that invoke the switch_page() method.
+    Called debounce_switch_page() method from t5uid1_var __print_menu and t5uid1_var __return_to_calling_page.
+
+ 2. Added get_now() method to t5uid1.py and added t5uid1_routine debounce_control to routines.cfg
+    Called debounce_control from t5uid1_var __toggle_nozzle_led in vars_in.cfg, to demonstrate how to debounce toggle controls.
  
 Bugs/Issues Resolved at This Release:	
 
  -  #68 - Sometimes, Exiting the Macro Screen "bounces" the UI back into the Macro Screen
+ -  The LED ON/OFF control could be very difficult to select, being prone to "bouncing".
 
 Known Issues at this Release: 
-
-- Aural feedback on touch controls was changed at v1.3.9/0.4.8.  The changes may disturb users familiar with previous generations of DGUS-Reloaded and may be the subject of future adjustments, to get things "right".  The intention is to allow "debouncing" of touch controls.  Any activation delay is confusing, if the hardware is not configured to disable the "beep on touch" sound, but software beeps are not an option when a DWIN_SET button press causes a PopUp screen to appear, for instance.  This means that the keyboard key presses no longer give audio feedback, you must rely on reading the display to see whether you have double-keyed an entry.  On the other hand, I can now adjust the delay on each button, to debounce those keys.  Be patient with me, but be sure to comment, to explain any problems these changes give you.
 
 - CANCEL_PRINT ignores unload_filament_after_print.  Not by design, and not yet sure why, but seems appropriate anyway, so not in a rush to find/fix this.
 
