@@ -229,8 +229,12 @@ class T5UID1:
 
         self._last_debounced_page_switch = {}
 
+        self._scroll_index = 0  # Initialize scroll index attribute
+
         self._original_M73 = None
         self._original_M117 = None
+
+        self._current_macros = []  # Initialize _current_macros attribute
 
 
         # Added at v1.3.6 to parse variables.cfg
@@ -540,20 +544,19 @@ class T5UID1:
             self._gui_version = data[0]
             self._os_version = data[1]
             return
-        handled = False
-        for name in self._vars:
-            if (self._vars[name].address != address
-                or self._vars[name].type != "input"):
-                continue
-            handled = True
+
+        var_obj = next(
+            (v for v in self._vars.values() if v.address == address and v.type == "input"),
+            None
+        )
+        if var_obj:
             try:
-                self._vars[name].data_received(data)
+                var_obj.data_received(data)
             except Exception as e:
-                logging.exception("Unhandled exception in '%s' receive"
-                                  " handler: %s", name, str(e))
-        if not handled:
-            logging.warning("Received unhandled T5UID1 message for address %s",
-                         hex(address))
+                logging.exception("Unhandled exception in '%s' receive handler: %s", var_obj.name, str(e))
+        else:
+            logging.warning("Received unhandled T5UID1 message for address %s", hex(address))
+
 
     def send_var(self, name):
         """Build and send message to DWIN_SET (but abort and flag unknown messages)"""
@@ -563,12 +566,11 @@ class T5UID1:
         return self.t5uid1_command_write(var_obj.address, var_obj.prepare_data())
 
     def page_name(self, page_id):
-        """Build string variable 'name' containing name of page corresponding to page number"""
-        if not isinstance(page_id, int):
-            page_id = int(page_id)
-        for name in self._pages:
-            if self._pages[name].id == page_id:
-                return name
+        """Return the name of the page corresponding to the given page number."""
+        page_id = int(page_id)
+        page = next((p for p in self._pages.values() if p.id == page_id), None)
+        if page:
+            return page.name
         raise ValueError(f"T5UID1_Page {page_id} not found")
 
     def send_page_vars(self, page=None, complete=False):
@@ -620,9 +622,8 @@ class T5UID1:
     def _stop_page_routines(self, page):
         if page not in self._pages:
             raise ValueError(f"T5UID1_Page '{page}' not found")
-        for routine in self._routines:
-            if self._routines[routine].page == page:
-                self._routines[routine].stop()
+        for routine in (r for r in self._routines.values() if r.page == page):
+            routine.stop()
 
     class sentinel:
         """Defines sentinel as no-op class"""
@@ -643,6 +644,7 @@ class T5UID1:
 
 # Before entering Print_Menu page, return path & name of all gcode files on Virtual SD Card into the set _files
     def capture_gcode_files(self, directory):
+        '''Capture all gcode files in the specified directory and its subdirectories.'''
         self._files=[]
         for root, dirs, filenames in os.walk(os.path.expanduser(directory)):
             for filename in filenames:
@@ -695,6 +697,7 @@ class T5UID1:
             return ""  # Return an empty string instead of None
 
     def delete_file(self, index):
+        '''Delete the file at the specified index in the _files list.'''
         self._scroll_index = index
         try: # Find the file path in _files based on the index + _scroll_index 
             file_path = self._files[self._scroll_index] 
@@ -761,9 +764,9 @@ class T5UID1:
                             start_countdown_timer = value.strip().lower() == 'true'
                             return start_countdown_timer
         except FileNotFoundError:
-            logging.exception(f"File not found: {variables_file}") 
+            logging.exception("File not found: %s", variables_file)
         except Exception as e:
-            logging.exception(f"Error reading {variables_file}: {e}") 
+            logging.exception("Error reading %s: %s", variables_file, e)
 
     def get_status(self, eventtime):
         """Update the values of the displayed printer status variables"""
@@ -881,6 +884,7 @@ class T5UID1:
         if not send:
             return (command, command_data)
         self._t5uid1_write(command, command_data)
+        return None
 
     def debounce_switch_page(self, name, interval=0.5):
         '''Call this method directly from user-activated controls which used to call for switch_page, to debounce those controls for the specified interval'''
@@ -896,47 +900,45 @@ class T5UID1:
 
     def switch_page(self, name, send=True):
         """Switch to named page. Flag if page name not known.  Remember where we came from, so we can get back."""
-        
-        # Log each call of switch_page, for troubleshooting
         logging.warning("switch_page('%s') requested. Stack trace:\n%s", name, ''.join(traceback.format_stack()))
+
+        now = time.monotonic()  # Fix: define 'now' for logging
 
         # If switching to the current page, no action required. Exit routine
         if name == self._current_page:
             logging.exception("Ignored request to switch again to current page '%s' at time '%s'.", name, now)
-            return
-        
+            return None
+
         # If the name of the page to which we must switch is not contained within the known dictionary of self._pages, then exit with an error
         if name not in self._pages:
             raise ValueError("invalid page")
-        
-        # ?? If told not to send the switch page message to the display, just return what would have been sent.
+
+        # If told not to send the switch page message to the display, just return what would have been sent.
         if not send:
-            return self.t5uid1_command_write(T5UID1_ADDR_PAGE,
-                                             bytearray([
-                                                 0x5a, 0x01,
-                                                 0x00, self._pages[name].id
-                                             ]),
-                                             send)
-     
+            return self.t5uid1_command_write(
+                T5UID1_ADDR_PAGE,
+                bytearray([0x5a, 0x01, 0x00, self._pages[name].id]),
+                send
+            )
+
         # Push the current page identity to the navigation history stack before switching (to facilitate always returning to the calling page)
-        if self._current_page: 
+        if self._current_page:
             self._page_history.append(self._current_page)
 
         # If there are no (optional) "enter_pre" routines defined for the new page, then return
         if not self._start_page_routines(name, "enter_pre"):
-            return
-        
+            return None
+
         # Update - in the display memory - the variables listed in pages.cfg, for the page to which we are switching
         self.send_page_vars(name, complete=True)
 
         # Command the display to switch to the new page
-        self.t5uid1_command_write(T5UID1_ADDR_PAGE,
-                                  bytearray([
-                                      0x5a, 0x01,
-                                      0x00, self._pages[name].id
-                                  ]),
-                                  send)
-        
+        self.t5uid1_command_write(
+            T5UID1_ADDR_PAGE,
+            bytearray([0x5a, 0x01, 0x00, self._pages[name].id]),
+            send
+        )
+
         # If we are switching away from an existing page with ongoing routines, stop those routines
         # Since we are leaving the current page, run the "leave" routines for this page
         if self._current_page:
@@ -953,9 +955,12 @@ class T5UID1:
         self._start_page_routines(name, "enter")
 
         # Reset the timer that controls refreshing the var_auto variables every 2 seconds, while we remain on this new page
-        self.reactor.update_timer(self._update_timer,
-                                  self.reactor.monotonic()
-                                      + self._update_interval)
+        self.reactor.update_timer(
+            self._update_timer,
+            self.reactor.monotonic() + self._update_interval
+        )
+
+        return None
 
     def abort_page_switch(self):
         """Send message to calling routine, if abort page switch"""
@@ -1030,6 +1035,7 @@ class T5UID1:
         if self._brightness != brightness:
             self._brightness = brightness
             self.configfile.set(self.name, 'brightness', brightness)
+        return None
 
     def set_volume(self, volume, send=True):
         """Build and send a message to DWIN_SET to set the display speaker volume"""
@@ -1044,6 +1050,7 @@ class T5UID1:
         if self._volume != volume:
             self._volume = volume
             self.configfile.set(self.name, 'volume', volume)
+        return None
 
     def all_steppers_enabled(self):
         """Return which of the three steppers is/are enabled"""
@@ -1309,10 +1316,10 @@ class T5UID1:
                             parameter_value = value.strip().strip("'").strip('"')
                             return parameter_value
         except FileNotFoundError:
-            logging.exception(f"File not found: {variables_file}")
+            logging.exception("File not found: %s", variables_file)
         except Exception as e:
-            logging.exception(f"Error reading {variables_file}: {e}")
-        logging.warning(f"Parameter {parameter_name} has value: {parameter_value}")  # Debugging line
+            logging.exception("Error reading %s: %s", variables_file, e)
+        logging.warning("Parameter %s has value: %s", parameter_name, parameter_value)  # Debugging line
         return parameter_value
 
     def update_preset_value(self, parameter_name, new_value):
@@ -1348,7 +1355,7 @@ class T5UID1:
                     # Append the new parameter to the [presets] section if it wasn't updated
                     file.write(f"{parameter_name} = {new_value}\n")
         except Exception as e:
-            logging.exception(f"Error updating presets: {e}")
+            logging.exception("Error updating presets: %s", e)
 
     def get_abl_profiles(self, macro_names, profile_names):
         """Get the material preset value from the [Presets] section of presets.cfg"""
@@ -1375,21 +1382,21 @@ class T5UID1:
 
     def set_mesh_point_colour(self, mesh_point_value):
         '''Set the colour of each displayed bed mesh point according to its value in mm from center height'''
-        threshold = self.get_abl_green_threshold()  # threshold = target maximum bed mesh point value deviation from 0.000, in mm
-        #self.set_message(f"green threshold = {threshold}")
-        if self.bed_mesh is None:
-            return 65535  # default colour is white, when no matrix loaded
-        if mesh_point_value == 0:
-            return 65535
-        if abs(mesh_point_value) <= threshold:
-            return 2024  # colour is green, when mesh point is within threshold
-        if 1.5*threshold >= mesh_point_value > threshold:
-            return 64536 # colour is pinkish if less than 2 * threshold but > threshold
-        if mesh_point_value < 0 and threshold < abs(mesh_point_value) <= 1.5*threshold:
-            return 34815  # colour is light blue, when mesh point is negative but does not exceed 1.5 * the threshold
-        if mesh_point_value < 0:  # colour is deep blue, if mesh point is negative and exceeds 1.5 * the threshold
-            return 600
-        return 63488  # colour is red, when mesh point is positive and exceeds 2 * the threshold
+        threshold = self.get_abl_green_threshold()
+        colour = 63488  # default: red, when mesh point is positive and exceeds 2 * the threshold
+
+        if self.bed_mesh is None or mesh_point_value == 0:
+            colour = 65535  # white, when no matrix loaded or value is zero
+        elif abs(mesh_point_value) <= threshold:
+            colour = 2024  # green, within threshold
+        elif 1.5 * threshold >= mesh_point_value > threshold:
+            colour = 64536  # pinkish, less than 2 * threshold but > threshold
+        elif mesh_point_value < 0 and threshold < abs(mesh_point_value) <= 1.5 * threshold:
+            colour = 34815  # light blue, negative but does not exceed 1.5 * threshold
+        elif mesh_point_value < 0:
+            colour = 600  # deep blue, negative and exceeds 1.5 * threshold
+
+        return colour
 
     def get_abl_green_threshold(self):
         """Get the value of abl_green_threshold for get_mesh_point_colour()""" 
@@ -1421,7 +1428,7 @@ class T5UID1:
     def get_printer_cfg_value(self, section_name, parameter_name):
         '''Find and return the current value of parameter_name in section_name'''
         config_file_path = '/home/pi/printer_data/config/printer.cfg'
-        with open(config_file_path, "r") as f:
+        with open(config_file_path, "r", encoding="utf-8") as f:
             lines = f.readlines()
             in_target_section = False
             for line in lines:
@@ -1451,7 +1458,7 @@ class T5UID1:
     def replace_printer_cfg_value(self, section_name, parameter_name, new_value):
         '''Find and replace the current value of parameter_name in section_name with new_value'''
         cfg_file_path = '/home/pi/printer_data/config/printer.cfg'
-        with open(cfg_file_path, "r") as file:
+        with open(cfg_file_path, "r", encoding="utf-8") as file:
             lines = file.readlines()
 
         updated_lines = []
@@ -1485,7 +1492,7 @@ class T5UID1:
             updated_lines.append(line)
 
         # Write updated contents back to printer.cfg
-        with open(cfg_file_path, "w") as file:
+        with open(cfg_file_path, "w", encoding="utf-8") as file:
             file.writelines(updated_lines)
 
         # Example Usage
@@ -1507,7 +1514,7 @@ class T5UID1:
         self._macro_cache.clear()
         current_section = None
 
-        with open(macros_file_path, "r") as f:
+        with open(macros_file_path, "r", encoding="utf-8") as f:
             for line in f:
                 line = line.strip()
                 if line.startswith("#") or line.startswith(";") or line == "":
@@ -1530,8 +1537,11 @@ class T5UID1:
         macros_file_path = '/home/pi/printer_data/config/DGUS_Menu_Macros.cfg'
         try:
             current_mtime = os.path.getmtime(macros_file_path)
-        except FileNotFoundError:
-            raise self.printer.config_error("Error: DGUS_Menu_Macros.cfg file not found!")
+        except FileNotFoundError as e:
+            logging.error("DGUS_Menu_Macros.cfg file not found at: %s", macros_file_path)
+            raise self.printer.config_error(
+                "Error: DGUS_Menu_Macros.cfg file not found!"
+            ) from e
 
         # IFF the cfg file has been modified, reload the dictionary
         if self._macro_cfg_mtime != current_mtime:
@@ -1543,6 +1553,7 @@ class T5UID1:
         return macros
 
     def get_now(self):
+        '''Retrieve the current time in seconds since the epoch, as a float'''
         curtime = self.reactor.monotonic()
         return curtime
 
