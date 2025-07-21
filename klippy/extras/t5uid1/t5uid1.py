@@ -17,7 +17,7 @@ import traceback
 import jinja2
 import mcu
 
-from .t5uid1_utils import round_up, bitwise_and, bitwise_or
+from .bin.t5uid1_utils import round_up, bitwise_and, bitwise_or
 
 from . import var, page, routine, dgus_reloaded
 from .. import gcode_macro, heaters
