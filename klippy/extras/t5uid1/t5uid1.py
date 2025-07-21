@@ -5,7 +5,6 @@
 # Copyright (C) 2020  Desuuuu <contact@desuuuu.com>
 #
 # This file may be distributed under the terms of the GNU GPLv3 license.
-import decimal
 import logging
 import os
 import re
@@ -18,9 +17,10 @@ import traceback
 import jinja2
 import mcu
 
+from .t5uid1_utils import round_up, bitwise_and, bitwise_or
+
 from . import var, page, routine, dgus_reloaded
 from .. import gcode_macro, heaters
-
 
 T5UID1_firmware_cfg = {
     'dgus_reloaded': dgus_reloaded.configuration
@@ -62,6 +62,7 @@ def map_value_range(x, in_min, in_max, out_min, out_max):
                      * (out_max - out_min)
                      // (in_max - in_min)
                      + out_min))
+
 def get_duration(secs):
     """Build string variable reporting 'printtime so far' in days, hours, minutes, and seconds."""
     if not isinstance(secs, int):
@@ -103,14 +104,6 @@ def get_remaining(minutes):
     parts.append(f"{minutes}m")
     return " ".join(parts)
 
-def bitwise_and(lhs, rhs):
-    """Perform bitwise AND"""
-    return lhs & rhs
-
-def bitwise_or(lhs, rhs):
-    """Perform bitwise OR"""
-    return lhs | rhs
-
 class T5UID1GCodeMacro:
     """A Class for wrapping a gcode macro into a jinja2 template?"""
     def __init__(self, config):
@@ -120,13 +113,7 @@ class T5UID1GCodeMacro:
                                       lstrip_blocks=True,
                                       extensions=['jinja2.ext.do'])
         # Register the round_up filter. Added to enable use of round_up in vars_in.cfg, vars_out.cfg & routines.cfg
-        self.env.filters["round_up"] = self.round_up
-
-    def round_up(self, value, num_dec_places):
-        """Rounds up a number to a fixed number of decimal places"""
-        num = decimal.Decimal(value)
-        rounded_up = num.quantize(decimal.Decimal(str(num_dec_places)), rounding=decimal.ROUND_CEILING)
-        return rounded_up
+        self.env.filters["round_up"] = round_up
 
     def load_template(self, config, option, default=None):
         """Load applicable jinja2 template"""
@@ -248,7 +235,7 @@ class T5UID1:
             'bitwise_or': bitwise_or,
             'get_printer_cfg_value': self.get_printer_cfg_value,
             'replace_printer_cfg_value': self.replace_printer_cfg_value,
-            'round_up': self.round_up,
+            'round_up': round_up,
             'debounce_switch_page': self.debounce_switch_page,
             'get_now': self.get_now,
         }
@@ -291,7 +278,7 @@ class T5UID1:
             'get_preset_values': self.get_preset_values,
             'update_preset_value': self.update_preset_value,
             'set_mesh_point_colour': self.set_mesh_point_colour,
-            'round_up': self.round_up,
+            'round_up': round_up,
             'debounce_switch_page': self.debounce_switch_page,
         })
 
@@ -312,7 +299,7 @@ class T5UID1:
             'get_preset_values': self.get_preset_values,
             'update_preset_value': self.update_preset_value,
             'get_abl_profiles': self.get_abl_profiles,
-            'round_up': self.round_up,
+            'round_up': round_up,
             '_load_macro_menus': self._load_macro_menus,
             'debounce_switch_page': self.debounce_switch_page,
         })
@@ -1490,12 +1477,6 @@ class T5UID1:
 
         # Example Usage
         # update_printer_cfg("extruder", "rotation_distance", "35.801")
-
-    def round_up(self, value, num_dec_places):
-        '''Use to round variables up to the specified number of decimal places'''
-        num = decimal.Decimal(value)
-        rounded_up = num.quantize(decimal.Decimal(str(num_dec_places)), rounding=decimal.ROUND_CEILING)
-        return rounded_up
 
     def _load_macro_menus(self):
         '''Read the user-defined macro menus from DGUS_Menu_Macros.cfg into a dictionary'''

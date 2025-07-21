@@ -1,0 +1,17 @@
+"""Generic utility functions for T5UID1"""
+
+import decimal
+
+def round_up(value, num_dec_places):
+    """Use to round variables up to the specified number of decimal places"""
+    num = decimal.Decimal(value)
+    rounded_up = num.quantize(decimal.Decimal(str(num_dec_places)), rounding=decimal.ROUND_CEILING)
+    return rounded_up
+
+def bitwise_and(lhs, rhs):
+    """Perform bitwise AND"""
+    return lhs & rhs
+
+def bitwise_or(lhs, rhs):
+    """Perform bitwise OR"""
+    return lhs | rhs
