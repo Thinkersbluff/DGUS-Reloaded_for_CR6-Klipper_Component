@@ -3,6 +3,7 @@
 # NOTE: Design intent was one class per screen type
 
 # Copyright (C) 2020  Desuuuu <contact@desuuuu.com>
+# Extended and Refactored by: Thinkersbluff <https://github.com/Thinkersbluff/DGUS-Reloaded_for_CR6-Klipper_Component>
 #
 # This file may be distributed under the terms of the GNU GPLv3 license.
 import logging
@@ -17,10 +18,25 @@ import traceback
 import jinja2
 import mcu
 
-from .bin.t5uid1_utils import round_up, bitwise_and, bitwise_or
+# RunTime app root = <t5uid1>
+# Test root = <extras>
+# Imports are relative to the app root, so we need to adjust the path
 
-from . import var, page, routine, dgus_reloaded
-from .. import gcode_macro, heaters
+try:
+    from extras.t5uid1.bin import t5uid1_utils
+except ImportError:
+    from .bin import t5uid1_utils
+
+try:
+    from extras.t5uid1 import var, page, routine, dgus_reloaded
+except ImportError:
+    from . import var, page, routine, dgus_reloaded
+
+try:    
+    from extras import gcode_macro, heaters
+except ImportError:
+    from .. import gcode_macro, heaters
+
 
 T5UID1_firmware_cfg = {
     'dgus_reloaded': dgus_reloaded.configuration
@@ -57,7 +73,7 @@ CONTROL_TYPES = {
 }
 
 def map_value_range(x, in_min, in_max, out_min, out_max):
-    """Function to map an input value to an output value"""
+    """Calculates value of setting for sound, brightness, & volume"""
     return int(round((x - in_min)
                      * (out_max - out_min)
                      // (in_max - in_min)
@@ -113,7 +129,7 @@ class T5UID1GCodeMacro:
                                       lstrip_blocks=True,
                                       extensions=['jinja2.ext.do'])
         # Register the round_up filter. Added to enable use of round_up in vars_in.cfg, vars_out.cfg & routines.cfg
-        self.env.filters["round_up"] = round_up
+        self.env.filters["round_up"] = t5uid1_utils.round_up
 
     def load_template(self, config, option, default=None):
         """Load applicable jinja2 template"""
@@ -231,11 +247,11 @@ class T5UID1:
             'start_routine': self.start_routine,
             'stop_routine': self.stop_routine,
             'set_message': self.set_message,
-            'bitwise_and': bitwise_and,
-            'bitwise_or': bitwise_or,
+            'bitwise_and': t5uid1_utils.bitwise_and,
+            'bitwise_or': t5uid1_utils.bitwise_or,
             'get_printer_cfg_value': self.get_printer_cfg_value,
             'replace_printer_cfg_value': self.replace_printer_cfg_value,
-            'round_up': round_up,
+            'round_up': t5uid1_utils.round_up,
             'debounce_switch_page': self.debounce_switch_page,
             'get_now': self.get_now,
         }
@@ -278,7 +294,7 @@ class T5UID1:
             'get_preset_values': self.get_preset_values,
             'update_preset_value': self.update_preset_value,
             'set_mesh_point_colour': self.set_mesh_point_colour,
-            'round_up': round_up,
+            'round_up': t5uid1_utils.round_up,
             'debounce_switch_page': self.debounce_switch_page,
         })
 
@@ -299,7 +315,7 @@ class T5UID1:
             'get_preset_values': self.get_preset_values,
             'update_preset_value': self.update_preset_value,
             'get_abl_profiles': self.get_abl_profiles,
-            'round_up': round_up,
+            'round_up': t5uid1_utils.round_up,
             '_load_macro_menus': self._load_macro_menus,
             'debounce_switch_page': self.debounce_switch_page,
         })

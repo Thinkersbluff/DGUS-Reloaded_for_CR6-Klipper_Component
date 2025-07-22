@@ -1,4 +1,7 @@
 {
     "makefile.configureOnOpen": false,
-    "cmake.ignoreCMakeListsMissing": true
+    "cmake.ignoreCMakeListsMissing": true,
+    "python.analysis.extraPaths": [
+        "./klippy/extras/t5uid1"
+    ]
 }
