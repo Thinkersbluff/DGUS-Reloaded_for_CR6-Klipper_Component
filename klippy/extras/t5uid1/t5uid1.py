@@ -544,19 +544,19 @@ class T5UID1:
             self._gui_version = data[0]
             self._os_version = data[1]
             return
+        
+        handled = False
+        for var in self._vars.values():
+            if var.address == address and var.type == "input":
+                handled = True
+                try:
+                    var.data_received(data)
+                except Exception as e:
+                    logging.exception("Unhandled exception in '%s' receive handler: %s", var.name, str(e))
 
-        var_obj = next(
-            (v for v in self._vars.values() if v.address == address and v.type == "input"),
-            None
-        )
-        if var_obj:
-            try:
-                var_obj.data_received(data)
-            except Exception as e:
-                logging.exception("Unhandled exception in '%s' receive handler: %s", var_obj.name, str(e))
-        else:
-            logging.warning("Received unhandled T5UID1 message for address %s", hex(address))
-
+        if not handled:
+            logging.warning("Received unhandled T5UID1 message for address %s",
+                         hex(address))
 
     def send_var(self, name):
         """Build and send message to DWIN_SET (but abort and flag unknown messages)"""
@@ -566,11 +566,14 @@ class T5UID1:
         return self.t5uid1_command_write(var_obj.address, var_obj.prepare_data())
 
     def page_name(self, page_id):
-        """Return the name of the page corresponding to the given page number."""
-        page_id = int(page_id)
-        page = next((p for p in self._pages.values() if p.id == page_id), None)
-        if page:
-            return page.name
+        """Build string variable 'name' containing name of page corresponding to page number"""
+        if not isinstance(page_id, int):
+            page_id = int(page_id)
+
+        for page in self._pages.values():
+            if page.id == page_id:
+                return page.name
+
         raise ValueError(f"T5UID1_Page {page_id} not found")
 
     def send_page_vars(self, page=None, complete=False):
@@ -1454,7 +1457,7 @@ class T5UID1:
                         return match.group(1)
 
         return 0  # If parameter not found, return 0
-    
+
     def replace_printer_cfg_value(self, section_name, parameter_name, new_value):
         '''Find and replace the current value of parameter_name in section_name with new_value'''
         cfg_file_path = '/home/pi/printer_data/config/printer.cfg'
