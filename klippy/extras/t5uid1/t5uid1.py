@@ -130,6 +130,7 @@ class T5UID1GCodeMacro:
                                       extensions=['jinja2.ext.do'])
         # Register the round_up filter. Added to enable use of round_up in vars_in.cfg, vars_out.cfg & routines.cfg
         self.env.filters["round_up"] = t5uid1_utils.round_up
+        self.env.filters["format_fixed"] = t5uid1_utils.format_fixed
 
     def load_template(self, config, option, default=None):
         """Load applicable jinja2 template"""
@@ -256,6 +257,7 @@ class T5UID1:
             'get_printer_cfg_value': self.get_printer_cfg_value,
             'replace_printer_cfg_value': self.replace_printer_cfg_value,
             'round_up': t5uid1_utils.round_up,
+            'format_fixed': t5uid1_utils.format_fixed,
             'debounce_switch_page': self.debounce_switch_page,
             'get_now': self.get_now,
         }
@@ -636,7 +638,7 @@ class T5UID1:
         pass
 
     def get_variable(self, name, default=sentinel):
-        """Return value of named variable. Raise error if name not recognized"""
+        """Return current value of named shared local variable. Raise error if name not recognized"""
         if name not in self._variable_data:
             if default is not self.sentinel:
                 return default
@@ -645,7 +647,7 @@ class T5UID1:
         return self._variable_data[name]
 
     def set_variable(self, name, value):
-        """Read variable values into variables"""
+        """Read variable values into variables. Create if new name"""
         self._variable_data[name] = value
 
 # Before entering Print_Menu page, return path & name of all gcode files on Virtual SD Card into the set _files

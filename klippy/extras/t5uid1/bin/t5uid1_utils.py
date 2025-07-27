@@ -15,3 +15,7 @@ def bitwise_and(lhs, rhs):
 def bitwise_or(lhs, rhs):
     """Perform bitwise OR"""
     return lhs | rhs
+
+def format_fixed(value, places):
+    '''Format a float to a fixed number of decimal places.'''
+    return "{:.{}f}".format(float(value), places)
