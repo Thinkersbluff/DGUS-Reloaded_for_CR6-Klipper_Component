@@ -3,7 +3,8 @@
 # NOTE: Design intent was one class per screen type
 
 # Copyright (C) 2020  Desuuuu <contact@desuuuu.com>
-# Extended and Refactored by: Thinkersbluff <https://github.com/Thinkersbluff/DGUS-Reloaded_for_CR6-Klipper_Component>
+# Extended and Refactored by: Thinkersbluff
+# <https://github.com/Thinkersbluff/DGUS-Reloaded_for_CR6-Klipper_Component>
 #
 # This file may be distributed under the terms of the GNU GPLv3 license.
 import logging
@@ -32,7 +33,7 @@ try:
 except ImportError:
     from . import var, page, routine, dgus_reloaded
 
-try:    
+try:
     from extras import gcode_macro, heaters
 except ImportError:
     from .. import gcode_macro, heaters
@@ -472,13 +473,13 @@ class T5UID1:
 
         if self._original_M73 is None:
             original_M73 = self.gcode.register_command('M73', None)
-            if original_M73 != self.cmd_M73:
+            if original_M73 != self.cmd_M73:  # pylint: disable=comparison-with-callable
                 self._original_M73 = original_M73
             self.gcode.register_command('M73', self.cmd_M73)
 
         if self._original_M117 is None:
             original_M117 = self.gcode.register_command('M117', None)
-            if original_M117 != self.cmd_M117:
+            if original_M117 != self.cmd_M117:  # pylint: disable=comparison-with-callable
                 self._original_M117 = original_M117
             self.gcode.register_command('M117', self.cmd_M117)
 
@@ -549,9 +550,9 @@ class T5UID1:
             self._gui_version = data[0]
             self._os_version = data[1]
             return
-        
+
         handled = False
-        for var in self._vars.values():
+        for var in self._vars.values():   # pylint: disable=redefined-outer-name
             if var.address == address and var.type == "input":
                 handled = True
                 try:
@@ -575,13 +576,13 @@ class T5UID1:
         if not isinstance(page_id, int):
             page_id = int(page_id)
 
-        for page in self._pages.values():
+        for page in self._pages.values():   # pylint: disable=redefined-outer-name
             if page.id == page_id:
                 return page.name
 
         raise ValueError(f"T5UID1_Page {page_id} not found")
 
-    def send_page_vars(self, page=None, complete=False):
+    def send_page_vars(self, page=None, complete=False):   # pylint: disable=redefined-outer-name
         """Update the applicable variables defined in pages.cfg for the current page"""
         if page is None:
             page = self._current_page
@@ -601,7 +602,7 @@ class T5UID1:
         except UnicodeEncodeError as e:
             logging.exception("Unicode encoding error during full update: %s", e)
 
-    def start_routine(self, routine):
+    def start_routine(self, routine):    # pylint: disable=redefined-outer-name
         """Launch called routine. Abort and raise error if cannot"""
         if routine not in self._routines:
             raise ValueError(f"T5UID1_Routine '{routine}' not found")
@@ -609,13 +610,13 @@ class T5UID1:
             raise ValueError(f"T5UID1_Routine '{routine}' cannot be started manually")
         self._routines[routine].run()
 
-    def stop_routine(self, routine):
+    def stop_routine(self, routine):    # pylint: disable=redefined-outer-name
         """Abort and flag attempt to process an undefined/deprecated routine"""
         if routine not in self._routines:
             raise ValueError(f"T5UID1_Routine '{routine}' not found")
         self._routines[routine].stop()
 
-    def _start_page_routines(self, page, trigger):
+    def _start_page_routines(self, page, trigger):    # pylint: disable=redefined-outer-name
         if page not in self._pages:
             raise ValueError(f"T5UID1_Page '{page}' not found")
         results = []
@@ -627,10 +628,10 @@ class T5UID1:
         ]
         return all(result is not None for result in results)
 
-    def _stop_page_routines(self, page):
+    def _stop_page_routines(self, page):    # pylint: disable=redefined-outer-name
         if page not in self._pages:
             raise ValueError(f"T5UID1_Page '{page}' not found")
-        for routine in (r for r in self._routines.values() if r.page == page):
+        for routine in (r for r in self._routines.values() if r.page == page):   # pylint: disable=redefined-outer-name
             routine.stop()
 
     class sentinel:
@@ -654,7 +655,7 @@ class T5UID1:
     def capture_gcode_files(self, directory):
         '''Capture all gcode files in the specified directory and its subdirectories.'''
         self._files=[]
-        for root, dirs, filenames in os.walk(os.path.expanduser(directory)):
+        for root, _, filenames in os.walk(os.path.expanduser(directory)):
             for filename in filenames:
                 if filename.endswith('.gcode'):
                     self._files.append(os.path.join(root, filename))
@@ -663,10 +664,10 @@ class T5UID1:
         while len(self._files) < 5:
             self._files.append(None)
 
-# Sort the files list by modification time, most recent file first 
-        self._files = sorted( 
+# Sort the files list by modification time, most recent file first
+        self._files = sorted(
             [f for f in self._files if f is not None],
-            key=lambda x: os.path.getmtime(x),
+            key=os.path.getmtime,
             reverse=True
             ) + [None] * (5 - len([f for f in self._files if f is not None]))
 
@@ -675,24 +676,24 @@ class T5UID1:
     def specific_fpname(self, i, index):
         """Allow for scrolling up and down the Print files list in increments of 1 position"""
         # Manage the value of scroll_index as a variable in a vars_in.cfg script, in response to button-presses
-        try: 
+        try:
             if i + index < len(self._files):
                 if self._files[i + index] is not None:
                     return self._files[i + index].split('/')[-1]
                 else:
                     return None
-            else: raise IndexError("Index out of range") 
+            else: raise IndexError("Index out of range")
         except Exception as e:
             logging.exception("Unhandled exception in specific_fpname: %s, %s, %s", i, index, str(e))
             return None
-        
+
     def specific_mpname(self, visible_start, position_in_list):
         """Retrieve the name of the macro to be displayed at position_in_list"""
         try:
             index = visible_start + position_in_list  # Correctly calculate the index
 
             # Ensure index is within bounds
-            if 0 <= index < len(self._current_macros):  
+            if 0 <= index < len(self._current_macros):
                 result = self._current_macros[index] if self._current_macros[index] is not None else ""
             else:
                 result = ""  # Return an empty string instead of None for out-of-range indices
@@ -707,16 +708,16 @@ class T5UID1:
     def delete_file(self, index):
         '''Delete the file at the specified index in the _files list.'''
         self._scroll_index = index
-        try: # Find the file path in _files based on the index + _scroll_index 
-            file_path = self._files[self._scroll_index] 
+        try: # Find the file path in _files based on the index + _scroll_index
+            file_path = self._files[self._scroll_index]
             if file_path is not None and file_path != "None":
                 # Delete the file
                 os.remove(file_path)
-                logging.info(f"Deleted file: {file_path}") 
-                # Update the _files list 
-                self._files[self._scroll_index] = None 
-            else: logging.warning("No file to delete at the specified index.") 
-        except Exception as e: 
+                logging.info("Deleted file: %s", {file_path})
+                # Update the _files list
+                self._files[self._scroll_index] = None
+            else: logging.warning("No file to delete at the specified index.")
+        except Exception as e:
             logging.exception("Failed to delete file at index %s: %s", index, str(e))
 
     def check_paused(self):
@@ -778,7 +779,7 @@ class T5UID1:
 
     def get_status(self, eventtime):
         """Update the values of the displayed printer status variables"""
-        pages = { p: self._pages[p].id for p in self._pages }
+        pages = { name: page.id for name, page in self._pages.items() }
         res = dict(self._status_data)
         # Calculate the current value of print_duration, before performing the update routine
         # If finished printing, print duration = "time at finish" - "time at start"
@@ -791,24 +792,24 @@ class T5UID1:
         # iff "eventtime"= "current_time"
         else:
             self._print_duration = eventtime - self._print_start_time
- 
+
         start_counting = self.get_start_countdown_status()
         if not start_counting:
             self._print_time_remaining = self._slicer_estimated_print_time
             self._startup_duration = self._print_duration
         else:
-        # If_ slicer_estimated_print_time is too low, revert to using the latest M73 R factor 
+        # If_ slicer_estimated_print_time is too low, revert to using the latest M73 R factor
         # rather than displaying zero or negative times
             if self._print_time_remaining > self._latest_rvalue or self._print_time_remaining <= 0:
                 self._print_time_remaining = self._latest_rvalue
             else:
-            # Since the slicer estimated print time and the M73 R values are in minutes, not seconds, 
-            # compute _print_time_remaining in minutes. 
+            # Since the slicer estimated print time and the M73 R values are in minutes, not seconds,
+            # compute _print_time_remaining in minutes.
             # Add back-in the time spent warming-up before starting the print
                 self._print_time_remaining = (
-                self._slicer_estimated_print_time 
-                - self._print_duration/60 
-                + self._startup_duration/60 
+                self._slicer_estimated_print_time
+                - self._print_duration/60
+                + self._startup_duration/60
                 + 0.6
                 )
         # update() the res dictionary based on the keys and current values declared
@@ -904,11 +905,11 @@ class T5UID1:
             return
 
         self._last_debounced_page_switch[name] = now
-        self.switch_page(name)    
+        self.switch_page(name)
 
     def switch_page(self, name, send=True):
         """Switch to named page. Flag if page name not known.  Remember where we came from, so we can get back."""
-        
+
         # Log each call of switch_page, for troubleshooting
         logging.warning("switch_page('%s') requested. Stack trace:\n%s", name, ''.join(traceback.format_stack()))
 
@@ -1002,7 +1003,7 @@ class T5UID1:
                                          bytearray([start, slen, val, 0]),
                                          send)
 
-    def enable_control(self, page, ctype, control, send=True):
+    def enable_control(self, page, ctype, control, send=True):   # pylint: disable=redefined-outer-name
         """Build and send a message to DWIN_SET to enable a control"""
         if page < 0 or page > 255:
             raise ValueError("invalid page")
@@ -1017,7 +1018,7 @@ class T5UID1:
                                          ]),
                                          send)
 
-    def disable_control(self, page, ctype, control, send=True):
+    def disable_control(self, page, ctype, control, send=True):   # pylint: disable=redefined-outer-name
         """Build and send a message to DWIN_SET to disable a control"""
         if page < 0 or page > 255:
             raise ValueError("invalid page")
@@ -1266,13 +1267,13 @@ class T5UID1:
         if 'print_end' in self._routines:
             self.start_routine('print_end')
 
-    def cmd_M73(self, gcmd): 
+    def cmd_M73(self, gcmd):
         """Custom M73 function""" 
-        # The message format may be M73 P_ R_ or M73 P_ or M73 R_ 
-        if gcmd.get_int('P', 0): 
-            progress = gcmd.get_int('P', 0) 
-            self._print_progress = min(100, max(0, progress)) 
-        if gcmd.get_int('R', 0): 
+        # The message format may be M73 P_ R_ or M73 P_ or M73 R
+        if gcmd.get_int('P', 0):
+            progress = gcmd.get_int('P', 0)
+            self._print_progress = min(100, max(0, progress))
+        if gcmd.get_int('R', 0):
             self._latest_rvalue = gcmd.get_int('R', 0)
         if self._original_M73 is not None:
             self._original_M73(gcmd)
@@ -1306,7 +1307,7 @@ class T5UID1:
             self.play_sound(start, slen, volume)
         except Exception as e:
             raise gcmd.error(str(e))
-   
+
     def get_preset_values(self, parameter_name, default_value=None):
         """Get the material preset value from the [Presets] section of presets.cfg"""
         variables_file = '/home/pi/klipper/klippy/extras/t5uid1/dgus_reloaded/presets.cfg'
@@ -1352,7 +1353,7 @@ class T5UID1:
                         in_presets_section = False
 
                     if in_presets_section and parameter_name in line_stripped:
-                        key, value = line_stripped.split(' = ')
+                        key, _ = line_stripped.split(' = ')
                         if key == parameter_name:
                             file.write(f"{parameter_name} = {new_value}\n")
                             updated = True
@@ -1412,24 +1413,24 @@ class T5UID1:
         """Get the value of abl_green_threshold for get_mesh_point_colour()""" 
         variables_file = '/home/pi/klipper/klippy/extras/t5uid1/dgus_reloaded/presets.cfg'
         threshold = 0.00
-        try: 
+        try:
             with open(variables_file, 'r', encoding="utf-8") as file:
                 for line in file:
                     if 'abl_green_threshold' in line:
                         # Strip out unnecessary characters and split the line key,
-                        key, value = line.strip().split(' = ')
+                        _, value = line.strip().split(' = ')
                         threshold = float(value)
                         self._threshold = threshold
                         return threshold
 
         except FileNotFoundError:
-            logging.exception(f"File not found: {variables_file}")
+            logging.exception("File not found: %s", {variables_file})
         except Exception as e:
-            logging.exception(f"Error reading {variables_file}: {e}")
+            logging.exception("Error reading %s: %s", {variables_file}, {e})
 
         # If the variable isn't found, force the value to 0.1
         if threshold == 0.00:
-            logging.exception(f"abl_green_threshold value missing or 0.00")
+            logging.exception("abl_green_threshold value missing or 0.00")
             threshold = 0.1
         return threshold
 
@@ -1511,10 +1512,10 @@ class T5UID1:
     def _load_macro_menus(self):
         '''Read the user-defined macro menus from DGUS_Menu_Macros.cfg into a dictionary'''
         macros_file_path = '/home/pi/printer_data/config/DGUS_Menu_Macros.cfg'
-        
+
         if not os.path.exists(macros_file_path):
             raise self.printer.config_error("Error: DGUS_Menu_Macros.cfg file not found!")
-        
+
         self._macro_cache.clear()
         current_section = None
 

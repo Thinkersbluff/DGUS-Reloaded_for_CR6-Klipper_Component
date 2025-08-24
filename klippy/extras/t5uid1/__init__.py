@@ -1,4 +1,4 @@
-# Package definition for the extras/t5uid1 directory
+''' Package definition for the extras/t5uid1 directory'''
 #
 # Copyright (C) 2020  Desuuuu <contact@desuuuu.com>
 #
@@ -6,4 +6,5 @@
 from . import t5uid1
 
 def load_config(config):
+    '''Load the configuration for the T5UID1 module.'''
     return t5uid1.load_config(config)
