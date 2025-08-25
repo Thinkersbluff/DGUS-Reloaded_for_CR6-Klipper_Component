@@ -1,9 +1,10 @@
+```
 CAUTION: When the following README was originally drafted, I expected that users would be installing this fork of Klipper to install DGUS-Reloaded.
-Over the past year, it has become clear that:
+It has become clear that:
 1. It is neither possible nor necessary to keep this fork up to date with the Master branch at Klipper3D.org
 2. Users can and should instead perform and maintain a clean copy of the latest Klipper on their systems, and install/maintain the DGUS-Reloaded t5uiud1 application files as if it was a "Plug-In"
 3. For as long as the firmware.bin file included with this distribution continues to work with Klipper, there is no need to use Make Menuconfig to compile a new firmware.bin at each new release of Klipper.  In fact, one could not create a firmware.bin file that works with the DGUS-Reloaded DWIN_SET firmware from any other version of Klipper than the obsolete version on this repository.
-
+```
 
 # DGUS-reloaded-Klipper, CR6Community Edition!
 The Klipper in this repo is an old fork of Klipper3D/Master, which was modified [by Desuuuu](https://github.com/Desuuuu/klipper), to work with his version of the DGUS-reloaded python application (t5uid1) and a matching DWIN_SET application. 
@@ -13,7 +14,8 @@ I found Desuuu's DGUS-Reloaded project while I was searching for a way to preser
 Desuuu had at that time just decided to archive his project, so I decided to fork his project and adapt it to my own needs. 
 I also try to maintain and share the python app, and Mainsail/Klipper configuration files here in this repository, to allow others with CR6 printers and similar machines to adopt or tailor my firmwares for your own purposes.
 
-## PLEASE NOTE: The Klipper files on this repository are out of date and should not be installed onto your system, unless you are trying to run Make Menuconfig to build a custom klipper.bin file for a non-CR6 printer.  I have heard of folks achieving that, so I leave those files here for them.  The Related Changes folder in this repository already contains the klipper.bin file you will need to flash to a Creality CR6 motherboard or the BTT SKR CR6 motherboard.
+## PLEASE NOTE: The Klipper files on this repository are out of date and should not be installed onto your system, unless you are trying to run Make Menuconfig to build a custom klipper.bin file for a non-CR6 printer.  I have heard of folks achieving that, so I leave those files here for them.  
+The Related Changes folder in this repository already contains the klipper.bin file you will need to flash to a Creality CR6 motherboard or the BTT SKR CR6 motherboard.
 
 The DGUS-Reloaded DWIN_SET firmware component is maintained in [this companion repo.](https://github.com/Thinkersbluff/DGUS-reloadedForKlipper_CR6)
 
