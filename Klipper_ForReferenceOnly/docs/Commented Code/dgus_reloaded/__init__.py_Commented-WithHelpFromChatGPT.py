@@ -1,4 +1,4 @@
-# Package definition for the extras/t5uid1/cr6_scripts directory
+# Package definition for the extras/dgus_reloaded/cr6_scripts directory
 """
 This is the __init__.py module in the cr6_scripts subfolder of the t5uid1 (DGUS_Reloaded) application. It defines the controls, constants, and configuration dictionaries.
 
