@@ -1,4 +1,4 @@
-""" Support for DGUS T5UID1 touchscreens"""
+""" Support for CR6 DGUS touchscreens"""
 #
 # NOTE: Design intent was one class per screen type
 
@@ -19,28 +19,28 @@ import traceback
 import jinja2
 import mcu
 
-# RunTime app root = <t5uid1>
-# Test root = <extras>
+# RunTime app root = <dgus_reloaded>
+# Test root = <repo_root>
 # Imports are relative to the app root, so we need to adjust the path
 
 try:
-    from t5uid1.bin import var, page, routine, t5uid1_utils
+    from dgus_reloaded.bin import var, page, routine, t5uid1_utils
 except ImportError:
     from .bin import var, page, routine, t5uid1_utils
 
 try:
-    from t5uid1 import dgus_reloaded
+    from dgus_reloaded import cr6_scripts
 except ImportError:
-    from . import dgus_reloaded
+    from . import cr6_scripts
 
 try:
-    from extras import gcode_macro, heaters
+    from Klipper_ForReferenceOnly.klippy.extras import gcode_macro, heaters
 except ImportError:
     from .. import gcode_macro, heaters
 
-
+# Create a configuration dictionary for T5UID1 firmware, from the __init__.py module in cr6_scripts
 T5UID1_firmware_cfg = {
-    'dgus_reloaded': dgus_reloaded.configuration
+    'cr6_scripts': cr6_scripts.configuration
 }
 
 DEFAULT_VOLUME     = 75
@@ -243,7 +243,7 @@ class T5UID1:
 
 
         # Added at v1.3.6 to parse variables.cfg
-        self.variables_file = '/home/pi/klipper/klippy/extras/t5uid1/dgus_reloaded/variables.cfg'
+        self.variables_file = '/home/pi/klipper/klippy/extras/t5uid1/cr6_scripts/variables.cfg'
 
         global_context = {
             'get_variable': self.get_variable,
@@ -761,7 +761,7 @@ class T5UID1:
 
     def get_start_countdown_status(self):
         """Check whether to start the Splicer-Estimated Print Time Remaining countdown timer""" 
-        variables_file = '/home/pi/klipper/klippy/extras/t5uid1/dgus_reloaded/variables.cfg'
+        variables_file = '/home/pi/klipper/klippy/extras/t5uid1/cr6_scripts/variables.cfg'
         start_countdown_timer = None
         try:
             with open(variables_file, 'r', encoding="utf-8") as file:
@@ -1310,7 +1310,7 @@ class T5UID1:
 
     def get_preset_values(self, parameter_name, default_value=None):
         """Get the material preset value from the [Presets] section of presets.cfg"""
-        variables_file = '/home/pi/klipper/klippy/extras/t5uid1/dgus_reloaded/presets.cfg'
+        variables_file = '/home/pi/klipper/klippy/extras/t5uid1/cr6_scripts/presets.cfg'
         parameter_value = default_value
         in_presets_section = False
         try:
@@ -1335,7 +1335,7 @@ class T5UID1:
 
     def update_preset_value(self, parameter_name, new_value):
         """Update the default material settings in presets.cfg"""
-        variables_file = '/home/pi/klipper/klippy/extras/t5uid1/dgus_reloaded/presets.cfg'
+        variables_file = '/home/pi/klipper/klippy/extras/t5uid1/cr6_scripts/presets.cfg'
         lines = []
         in_presets_section = False
         updated = False
@@ -1370,7 +1370,7 @@ class T5UID1:
 
     def get_abl_profiles(self, macro_names, profile_names):
         """Get the material preset value from the [Presets] section of presets.cfg"""
-        variables_file = '/home/pi/klipper/klippy/extras/t5uid1/dgus_reloaded/presets.cfg'
+        variables_file = '/home/pi/klipper/klippy/extras/t5uid1/cr6_scripts/presets.cfg'
         in_profiles_section = False
         try:
             with open(variables_file, 'r', encoding="utf-8") as file:
@@ -1411,7 +1411,7 @@ class T5UID1:
 
     def get_abl_green_threshold(self):
         """Get the value of abl_green_threshold for get_mesh_point_colour()""" 
-        variables_file = '/home/pi/klipper/klippy/extras/t5uid1/dgus_reloaded/presets.cfg'
+        variables_file = '/home/pi/klipper/klippy/extras/t5uid1/cr6_scripts/presets.cfg'
         threshold = 0.00
         try:
             with open(variables_file, 'r', encoding="utf-8") as file:

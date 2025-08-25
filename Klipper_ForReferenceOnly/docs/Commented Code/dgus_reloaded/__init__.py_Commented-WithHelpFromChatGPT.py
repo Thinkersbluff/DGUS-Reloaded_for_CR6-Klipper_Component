@@ -1,6 +1,6 @@
-# Package definition for the extras/t5uid1/dgus_reloaded directory
+# Package definition for the extras/t5uid1/cr6_scripts directory
 """
-This is the __init__.py module in the dgus_reloaded subfolder of the t5uid1 (DGUS_Reloaded)      application. It defines the controls, constants, and configuration dictionaries.
+This is the __init__.py module in the cr6_scripts subfolder of the t5uid1 (DGUS_Reloaded) application. It defines the controls, constants, and configuration dictionaries.
 
     The controls dictionary maps control names to their corresponding values. Each control name is associated with a unique value that represents the control in the DGUS (DWIN Graphic User Interface System) display. For example, the control name 'pause' is mapped to the value 1, and the control name 'resume' is mapped to the value 2.
 

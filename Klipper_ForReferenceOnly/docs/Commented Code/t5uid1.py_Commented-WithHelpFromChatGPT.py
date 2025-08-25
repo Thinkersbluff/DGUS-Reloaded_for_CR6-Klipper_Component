@@ -13,19 +13,19 @@
 #   jinja2: A powerful templating engine for Python
 #   math: Provides mathematical functions and constants
 #   mcu: Module specific to the microcontroller used in the application
-#   var, page, routine, dgus_reloaded: Other modules within the same package
+#   var, page, routine, cr6_scripts: Other modules within the same package
 #   gcode_macro, heaters: Modules from the parent package
 import os, logging, struct, textwrap
 import jinja2
 import math
 import mcu
-from . import var, page, routine, dgus_reloaded
+from . import var, page, routine, cr6_scripts
 from .. import gcode_macro, heaters
 ################################################################################
 # Now define a Python Dictionary T5UID1_firmware_cfg and assign the default values for each element in the dictionary
 
 T5UID1_firmware_cfg = {
-    'dgus_reloaded': dgus_reloaded.configuration
+    'cr6_scripts': cr6_scripts.configuration
 }
 
 DEFAULT_VOLUME     = 75

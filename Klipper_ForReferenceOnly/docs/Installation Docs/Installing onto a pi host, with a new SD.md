@@ -62,17 +62,17 @@ As an example, though, this is what I did when adapting their Dec 2022 configura
    5. Upload the reference inputShaper.cfg file, but be sure to calibrate it for your system before uncommenting that include in printer.cfg
    6. Upload the reference CR6.cfg file, but be sure to edit any values that do not match your system
    7. Select "Update All Components" in the Moonraker Update Manager window of the Mainsail MACHINE tab.
-   8. When the update is complete, Klipper will declare an error, "Section 't5uid1' is not a valid config section."  This is the point where we need to install the customized DGUS-Reloaded version of Klipper.
+   8. When the update is complete, Klipper will declare an error, "Section 'dgus_reloaded' is not a valid config section."  This is the point where we need to install the customized DGUS-Reloaded version of Klipper.
    9. Using an FTP client (e.g. Filezilla):
-      1.  Create a new directory ~/klipper/klippy/extras/t5uid1.
-      2.  Create a new directory dgus_reloaded within the new t5uid1 directory.
-      3.  Copy the latest files from the Source.zip file, from t5uid1 in the zip file into the new t5uid1 on the pi and from dgus_reloaded in the zip file into the new dgus_reloaded on the pi.
-  10. Click Firmware Restart in the Mainsail window.
-  11. Klipper should now display an error, "Section 'stable_z_home' is not a valid config section"
-  12. Using an SSH client (like PUTtY), log into the pi and copy/paste the following sequence of commands:
+      1.  Create a new directory ~/klipper/klippy/extras/dgus_reloaded.
+      2.  Create a new directory cr6_scripts within the new dgus_reloaded directory.
+      3.  Copy the latest files from the Source.zip file, from dgus_reloaded in the zip file into the new dgus_reloaded on the pi and from cr6_scripts in the zip file into the new cr6_scripts on the pi.
+  1.  Click Firmware Restart in the Mainsail window.
+  2.  Klipper should now display an error, "Section 'stable_z_home' is not a valid config section"
+  3.  Using an SSH client (like PUTtY), log into the pi and copy/paste the following sequence of commands:
       From the pi directory:
       1.  Enter: git clone https://github.com/matthewlloyd/Klipper-Stable-Z-Home.git
       2.  cd ~/klipper/klippy/extras
       3.  ln -s ~/Klipper-Stable-Z-Home/stable_z_home.py
-  13. If you now inspect the directories, you should find that git has saved a clone of the repository Klipper_stable_z_home in the directory /home/pi and there is a symbolic link to the module stable_z_home.py in the /home/pi/klipper/klippy/extras folder.
-  14. Select Firmware_Restart in the Mainsail menu and Klipper should now be ready to use.  IF you have any other error messages from Klipper at this point, you will need to figure out what it wants and fix it. Most of their messages are easy to understand.
+  4.  If you now inspect the directories, you should find that git has saved a clone of the repository Klipper_stable_z_home in the directory /home/pi and there is a symbolic link to the module stable_z_home.py in the /home/pi/klipper/klippy/extras folder.
+  5.  Select Firmware_Restart in the Mainsail menu and Klipper should now be ready to use.  IF you have any other error messages from Klipper at this point, you will need to figure out what it wants and fix it. Most of their messages are easy to understand.

@@ -1,10 +1,10 @@
-# Package definition for the extras/t5uid1 directory
+# Package definition for the extras/dgus_reloaded directory
 #
 # Copyright (C) 2020  Desuuuu <contact@desuuuu.com>
 #
 # This file may be distributed under the terms of the GNU GPLv3 license.
 
-    """
+"""
     This module creates an instance of the T5UID1 class using the provided configuration.
 
     Args:
@@ -12,7 +12,7 @@
 
     Returns:
         An instance of the T5UID1 class.
-    """
+"""
 # from the current directory, import the t5uid1.py module
 from . import t5uid1
 

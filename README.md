@@ -22,7 +22,7 @@ Lets you use your stock Creality CR6 display with Klipper firmware, restoring to
 
 ## How Does It Work?
 
-- This project provides a Python application (`t5uid1`), a pre-compiled Klipper.bin file, and a matching DWIN_SET firmware for your display.
+- This project provides a Python application ('dgus-reloaded`), a pre-compiled Klipper.bin file, and a matching DWIN_SET firmware for your display.
 - You install the latest Klipper as usual, then you integrate DGUS-Reloaded to enable the display:
    1. Flash the Klipper.bin to your motherboard.
    2. Flash the companion DWIN_SET firmware to your display*
@@ -114,7 +114,7 @@ Once you have installed Klipper and Mainsail, you should be able to browse to yo
    **NOTES:**  
           a)  You can upload files to ~/printer_data/config via the Mainsail MACHINE tab, rather than messing about with SFTP and nano, if you prefer.  
           b)  You can use a utility like [Winmerge](https://winmerge.org/downloads/?lang=en) to compare the new files with existing files, if you prefer to selectively modify the existing files, rather than replacing them.  
-8. Copy the t5uid1 folder and contents into the ~/klipper/klippy/extras directory on your host (e.g. by using an SFTP program logged into your host, to transfer those files from the folder DGUS-Reloaded_for_CR6-Klipper_Component-..../klippy/extras that you extracted from the downloaded release zip file on your system.)
+8. Copy the 'dgus-reloaded' folder and contents into the ~/klipper/klippy/extras directory on your host (e.g. by using an SFTP program logged into your host, to transfer those files from the folder DGUS-Reloaded_for_CR6-Klipper_Component-..../klippy/extras that you extracted from the downloaded release zip file on your system.)
 9. Follow the instructions on [https://github.com/matthewlloyd/Klipper-Stable-Z-Home](https://github.com/matthewlloyd/Klipper-Stable-Z-Home), to also install stable_z_home.py.  
 
    i.e.:
@@ -202,8 +202,6 @@ Please feel free to contribute ideas and feedback in the Discussions section.
 Since some of the behaviour of the DGUS-Reloaded UI is controlled by the DWIN_SET app and some by this Klipper back-end, it will be "cleaner" to keep all Issues together on one repo.  If you believe you have found a bug in the way the DGUS-Reloaded UI works on your CR6 printer, please therefore navigate to [the Issues folder on the DWIN_SET repo](https://github.com/Thinkersbluff/DGUS-Reloaded_for_CR6-DWIN-SET_Component/issues).  If there is no existing open or closed Issue that describes the same issue, then please raise a new Issue there.  
 
 CR6Community Firmware features NOT present in this release may be developed in future releases, but no schedule commitment is possible for such extensions.  Users who are able to define and develop such modifications are welcome to fork this repository and to submit Pull Requests or to open Discussions or Issues as appropriate, to propose those changes.
-
- One "future-proofing" option that comes to mind, for instance, is to pre-compile the Klipper.bin files and package the actual UI interface component (klippy/extras/t5uid1) as a py wheel to be installed into the Klipper3D/master version of Klipper with pip. 
 
 > **If there are CR6Community members who are both capable and willing to take on the challenge of helping to future-proof this fork, please let me know in the Discussions section of this repo.  I am certainly open to reviewing PRs.**
 

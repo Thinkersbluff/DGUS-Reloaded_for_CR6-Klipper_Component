@@ -1,4 +1,4 @@
-"""Generic utility functions for T5UID1"""
+"""Generic utility functions - imported by t5uid1.py"""
 
 import decimal
 

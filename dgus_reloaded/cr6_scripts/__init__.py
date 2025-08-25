@@ -1,4 +1,4 @@
-# Package definition for the extras/t5uid1/dugs_reloaded directory
+# Package definition for the extras/dgus_reloaded/cr6_scripts directory
 #
 # Copyright (C) 2020  Desuuuu <contact@desuuuu.com>
 #

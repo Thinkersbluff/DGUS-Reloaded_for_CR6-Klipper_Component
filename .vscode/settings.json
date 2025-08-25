@@ -2,6 +2,6 @@
     "makefile.configureOnOpen": false,
     "cmake.ignoreCMakeListsMissing": true,
     "python.analysis.extraPaths": [
-        "./t5uid1"
+        "./dgus-reloaded"
     ]
 }

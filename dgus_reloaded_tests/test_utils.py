@@ -8,7 +8,7 @@ import os
 # Ensure bin/ is importable no matter test runner (unittest/pytest)
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from bin import t5uid1_utils
+from dgus_reloaded.bin import t5uid1_utils
 
 import unittest
 import decimal

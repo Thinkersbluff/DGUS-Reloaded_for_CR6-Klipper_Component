@@ -7,4 +7,4 @@ sys.modules['gcode_macro'] = types.ModuleType('gcode_macro')
 sys.modules['heaters'] = types.ModuleType('heaters')
 
 # Run tests as proper package
-import t5uid1.tests.test_utils
+import tests.test_utils
