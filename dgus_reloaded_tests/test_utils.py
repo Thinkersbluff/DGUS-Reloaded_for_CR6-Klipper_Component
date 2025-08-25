@@ -8,7 +8,14 @@ import os
 # Ensure bin/ is importable no matter test runner (unittest/pytest)
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from dgus_reloaded.bin import t5uid1_utils
+# Load t5uid1_utils directly from its file to avoid importing dgus_reloaded.__init__
+import importlib.util
+import pathlib
+_t5u_path = pathlib.Path(__file__).resolve().parent.parent / "dgus_reloaded" / "bin" / "t5uid1_utils.py"
+_spec = importlib.util.spec_from_file_location("dgus_reloaded.bin.t5uid1_utils", str(_t5u_path))
+_t5u_mod = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(_t5u_mod)
+t5uid1_utils = _t5u_mod
 
 import unittest
 import decimal

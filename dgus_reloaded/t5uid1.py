@@ -23,20 +23,9 @@ import mcu
 # Test root = <repo_root>
 # Imports are relative to the app root, so we need to adjust the path
 
-try:
-    from dgus_reloaded.bin import var, page, routine, t5uid1_utils
-except ImportError:
-    from .bin import var, page, routine, t5uid1_utils
-
-try:
-    from dgus_reloaded import cr6_scripts
-except ImportError:
-    from . import cr6_scripts
-
-try:
-    from Klipper_ForReferenceOnly.klippy.extras import gcode_macro, heaters
-except ImportError:
-    from .. import gcode_macro, heaters
+from .bin import var, page, routine, t5uid1_utils
+from . import cr6_scripts
+from .. import gcode_macro, heaters
 
 # Create a configuration dictionary for T5UID1 firmware, from the __init__.py module in cr6_scripts
 T5UID1_firmware_cfg = {

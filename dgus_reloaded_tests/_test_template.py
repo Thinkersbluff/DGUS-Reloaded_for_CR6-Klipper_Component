@@ -1,32 +1,36 @@
-# This is a template test file. Not for execution.
-
+# Test template: load a module from dgus_reloaded/bin directly (avoids importing package __init__)
 import sys
+import os
+import importlib.util
+import pathlib
 from unittest.mock import MagicMock
+import unittest
+import decimal
 
-# Mock hardware or platform dependencies if needed (example: 'mcu')
+# Mock platform dependencies if needed (example: 'mcu')
 sys.modules['mcu'] = MagicMock()
 
-import os
-# Make sure the /bin directory is importable for both unittest and pytest runners
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+# Configure the module you want to test (change this)
+MODULE_NAME = "your_module_name"  # <-- change to the actual module filename (without .py)
 
-# Import the target module and functions to test
-from bin import your_module_name  # Change to your actual module
+# Build path to the target file in dgus_reloaded/bin
+_module_path = pathlib.Path(__file__).resolve().parent.parent / "dgus_reloaded" / "bin" / f"{MODULE_NAME}.py"
 
-import unittest
-import decimal  # If you need to test decimal.Decimal results
+# Load the module directly from file to avoid executing dgus_reloaded.__init__
+_spec = importlib.util.spec_from_file_location(f"dgus_reloaded.bin.{MODULE_NAME}", str(_module_path))
+_module = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(_module)
+
+# Expose the loaded module under a convenient name for tests
+your_module_name = _module  # rename to match existing test code expectations
 
 class TestYourModuleName(unittest.TestCase):
-    def test_some_function(self):
-        # Replace with actual function and expected behavior
-        result = your_module_name.some_function(args)
-        self.assertEqual(result, expected_result)
-
-    def test_another_function(self):
-        # More test cases for another function
-        self.assertTrue(your_module_name.another_function(args))
-
-    # Add more test methods as needed for each function
+    def test_some_function_placeholder(self):
+        # Replace with actual tests for functions/classes in the loaded module
+        # Example:
+        # result = your_module_name.some_function(args)
+        # self.assertEqual(result, expected)
+        self.assertTrue(True)
 
 if __name__ == '__main__':
     unittest.main()
