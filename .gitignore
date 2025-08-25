@@ -1,9 +1,85 @@
-out
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
 *.so
-*.pyc
-.config
-.config.old
-klippy/.version
-test\*.*
-klippy/extras/t5uid1/Was/*.*
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Installer logs
+debug.log
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# mypy
+.mypy_cache/
+.dmypy.json
+
+# VS Code
+.vscode/
+
+# PyCharm
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Project-specific
+/tests/
+*.cfg.bak
+*.log
+*.tmp
 *.bak
+*.swp
+
+# Ignore binaries
+bin/*.exe
+bin/*.dll
+bin/*.o
+bin/*.a
+bin/*.so
+
+# Ignore backup files
+*~
+*.orig
+
+# Ignore release artifacts
+release/

@@ -2,6 +2,6 @@
     "makefile.configureOnOpen": false,
     "cmake.ignoreCMakeListsMissing": true,
     "python.analysis.extraPaths": [
-        "./klippy/extras/t5uid1"
+        "./t5uid1"
     ]
 }
