@@ -22,22 +22,23 @@ Lets you use your stock Creality CR6 display with Klipper firmware, restoring to
 
 ## How Does It Work?
 
-- This project provides a Python application (`t5uid1`), a pre-compile Klipper.bin file, and a matching DWIN_SET firmware for your display.
+- This project provides a Python application (`t5uid1`), a pre-compiled Klipper.bin file, and a matching DWIN_SET firmware for your display.
 - You install the latest Klipper as usual, then you integrate DGUS-Reloaded to enable the display:
    1. Flash the Klipper.bin to your motherboard.
    2. Flash the companion DWIN_SET firmware to your display*
    3. Install Stable-Z-Home.py to optimize probing and leveling performance
-   4. Install and adapt the printer.cfg and companion configuration files from the Related Changes folder, to your taste.
-   5. Adapt and integrate your slicer program in to Mainsail, if you wish.
+   4. Install and adapt the printer.cfg and companion configuration files from the Related Changes folder, to suit your taste, or just use them as-is.
+   5. Adapt and integrate your slicer program into Moonraker, if you wish.
 
 *The DGUS-Reloaded DWIN_SET firmware component is maintained in [this companion repo.](https://github.com/Thinkersbluff/DGUS-reloadedForKlipper_CR6)
 
 Expand the more verbose sections below, for more details if/as required.
 ---
 
-##FAQs
+## FAQs
 <details>
-<summary><strong>Backstory and Credits</strong></summaryu>
+<summary><strong>Backstory and Credits</strong></summary>
+
 The Klipper in this repo is an old fork of Klipper3D/Master, which was modified [by Desuuuu](https://github.com/Desuuuu/klipper), to work with his version of the DGUS-reloaded python application (t5uid1) and a matching DWIN_SET application. 
 
 I found Desuuu's DGUS-Reloaded project while I was searching for a way to preserve/restore some level of functionality to the stock TFT display on my CR6-SE printer, after converting the printer to Klipper.
@@ -53,11 +54,16 @@ I also try to maintain and share the python app, and Mainsail/Klipper configurat
 
 </details>
 
-
-### PLEASE NOTE: The Klipper files on this repository are out of date and should not be installed onto your system, unless you are trying to run Make Menuconfig to build a custom klipper.bin file for a non-CR6 printer.  I have heard of folks achieving that, so I leave those files here for them.  The Related Changes folder in this repository already contains the klipper.bin file you will need to flash to a Creality CR6 motherboard or the BTT SKR CR6 motherboard.
-
 <details>
 <summary><strong>More about Klipper</strong></summary>
+
+```
+**PLEASE NOTE: The Klipper files on this repository are out of date. 
+They should not be installed onto your system, unless you are trying to run Make Menuconfig to build a custom klipper.bin file for a non-CR6 printer.  
+I have heard of folks achieving that, so I leave those files here for them.  
+The Related Changes folder in this repository already contains the klipper.bin file you will need to flash to a Creality CR6 motherboard or the BTT SKR CR6 motherboard.**
+```
+
 ## Is This Klipper Fork Using the latest Klipper3D/master version?
 No.  
 
@@ -77,11 +83,11 @@ I recommend that you instead follow the guidance below.
 
 ## Can I Install the Latest Klipper from Klipper3D/master and STILL Use DGUS-Reloaded for CR6?
 Yes, you can!  That is what I do, and I let Moonraker update my system, regularly.
-As of July 2025, that still works (as long as you are using v1.3.2 or higher of the Klipper component.)
+As of August 2025, that still works (as long as you are using v1.3.2 or higher of the Klipper component.)
 </details>
 
 <details>
-<summary><strong>MORE DETAILED INSTRUCTIONS</strong></summary>
+<summary><strong>More Detailed Instructions for Integrating DGUS-Reloaded</strong></summary>
 
 ## Guidelines for How to Install DGUS-Reloaded with the Latest Klipper
 Rather than install the full modified Klipper from this repository, you should instead follow these instructions to install the latest Klipper and then add the DGUS-Reloaded functionality to your system.  Moonraker will then automatically keep your Klipper installation up to date. 
@@ -137,7 +143,7 @@ If instead you see error messages in Mainsail, you will need to resolve whatever
 </details>
 
 <details>
-<summary><strong>Configure and Integrate your Slicer</strong></summary>
+<summary><strong>How To Configure and Integrate your Slicer</strong></summary>
 ## Slicer-Specific Configuration Guidelines
 The Print screens rely on receiving M73 P.. messages, to display % progress and M73 R.. messages, to display time remaining.
 You will need to find and configure those settings in your slicer, for the screen to display those parameters. 
