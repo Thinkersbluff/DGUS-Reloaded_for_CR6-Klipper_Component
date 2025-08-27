@@ -1,11 +1,44 @@
+```
+```
 CAUTION: When the following README was originally drafted, I expected that users would be installing this fork of Klipper to install DGUS-Reloaded.
-Over the past year, it has become clear that:
+It has become clear that:
 1. It is neither possible nor necessary to keep this fork up to date with the Master branch at Klipper3D.org
 2. Users can and should instead perform and maintain a clean copy of the latest Klipper on their systems, and install/maintain the DGUS-Reloaded t5uiud1 application files as if it was a "Plug-In"
 3. For as long as the firmware.bin file included with this distribution continues to work with Klipper, there is no need to use Make Menuconfig to compile a new firmware.bin at each new release of Klipper.  In fact, one could not create a firmware.bin file that works with the DGUS-Reloaded DWIN_SET firmware from any other version of Klipper than the obsolete version on this repository.
-
+```
+```
 
 # DGUS-reloaded-Klipper, CR6Community Edition!
+Lets you use your stock Creality CR6 display with Klipper firmware, restoring touchscreen functionality after converting your printer to Klipper.
+
+---
+
+## Should You Use This?
+
+- **YES:** If you want your CR6’s original touchscreen to work with Klipper.
+- **NO:** If you don’t use the stock display, just install the latest Klipper from [Klipper3D.org](https://www.klipper3d.org/).
+
+---
+
+## How Does It Work?
+
+- This project provides a Python application ('dgus-reloaded`), a pre-compiled Klipper.bin file, and a matching DWIN_SET firmware for your display.
+- You install the latest Klipper as usual, then you integrate DGUS-Reloaded to enable the display:
+   1. Flash the Klipper.bin to your motherboard.
+   2. Flash the companion DWIN_SET firmware to your display*
+   3. Install Stable-Z-Home.py to optimize probing and leveling performance
+   4. Install and adapt the printer.cfg and companion configuration files from the Related Changes folder, to suit your taste, or just use them as-is.
+   5. Adapt and integrate your slicer program into Moonraker, if you wish.
+
+*The DGUS-Reloaded DWIN_SET firmware component is maintained in [this companion repo.](https://github.com/Thinkersbluff/DGUS-reloadedForKlipper_CR6)
+
+Expand the more verbose sections below, for more details if/as required.
+---
+
+## FAQs
+<details>
+<summary><strong>Backstory and Credits</strong></summary>
+
 The Klipper in this repo is an old fork of Klipper3D/Master, which was modified [by Desuuuu](https://github.com/Desuuuu/klipper), to work with his version of the DGUS-reloaded python application (t5uid1) and a matching DWIN_SET application. 
 
 I found Desuuu's DGUS-Reloaded project while I was searching for a way to preserve/restore some level of functionality to the stock TFT display on my CR6-SE printer, after converting the printer to Klipper.
@@ -13,31 +46,23 @@ I found Desuuu's DGUS-Reloaded project while I was searching for a way to preser
 Desuuu had at that time just decided to archive his project, so I decided to fork his project and adapt it to my own needs. 
 I also try to maintain and share the python app, and Mainsail/Klipper configuration files here in this repository, to allow others with CR6 printers and similar machines to adopt or tailor my firmwares for your own purposes.
 
-## PLEASE NOTE: The Klipper files on this repository are out of date and should not be installed onto your system, unless you are trying to run Make Menuconfig to build a custom klipper.bin file for a non-CR6 printer.  I have heard of folks achieving that, so I leave those files here for them.  The Related Changes folder in this repository already contains the klipper.bin file you will need to flash to a Creality CR6 motherboard or the BTT SKR CR6 motherboard.
-
-The DGUS-Reloaded DWIN_SET firmware component is maintained in [this companion repo.](https://github.com/Thinkersbluff/DGUS-reloadedForKlipper_CR6)
-
->>  **NOTE: Each new release of the Klipper and DWIN_SET firmwares is published concurrently and the two are cross-referenced to the matching component in their respective release notes.**
-
-* The Klipper component can be installed and used without the DWIN_SET component, if you do not value activating the stock TFT.
-* The DWIN_SET component can NOT, however, be used without the matching version of the Klipper components.
-
-
-## Who should __NOT__ use this firmware?
-If your goal is to run Klipper on your CR6 without using the stock T5L DWIN display hardware, **then you do not need this modified version of Klipper.**
-Just install the master Klipper3D.org version and configure it for your CR6 printer per the [Klipper3d.org installation and configuration documentation](https://github.com/Klipper3d/klipper/blob/master/docs/index.md).
-
-Once you have the latest stock Klipper up and running on your system, you may enjoy browsing the Related Changes folder, here, to look for useful macros and settings.
-If you need to look for CR6 pin names to configure Klipper on your system, these files may be a helpful resource.
-
-This repository may also be very helpful to get you started with Klipper on the CR6: https://github.com/KoenVanduffel/CR-6_Klipper
-
 ## Why Not Just Use the Desuuuu version of the Modified DGUS-Reloaded Klipper?
 
 1. Most importantly, because Desuuuu has archived his dgus-reloaded-klipper fork, parts of which no longer work with the latest Klipper. 
 
 2. To enable the CR6 UI functionality, I needed to edit a few of Desuuu's t5uid1 application files, so I needed to make my own (this) fork of those files.
 
+</details>
+
+<details>
+<summary><strong>More about Klipper</strong></summary>
+
+```
+**PLEASE NOTE: The Klipper files on this repository are out of date. 
+They should not be installed onto your system, unless you are trying to run Make Menuconfig to build a custom klipper.bin file for a non-CR6 printer.  
+I have heard of folks achieving that, so I leave those files here for them.  
+The Related Changes folder in this repository already contains the klipper.bin file you will need to flash to a Creality CR6 motherboard or the BTT SKR CR6 motherboard.**
+```
 
 ## Is This Klipper Fork Using the latest Klipper3D/master version?
 No.  
@@ -58,7 +83,11 @@ I recommend that you instead follow the guidance below.
 
 ## Can I Install the Latest Klipper from Klipper3D/master and STILL Use DGUS-Reloaded for CR6?
 Yes, you can!  That is what I do, and I let Moonraker update my system, regularly.
-As of July 2025, that still works (as long as you are using v1.3.2 or higher of the Klipper component.)
+As of August 2025, that still works (as long as you are using v1.3.2 or higher of the Klipper component.)
+</details>
+
+<details>
+<summary><strong>More Detailed Instructions for Integrating DGUS-Reloaded</strong></summary>
 
 ## Guidelines for How to Install DGUS-Reloaded with the Latest Klipper
 Rather than install the full modified Klipper from this repository, you should instead follow these instructions to install the latest Klipper and then add the DGUS-Reloaded functionality to your system.  Moonraker will then automatically keep your Klipper installation up to date. 
@@ -85,7 +114,7 @@ Once you have installed Klipper and Mainsail, you should be able to browse to yo
    **NOTES:**  
           a)  You can upload files to ~/printer_data/config via the Mainsail MACHINE tab, rather than messing about with SFTP and nano, if you prefer.  
           b)  You can use a utility like [Winmerge](https://winmerge.org/downloads/?lang=en) to compare the new files with existing files, if you prefer to selectively modify the existing files, rather than replacing them.  
-8. Copy the t5uid1 folder and contents into the ~/klipper/klippy/extras directory on your host (e.g. by using an SFTP program logged into your host, to transfer those files from the folder DGUS-Reloaded_for_CR6-Klipper_Component-..../klippy/extras that you extracted from the downloaded release zip file on your system.)
+8. Copy the 'dgus-reloaded' folder and contents into the ~/klipper/klippy/extras directory on your host (e.g. by using an SFTP program logged into your host, to transfer those files from the folder DGUS-Reloaded_for_CR6-Klipper_Component-..../klippy/extras that you extracted from the downloaded release zip file on your system.)
 9. Follow the instructions on [https://github.com/matthewlloyd/Klipper-Stable-Z-Home](https://github.com/matthewlloyd/Klipper-Stable-Z-Home), to also install stable_z_home.py.  
 
    i.e.:
@@ -111,7 +140,10 @@ Klipper should now connect with your mcu and Mainsail should support printing.  
 
 If instead you see error messages in Mainsail, you will need to resolve whatever problems are reported, until Klipper connects and reports "Ready".
   e.g. If your MCU serial interface id is not set correctly, then follow [the Klipper3D.org Klipper installation guidelines](https://www.klipper3d.org/Installation.html) to obtain the correct id and edit printer.cfg to insert it.
+</details>
 
+<details>
+<summary><strong>How To Configure and Integrate your Slicer</strong></summary>
 ## Slicer-Specific Configuration Guidelines
 The Print screens rely on receiving M73 P.. messages, to display % progress and M73 R.. messages, to display time remaining.
 You will need to find and configure those settings in your slicer, for the screen to display those parameters. 
@@ -160,14 +192,8 @@ NOTE: I also select "Use relative E distances, which is why the G92 E0 is necess
 
 #### Other Slicers
 I do not use any other slicers. If you have information you think should be added here about configuring other slicers, please post a Discussion or Issue on the DGUS-Reloaded repo.
+</details>
 
-## A Word Of Warning About Klipper Documentation
-Please note that Klipper3D are very good about keeping [their online documentation](https://www.klipper3d.org/) up to date with their latest firmware.
-This repo, however, is NOT up-to-the-minute with every change they release.  That latency can mean that some of their online instructions do not work with this version of Klipper.  The documentation in this repo is, however, "frozen" at the most recent version of Klipper with which we have merged.  
-
-IF you elect to install this modified Klipper INSTEAD of the Klipper3D version, THEN I recommend that you ALWAYS:
- - use [this local copy of their documentation](https://github.com/Thinkersbluff/DGUS-Reloaded_for_CR6-Klipper_Component/blob/DGUS-ReloadedForCR6/docs/Overview.md), when seeking guidance on how this particular version of modified Klipper is used, if you have decided to install from here and not from Klipper3D/master.
- - use [the online Klipper documentation](https://www.klipper3d.org/), if you have installed Klipper from Klipper3D/master.
  
  ## How to Contribute To This Project
 
@@ -176,8 +202,6 @@ Please feel free to contribute ideas and feedback in the Discussions section.
 Since some of the behaviour of the DGUS-Reloaded UI is controlled by the DWIN_SET app and some by this Klipper back-end, it will be "cleaner" to keep all Issues together on one repo.  If you believe you have found a bug in the way the DGUS-Reloaded UI works on your CR6 printer, please therefore navigate to [the Issues folder on the DWIN_SET repo](https://github.com/Thinkersbluff/DGUS-Reloaded_for_CR6-DWIN-SET_Component/issues).  If there is no existing open or closed Issue that describes the same issue, then please raise a new Issue there.  
 
 CR6Community Firmware features NOT present in this release may be developed in future releases, but no schedule commitment is possible for such extensions.  Users who are able to define and develop such modifications are welcome to fork this repository and to submit Pull Requests or to open Discussions or Issues as appropriate, to propose those changes.
-
- One "future-proofing" option that comes to mind, for instance, is to pre-compile the Klipper.bin files and package the actual UI interface component (klippy/extras/t5uid1) as a py wheel to be installed into the Klipper3D/master version of Klipper with pip. 
 
 > **If there are CR6Community members who are both capable and willing to take on the challenge of helping to future-proof this fork, please let me know in the Discussions section of this repo.  I am certainly open to reviewing PRs.**
 
