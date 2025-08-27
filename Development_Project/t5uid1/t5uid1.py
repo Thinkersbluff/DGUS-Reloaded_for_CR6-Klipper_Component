@@ -544,7 +544,7 @@ class T5UID1:
             self._gui_version = data[0]
             self._os_version = data[1]
             return
-        
+
         handled = False
         for var in self._vars.values():
             if var.address == address and var.type == "input":
@@ -658,8 +658,8 @@ class T5UID1:
         while len(self._files) < 5:
             self._files.append(None)
 
-# Sort the files list by modification time, most recent file first 
-        self._files = sorted( 
+# Sort the files list by modification time, most recent file first
+        self._files = sorted(
             [f for f in self._files if f is not None],
             key=os.path.getmtime,
             reverse=True
@@ -670,24 +670,24 @@ class T5UID1:
     def specific_fpname(self, i, index):
         """Allow for scrolling up and down the Print files list in increments of 1 position"""
         # Manage the value of scroll_index as a variable in a vars_in.cfg script, in response to button-presses
-        try: 
+        try:
             if i + index < len(self._files):
                 if self._files[i + index] is not None:
                     return self._files[i + index].split('/')[-1]
                 else:
                     return None
-            else: raise IndexError("Index out of range") 
+            else: raise IndexError("Index out of range")
         except Exception as e:
             logging.exception("Unhandled exception in specific_fpname: %s, %s, %s", i, index, str(e))
             return None
-        
+
     def specific_mpname(self, visible_start, position_in_list):
         """Retrieve the name of the macro to be displayed at position_in_list"""
         try:
             index = visible_start + position_in_list  # Correctly calculate the index
 
             # Ensure index is within bounds
-            if 0 <= index < len(self._current_macros):  
+            if 0 <= index < len(self._current_macros):
                 result = self._current_macros[index] if self._current_macros[index] is not None else ""
             else:
                 result = ""  # Return an empty string instead of None for out-of-range indices
@@ -702,16 +702,17 @@ class T5UID1:
     def delete_file(self, index):
         '''Delete the file at the specified index in the _files list.'''
         self._scroll_index = index
-        try: # Find the file path in _files based on the index + _scroll_index 
-            file_path = self._files[self._scroll_index] 
+        try: # Find the file path in _files based on the index + _scroll_index
+            file_path = self._files[self._scroll_index]
             if file_path is not None and file_path != "None":
                 # Delete the file
                 os.remove(file_path)
-                logging.info(f"Deleted file: {file_path}") 
-                # Update the _files list 
-                self._files[self._scroll_index] = None 
-            else: logging.warning("No file to delete at the specified index.") 
-        except Exception as e: 
+                logging.info("Deleted file: %s", file_path)
+                # Update the _files list
+                self._files[self._scroll_index] = None
+            else:
+                logging.warning("No file to delete at the specified index.")
+        except Exception as e:
             logging.exception("Failed to delete file at index %s: %s", index, str(e))
 
     def check_paused(self):
@@ -754,7 +755,7 @@ class T5UID1:
             self._print_pause_time = -1
 
     def get_start_countdown_status(self):
-        """Check whether to start the Splicer-Estimated Print Time Remaining countdown timer""" 
+        """Check whether to start the Splicer-Estimated Print Time Remaining countdown timer"""
         variables_file = '/home/pi/klipper/klippy/extras/t5uid1/dgus_reloaded/variables.cfg'
         start_countdown_timer = None
         try:
@@ -786,24 +787,24 @@ class T5UID1:
         # iff "eventtime"= "current_time"
         else:
             self._print_duration = eventtime - self._print_start_time
- 
+
         start_counting = self.get_start_countdown_status()
         if not start_counting:
             self._print_time_remaining = self._slicer_estimated_print_time
             self._startup_duration = self._print_duration
         else:
-        # If_ slicer_estimated_print_time is too low, revert to using the latest M73 R factor 
+        # If_ slicer_estimated_print_time is too low, revert to using the latest M73 R factor
         # rather than displaying zero or negative times
             if self._print_time_remaining > self._latest_rvalue or self._print_time_remaining <= 0:
                 self._print_time_remaining = self._latest_rvalue
             else:
-            # Since the slicer estimated print time and the M73 R values are in minutes, not seconds, 
-            # compute _print_time_remaining in minutes. 
+            # Since the slicer estimated print time and the M73 R values are in minutes, not seconds,
+            # compute _print_time_remaining in minutes.
             # Add back-in the time spent warming-up before starting the print
                 self._print_time_remaining = (
-                self._slicer_estimated_print_time 
-                - self._print_duration/60 
-                + self._startup_duration/60 
+                self._slicer_estimated_print_time
+                - self._print_duration/60
+                + self._startup_duration/60
                 + 0.6
                 )
         # update() the res dictionary based on the keys and current values declared
@@ -899,7 +900,7 @@ class T5UID1:
             return
 
         self._last_debounced_page_switch[name] = now
-        self.switch_page(name)    
+        self.switch_page(name)
 
     def switch_page(self, name, send=True):
         """Switch to named page. Flag if page name not known.  Remember where we came from, so we can get back."""
@@ -1259,13 +1260,13 @@ class T5UID1:
         if 'print_end' in self._routines:
             self.start_routine('print_end')
 
-    def cmd_M73(self, gcmd): 
-        """Custom M73 function""" 
-        # The message format may be M73 P_ R_ or M73 P_ or M73 R_ 
-        if gcmd.get_int('P', 0): 
-            progress = gcmd.get_int('P', 0) 
-            self._print_progress = min(100, max(0, progress)) 
-        if gcmd.get_int('R', 0): 
+    def cmd_M73(self, gcmd):
+        """Custom M73 function"""
+        # The message format may be M73 P_ R_ or M73 P_ or M73 R_
+        if gcmd.get_int('P', 0):
+            progress = gcmd.get_int('P', 0)
+            self._print_progress = min(100, max(0, progress))
+        if gcmd.get_int('R', 0):
             self._latest_rvalue = gcmd.get_int('R', 0)
         if self._original_M73 is not None:
             self._original_M73(gcmd)
@@ -1299,7 +1300,7 @@ class T5UID1:
             self.play_sound(start, slen, volume)
         except Exception as e:
             raise gcmd.error(str(e))
-   
+
     def get_preset_values(self, parameter_name, default_value=None):
         """Get the material preset value from the [Presets] section of presets.cfg"""
         variables_file = '/home/pi/klipper/klippy/extras/t5uid1/dgus_reloaded/presets.cfg'
@@ -1402,10 +1403,10 @@ class T5UID1:
         return colour
 
     def get_abl_green_threshold(self):
-        """Get the value of abl_green_threshold for get_mesh_point_colour()""" 
+        """Get the value of abl_green_threshold for get_mesh_point_colour()"""
         variables_file = '/home/pi/klipper/klippy/extras/t5uid1/dgus_reloaded/presets.cfg'
         threshold = 0.00
-        try: 
+        try:
             with open(variables_file, 'r', encoding="utf-8") as file:
                 for line in file:
                     if 'abl_green_threshold' in line:
@@ -1416,13 +1417,13 @@ class T5UID1:
                         return threshold
 
         except FileNotFoundError:
-            logging.exception(f"File not found: {variables_file}")
+            logging.exception("File not found: %s", variables_file)
         except Exception as e:
-            logging.exception(f"Error reading {variables_file}: {e}")
+            logging.exception("Error reading %s: %s", variables_file, e)
 
         # If the variable isn't found, force the value to 0.1
         if threshold == 0.00:
-            logging.exception(f"abl_green_threshold value missing or 0.00")
+            logging.exception("abl_green_threshold value missing or 0.00")
             threshold = 0.1
         return threshold
 
@@ -1510,10 +1511,10 @@ class T5UID1:
     def _load_macro_menus(self):
         '''Read the user-defined macro menus from DGUS_Menu_Macros.cfg into a dictionary'''
         macros_file_path = '/home/pi/printer_data/config/DGUS_Menu_Macros.cfg'
-        
+
         if not os.path.exists(macros_file_path):
             raise self.printer.config_error("Error: DGUS_Menu_Macros.cfg file not found!")
-        
+
         self._macro_cache.clear()
         current_section = None
 
