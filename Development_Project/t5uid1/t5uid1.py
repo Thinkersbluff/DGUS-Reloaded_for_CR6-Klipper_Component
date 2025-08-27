@@ -649,7 +649,7 @@ class T5UID1:
     def capture_gcode_files(self, directory):
         '''Capture all gcode files in the specified directory and its subdirectories.'''
         self._files=[]
-        for root, dirs, filenames in os.walk(os.path.expanduser(directory)):
+        for root, _, filenames in os.walk(os.path.expanduser(directory)):
             for filename in filenames:
                 if filename.endswith('.gcode'):
                     self._files.append(os.path.join(root, filename))
@@ -661,7 +661,7 @@ class T5UID1:
 # Sort the files list by modification time, most recent file first 
         self._files = sorted( 
             [f for f in self._files if f is not None],
-            key=lambda x: os.path.getmtime(x),
+            key=os.path.getmtime,
             reverse=True
             ) + [None] * (5 - len([f for f in self._files if f is not None]))
 
