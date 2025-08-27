@@ -649,7 +649,7 @@ class T5UID1:
     def capture_gcode_files(self, directory):
         '''Capture all gcode files in the specified directory and its subdirectories.'''
         self._files=[]
-        for root, _, filenames in os.walk(os.path.expanduser(directory)):
+        for root, dirs, filenames in os.walk(os.path.expanduser(directory)):
             for filename in filenames:
                 if filename.endswith('.gcode'):
                     self._files.append(os.path.join(root, filename))
