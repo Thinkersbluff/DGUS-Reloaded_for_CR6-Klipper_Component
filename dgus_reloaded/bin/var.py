@@ -30,14 +30,12 @@ class T5UID1_Var:
 
         name_parts = config.get_name().split()
         if len(name_parts) != 2:
-            raise config.error("Section name '%s' is not valid"
-                               % (config.get_name(),))
+            raise config.error(f"Section name '{config.get_name()}' is not valid")
         self.name = name_parts[1]
 
         self.type = config.get('type')
         if self.type not in ["input", "output"]:
-            raise config.error("Invalid type '%s' in section '%s'"
-                               % (self.type, config.get_name()))
+            raise config.error(f"Invalid type '{self.type}' in section '{config.get_name()}'")
 
         address = config.get('address')
         try:
@@ -45,8 +43,7 @@ class T5UID1_Var:
             if self.address < 0x1000 or self.address > 0xffff:
                 raise ValueError
         except Exception as e:
-            raise config.error("Invalid address '%s' in section '%s'"
-                               % (address, config.get_name())) from e
+            raise config.error(f"Invalid address '{address}' in section '{config.get_name()}'") from e
 
         data_types = list(TYPES_LEN.keys())
         data_types.append('str')
@@ -63,8 +60,7 @@ class T5UID1_Var:
         else:
             self.array_len = 1
         if self.data_type not in data_types:
-            raise config.error("Invalid data_type '%s' in section '%s'"
-                               % (self.data_type, config.get_name()))
+            raise config.error(f"Invalid data_type '{self.data_type}' in section '{config.get_name()}'")
 
         if self.data_type == "none":
             self.data_len = 0
@@ -105,8 +101,7 @@ class T5UID1_Var:
                     buf.append(data[i])
                 data = str(buf.decode('ascii'))
             elif received_len != self.data_len:
-                raise ValueError("Expected %d bytes, got %d"
-                                 % (self.data_len, received_len))
+                raise ValueError(f"Expected {self.data_len} bytes, got {received_len}")
             else:
                 data = struct.unpack(TYPES_FMT[self.data_type], data)[0]
             context.update({ 'data': data })
@@ -149,7 +144,6 @@ class T5UID1_Var:
                 result.extend(struct.pack(TYPES_FMT[self.data_type], part))
                 count += 1
             if count != self.array_len:
-                raise ValueError("Expected %d values, got %d"
-                                 % (self.array_len, count))
+                raise ValueError(f"Expected {self.array_len} values, got {count}")
 
         return result

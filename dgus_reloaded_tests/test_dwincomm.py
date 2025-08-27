@@ -20,6 +20,7 @@ _spec.loader.exec_module(_module)
 DWINComm = _module.DWINComm
 
 
+
 class MockCmd:
     def __init__(self):
         self.sent = []

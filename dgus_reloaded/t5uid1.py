@@ -9,23 +9,44 @@
 # This file may be distributed under the terms of the GNU GPLv3 license.
 import logging
 import os
-import re
 import struct
 import textwrap
+import types
 
-import time
-import traceback
+from typing import TYPE_CHECKING, Any
 
-import jinja2
-import mcu
-
-# RunTime app root = <dgus_reloaded>
-# Test root = <repo_root>
-# Imports are relative to the app root, so we need to adjust the path
+from .bin.gcode_macro_wrapper import T5UID1GCodeMacro
 
 from .bin import var, page, routine, t5uid1_utils
+from .bin.file_utilities import (
+    get_printer_cfg_value as fu_get_printer_cfg_value,
+    replace_printer_cfg_value as fu_replace_printer_cfg_value,
+    get_preset_values as fu_get_preset_values,
+    update_preset_value as fu_update_preset_value,
+    get_abl_profiles as fu_get_abl_profiles,
+    load_macro_menus as fu_load_macro_menus,
+    get_start_countdown_status as fu_get_start_countdown_status,
+    get_abl_green_threshold as fu_get_abl_green_threshold,
+    get_macros_for_section as fu_get_macros_for_section,
+)
+from .bin.ui_actions import (
+    play_sound as ui_play_sound,
+    set_brightness as ui_set_brightness,
+    set_volume as ui_set_volume,
+)
+from .bin.context_builder import build_contexts
+from .bin.page import PageManager
+from .bin import macros as macros_mod
+
 from . import cr6_scripts
-from .. import gcode_macro, heaters
+from .. import heaters  # pylint: enable=import-outside-toplevel, import-error
+from .bin.DWINComm import DWINComm
+
+if TYPE_CHECKING:
+    # inform the type checker / language server about the runtime-only 'mcu' module
+    import mcu  # type: ignore
+
+# no module-level `mcu` object required — runtime code does a lazy import inside the class
 
 # Create a configuration dictionary for T5UID1 firmware, from the __init__.py module in cr6_scripts
 T5UID1_firmware_cfg = {
@@ -62,80 +83,66 @@ CONTROL_TYPES = {
     'firmware_settings':   0x07
 }
 
-def map_value_range(x, in_min, in_max, out_min, out_max):
-    """Calculates value of setting for sound, brightness, & volume"""
-    return int(round((x - in_min)
-                     * (out_max - out_min)
-                     // (in_max - in_min)
-                     + out_min))
-
-def get_duration(secs):
-    """Build string variable reporting 'printtime so far' in days, hours, minutes, and seconds."""
-    if not isinstance(secs, int):
-        secs = int(secs)
-    if secs < 0:
-        secs = 0
-
-    mins, secs = divmod(secs, 60)
-    hrs, mins = divmod(mins, 60)
-    dys, hrs = divmod(hrs, 24)
-    dys %= 365
-
-    parts = []
-    if dys:
-        parts.append(f"{dys}d")
-    if hrs:
-        parts.append(f"{hrs}h")
-    if mins:
-        parts.append(f"{mins}m")
-    parts.append(f"{secs}s")
-    return " ".join(parts)
-
-def get_remaining(minutes):
-    """Express print time remaining, in Days, Hours, and Minutes."""
-    if not isinstance(minutes, int):
-        minutes = int(minutes)
-    if minutes < 0:
-        minutes = 0
-
-    hours, minutes = divmod(minutes, 60)
-    days, hours = divmod(hours, 24)
-    days %= 365
-
-    parts = []
-    if days:
-        parts.append(f"{days}d")
-    if hours:
-        parts.append(f"{hours}h")
-    parts.append(f"{minutes}m")
-    return " ".join(parts)
-
-class T5UID1GCodeMacro:
-    """A Class for wrapping a gcode macro into a jinja2 template?"""
-    def __init__(self, config):
-        self.printer = config.get_printer()
-        self.env = jinja2.Environment('{%', '%}', '{', '}',
-                                      trim_blocks=True,
-                                      lstrip_blocks=True,
-                                      extensions=['jinja2.ext.do'])
-        # Register the round_up filter. Added to enable use of round_up in vars_in.cfg, vars_out.cfg & routines.cfg
-        self.env.filters["round_up"] = t5uid1_utils.round_up
-        self.env.filters["format_fixed"] = t5uid1_utils.format_fixed
-
-    def load_template(self, config, option, default=None):
-        """Load applicable jinja2 template"""
-        name = f"{config.get_name()}:{option}"
-        script = config.get(option, default) if default is not None else config.get(option)
-        return gcode_macro.TemplateWrapper(self.printer, self.env, name, script)
+# Use get_duration/get_remaining from bin.t5uid1_utils (imported above).
+# Local implementations removed to avoid duplication and keep a single source of truth.
 
 class T5UID1:
     """Defines one instance of the t5uid1 class as a unique set of parameters/attributes"""
     def __init__(self, config):
         self.printer = config.get_printer()
-        self.name = config.get_name()
-
         self.reactor = self.printer.get_reactor()
 
+        # logger for instance (fixes pylint 'has no logger member')
+        self.logger = logging.getLogger(__name__)
+        # --- TEMP DEBUG: install one stable debug wrapper for t5uid1_command_write ---
+        # Keep original bound method callable in _orig_t5uid1_command_write and
+        # install the wrapper under a private name so we don't hide the real method.
+        try:
+            import types as _types
+            if not hasattr(self, "_orig_t5uid1_command_write"):
+                orig_func = getattr(type(self), "t5uid1_command_write", None)
+                # bind original class method to the instance (callable) or set None
+                self._orig_t5uid1_command_write = orig_func.__get__(self, type(self)) if orig_func is not None else None
+
+                def _dbg_t5uid1_command_write(inner_self, address, data, send=True):
+                    try:
+                        ph = data.hex() if isinstance(data, (bytes, bytearray)) else str(data)
+                        self.logger.info("t5uid1_command_write (dbg) addr=0x%02x send=%s payload=%s", address, send, ph)
+                    except Exception:
+                        pass
+                    if callable(self._orig_t5uid1_command_write):
+                        return self._orig_t5uid1_command_write(address, data, send)
+                    return None
+
+                # bind wrapper to instance but do NOT overwrite the class method name
+                self._dbg_t5uid1_command_write = _types.MethodType(_dbg_t5uid1_command_write, self)
+        except Exception:
+            pass
+
+        # lazy import of Klipper 'mcu' so plain pytest/unittest imports don't fail
+        try:
+            import mcu as _mcu  # pylint: enable=import-outside-toplevel, import-error
+        except Exception:
+            _mcu = None
+
+        if _mcu is None:
+            raise RuntimeError("Klipper 'mcu' module not available. Run under Klipper or add a test shim.")
+        self.mcu = _mcu.get_printer_mcu(self.printer, config.get('t5uid1_mcu', 'mcu'))
+
+        # create DWINComm helper (replaces the previous create_oid/lookup/send logic)
+        # annotate as Any so static checkers won't flag dynamic members provided by the comm module
+        self.comm: Any = DWINComm(self.mcu, self.reactor, logging.getLogger(__name__))
+        self.comm.register_parsed_callback(self._on_parsed_message)
+        # create oid and send initial config via comm
+        self.oid = self.comm.create_oid()
+
+        # NOTE: do NOT call add_config_cmd/init_commands/register_response here
+        # since timeout_command/timeout_data are computed later in _build_config.
+        self._ping_timer = self.reactor.register_timer(self._do_ping)
+
+        # response handler registration is performed in _build_config
+
+        self.name = config.get_name()
         self.gcode = self.printer.lookup_object('gcode')
         self.configfile = self.printer.lookup_object('configfile')
 
@@ -145,21 +152,12 @@ class T5UID1:
         self.stepper_enable = self.printer.load_object(config, 'stepper_enable')
         self.bed_mesh = None
         self.probe = None
-
         self.extruders = {}
-
-        self.mcu = mcu.get_printer_mcu(self.printer,
-                                       config.get('t5uid1_mcu', 'mcu'))
-        self.oid = self.mcu.create_oid()
-
         self._version = self.printer.get_start_args().get('software_version')
-
         self.printer.load_object(config, 'gcode_macro')
         self._gcode_macro = T5UID1GCodeMacro(config)
-
         firmware_cfg = config.getchoice('firmware', T5UID1_firmware_cfg)
         self._firmware = config.get('firmware')
-
         self._machine_name = config.get('machine_name', 'Generic 3D printer')
         self._baud = config.getint('baud', 115200, minval=1200, maxval=921600)
         self._update_interval = config.getint('update_interval', 2,
@@ -230,96 +228,19 @@ class T5UID1:
 
         self._current_macros = []  # Initialize _current_macros attribute
 
+        # page/navigation manager (extracted to reduce t5uid1 size)
+        self.page_manager = PageManager(self)
 
         # Added at v1.3.6 to parse variables.cfg
         self.variables_file = '/home/pi/klipper/klippy/extras/dgus_reloaded/cr6_scripts/variables.cfg'
 
-        global_context = {
-            'get_variable': self.get_variable,
-            'set_variable': self.set_variable,
-            'enable_control': self.enable_control,
-            'disable_control': self.disable_control,
-            'start_routine': self.start_routine,
-            'stop_routine': self.stop_routine,
-            'set_message': self.set_message,
-            'bitwise_and': t5uid1_utils.bitwise_and,
-            'bitwise_or': t5uid1_utils.bitwise_or,
-            'get_printer_cfg_value': self.get_printer_cfg_value,
-            'replace_printer_cfg_value': self.replace_printer_cfg_value,
-            'round_up': t5uid1_utils.round_up,
-            'format_fixed': t5uid1_utils.format_fixed,
-            'debounce_switch_page': self.debounce_switch_page,
-            'get_now': self.get_now,
-        }
-
-        context_input = dict(global_context)
-        context_input.update({
-            'page_name': self.page_name,
-            'switch_page': self.switch_page,
-            'return_to_previous_page': self.return_to_previous_page,
-            'play_sound': self.play_sound,
-            'set_volume': self.set_volume,
-            'set_brightness': self.set_brightness,
-            'limit_extrude': self.limit_extrude,
-            'heater_min_temp': self.heater_min_temp,
-            'heater_max_temp': self.heater_max_temp,
-            'heater_min_extrude_temp': self.heater_min_extrude_temp,
-            'capture_gcode_files': self.capture_gcode_files,
-            'delete_file': self.delete_file,
-            'is_busy': self.is_busy,
-            'get_preset_values': self.get_preset_values,
-            'update_preset_value': self.update_preset_value,
-            'get_abl_green_threshold': self.get_abl_green_threshold,
-            'get_abl_profiles': self.get_abl_profiles,
-            'get_printer_cfg_value': self.get_printer_cfg_value,
-            'debounce_switch_page': self.debounce_switch_page,
-        })
-
-        context_output = dict(global_context)
-        context_output.update({
-            'all_steppers_enabled': self.all_steppers_enabled,
-            '_files': self._files,
-            'heater_min_temp': self.heater_min_temp,
-            'heater_max_temp': self.heater_max_temp,
-            'probed_matrix': self.probed_matrix,
-            'pid_param': self.pid_param,
-            'get_duration': get_duration,
-            'get_remaining': get_remaining,
-            'specific_fpname': self.specific_fpname,
-            'specific_mpname': self.specific_mpname,
-            'get_preset_values': self.get_preset_values,
-            'update_preset_value': self.update_preset_value,
-            'set_mesh_point_colour': self.set_mesh_point_colour,
-            'round_up': t5uid1_utils.round_up,
-            'debounce_switch_page': self.debounce_switch_page,
-        })
-
-        context_routine = dict(global_context)
-        context_routine.update({
-            'page_name': self.page_name,
-            'switch_page': self.switch_page,
-            'return_to_previous_page': self.return_to_previous_page,
-            'play_sound': self.play_sound,
-            'set_volume': self.set_volume,
-            'set_brightness': self.set_brightness,
-            'abort_page_switch': self.abort_page_switch,
-            'full_update': self.full_update,
-            'is_busy': self.is_busy,
-            'check_paused': self.check_paused,
-            'capture_gcode_files': self.capture_gcode_files,
-            'capture_macros_list': self.capture_macros_list,
-            'get_preset_values': self.get_preset_values,
-            'update_preset_value': self.update_preset_value,
-            'get_abl_profiles': self.get_abl_profiles,
-            'round_up': t5uid1_utils.round_up,
-            '_load_macro_menus': self._load_macro_menus,
-            'debounce_switch_page': self.debounce_switch_page,
-        })
+        # Build template contexts via context_builder to keep __init__ concise.
+        context_input, context_output, context_routine = build_contexts(self)
 
         self._status_data.update({
-            'controls': firmware_cfg['controls'],
-            'constants': firmware_cfg['constants']
-        })
+             'controls': firmware_cfg['controls'],
+             'constants': firmware_cfg['constants']
+         })
 
         self._load_config(config,
                           firmware_cfg['config_files'],
@@ -338,16 +259,53 @@ class T5UID1:
 
         self._update_timer = self.reactor.register_timer(self._send_update)
         self._ping_timer = self.reactor.register_timer(self._do_ping)
+    
+        # moved gcode handler implementations to bin/macros.py (macros_mod).
+        # The gcode commands are registered to call the functions in macros_mod.
+        self.gcode.register_command('DGUS_ABORT_PAGE_SWITCH',
+                                    lambda gcmd: macros_mod.cmd_DGUS_ABORT_PAGE_SWITCH(self, gcmd))
+        self.gcode.register_command('DGUS_PLAY_SOUND',
+                                    lambda gcmd: macros_mod.cmd_DGUS_PLAY_SOUND(self, gcmd))
+        self.gcode.register_command('DGUS_PRINT_START',
+                                    lambda gcmd: macros_mod.cmd_DGUS_PRINT_START(self, gcmd))
+        self.gcode.register_command('DGUS_PRINT_END',
+                                    lambda gcmd: macros_mod.cmd_DGUS_PRINT_END(self, gcmd))
+        self.gcode.register_command('M300',
+                                    lambda gcmd: macros_mod.cmd_M300(self, gcmd))
 
-        self.gcode.register_command(
-            'DGUS_ABORT_PAGE_SWITCH', self.cmd_DGUS_ABORT_PAGE_SWITCH)
-        self.gcode.register_command(
-            'DGUS_PLAY_SOUND', self.cmd_DGUS_PLAY_SOUND)
-        self.gcode.register_command(
-            'DGUS_PRINT_START', self.cmd_DGUS_PRINT_START)
-        self.gcode.register_command(
-            'DGUS_PRINT_END', self.cmd_DGUS_PRINT_END)
-        self.gcode.register_command('M300', self.cmd_M300)
+        # Temporary test command: force an immediate page switch
+        # Usage: DGUS_FORCE_PAGE PAGE=<page_name>
+        def _dgus_force_page_handler(gcmd):
+            """Robustly extract PAGE param and call switch_page."""
+            page = None
+            # try common accessor if present
+            try:
+                page = gcmd.get_str('PAGE')  # may not exist on some GCodeCommand objects
+            except Exception:
+                page = None
+            # try parsing the command line (fallback)
+            if not page:
+                try:
+                    cl = gcmd.get_commandline()
+                    import re
+                    m = re.search(r'PAGE=([A-Za-z0-9_\\-]+)', cl)
+                    if m:
+                        page = m.group(1)
+                    else:
+                        # also accept "DGUS_FORCE_PAGE home" (positional)
+                        parts = cl.strip().split()
+                        if len(parts) >= 2:
+                            page = parts[1]
+                except Exception:
+                    page = None
+            if not page:
+                try:
+                    gcmd.respond_info("DGUS_FORCE_PAGE: missing PAGE parameter")
+                except Exception:
+                    pass
+                return
+            return self.switch_page(page, immediate=True, send=True)
+        self.gcode.register_command('DGUS_FORCE_PAGE', _dgus_force_page_handler)
 
         self.printer.register_event_handler("klippy:ready",
                                             self._handle_ready)
@@ -420,20 +378,15 @@ class T5UID1:
         timeout_command, timeout_data = self.switch_page(self._timeout_page, send=False)
         timeout_data = "".join(f"{x:02x}" for x in timeout_data)
 
-        self.mcu.add_config_cmd(
-            f"config_t5uid1 oid={self.oid} baud={self._baud} timeout={TIMEOUT_SECS}"
-            f" timeout_command={timeout_command} timeout_data={timeout_data}"
-        )
+        # Let DWINComm compose the MCU config command and register response handlers.
+        self.comm.add_config_cmd(self._baud, TIMEOUT_SECS, timeout_command, timeout_data)
 
         curtime = self.reactor.monotonic()
         self._last_cmd_time = self.mcu.estimated_print_time(curtime)
 
-        cmd_queue = self.mcu.alloc_command_queue()
-        self._t5uid1_ping_cmd = self.mcu.lookup_command("t5uid1_ping oid=%c", cq=cmd_queue)
-        self._t5uid1_write_cmd = self.mcu.lookup_command(
-            "t5uid1_write oid=%c command=%c data=%*s", cq=cmd_queue)
-
-        self.mcu.register_response(self._handle_t5uid1_received, "t5uid1_received")
+        # Prepare MCU command objects and register the response callback via DWINComm.
+        self.comm.init_commands()
+        self.comm.register_response(self._handle_t5uid1_received, "t5uid1_received")
 
     def _handle_ready(self):
         self.toolhead = self.printer.lookup_object('toolhead')
@@ -462,15 +415,15 @@ class T5UID1:
 
         if self._original_M73 is None:
             original_M73 = self.gcode.register_command('M73', None)
-            if original_M73 != self.cmd_M73:  # pylint: disable=comparison-with-callable
+            if original_M73 != macros_mod.cmd_M73:  # pylint: disable=comparison-with-callable
                 self._original_M73 = original_M73
-            self.gcode.register_command('M73', self.cmd_M73)
-
+            self.gcode.register_command('M73', lambda gcmd: macros_mod.cmd_M73(self, gcmd))
+ 
         if self._original_M117 is None:
             original_M117 = self.gcode.register_command('M117', None)
-            if original_M117 != self.cmd_M117:  # pylint: disable=comparison-with-callable
+            if original_M117 != macros_mod.cmd_M117:  # pylint: disable=comparison-with-callable
                 self._original_M117 = original_M117
-            self.gcode.register_command('M117', self.cmd_M117)
+            self.gcode.register_command('M117', lambda gcmd: macros_mod.cmd_M117(self, gcmd))
 
         self._status_data.update({
             'limits': self.limits(),
@@ -513,23 +466,71 @@ class T5UID1:
         self.reactor.update_timer(self._ping_timer, self.reactor.NEVER)
 
     def _handle_t5uid1_received(self, params):
+        """
+        Accept either a parsed dict from DWINComm.unpack_message, or legacy raw MCU params.
+        """
         if not self._is_connected:
             return
-        logging.debug("t5uid1_received %s", params)
-        if params['command'] != T5UID1_CMD_READVAR:
-            return
-        data = bytearray(params['data'])
-        if len(data) < 3:
-            logging.warning("Received invalid T5UID1 message")
-            return
-        address = struct.unpack(">H", data[:2])[0]
-        data_len = data[2] << 1
-        if len(data) < data_len + 3:
-            logging.warning("Received invalid T5UID1 message")
-            return
-        data = data[3:data_len + 3]
-        self.reactor.register_async_callback(
-            (lambda e, s=self, a=address, d=data: s.handle_received(a, d)))
+
+        # parsed dict path
+        if isinstance(params, dict) and ('ok' in params or 'address' in params):
+            parsed = params
+            if parsed.get('ok'):
+                address = parsed.get('address')
+                data = parsed.get('data')
+                if address is None or data is None:
+                    self.logger.warning("t5uid1: parsed message missing address/data: %s", parsed)
+                    return
+                self.reactor.register_async_callback(
+                    (lambda e, s=self, a=address, d=data: s.handle_received(a, d)))
+                return
+            # fallback: try legacy raw params if present
+            raw = parsed.get('_raw_params')
+            if raw:
+                params = raw
+            else:
+                return
+
+        # legacy/raw MCU params handling (robust checks)
+        try:
+            self.logger.debug("t5uid1_received (raw) %s", params)
+            cmd = None
+            if isinstance(params, dict):
+                cmd = params.get('command')
+                data_field = params.get('data')
+            elif isinstance(params, (list, tuple)):
+                # typical: [oid, command, data_list]
+                if len(params) >= 3:
+                    cmd = params[1]
+                    data_field = params[2]
+                else:
+                    cmd = None
+                    data_field = None
+            else:
+                cmd = None
+                data_field = None
+
+            if cmd is None or cmd != T5UID1_CMD_READVAR:
+                return
+
+            if not data_field:
+                self.logger.warning("Received empty/invalid T5UID1 data_field")
+                return
+
+            data = bytearray(data_field)
+            if len(data) < 3:
+                self.logger.warning("Received invalid T5UID1 message")
+                return
+            address = struct.unpack(">H", data[:2])[0]
+            data_len = data[2] << 1
+            if len(data) < data_len + 3:
+                self.logger.warning("Received invalid T5UID1 message")
+                return
+            payload = data[3:3 + data_len]
+            self.reactor.register_async_callback(
+                (lambda e, s=self, a=address, d=payload: s.handle_received(a, d)))
+        except Exception:
+            self.logger.exception("Unhandled exception in _handle_t5uid1_received")
 
     def handle_received(self, address, data):
         """A function to parse messages received from DWIN_SET"""
@@ -583,13 +584,190 @@ class T5UID1:
         for var_name in self._pages[page].var_auto:
             self.send_var(var_name)
 
-    def full_update(self):
-        """Refresh all data on current page. Reset update_timer."""
+    # ---- Page/navigation delegators (forward to PageManager) ----
+    def switch_page(self, page_name: str, immediate: bool = False, send: bool = True):
+        """Switch page. If send is False, return (command, payload) instead of sending."""
+        self.logger.info("switch_page requested: %s immediate=%s send=%s", page_name, immediate, send)
+        if not send:
+            # preserve legacy behaviour: return (command, payload) for callers that
+            # want to include the page-change in a composed config message.
+            if page_name not in self._pages:
+                raise ValueError(f"T5UID1_Page '{page_name}' not found")
+            pid = self._pages[page_name].id
+            return self.t5uid1_command_write(T5UID1_ADDR_PAGE, bytearray([pid]), send=False)
+        # normal runtime path: delegate to PageManager to perform the switch
+        return self.page_manager.switch_page(page_name, immediate=immediate)
+
+    def return_to_previous_page(self) -> None:
+        return self.page_manager.return_to_previous_page()
+
+    def debounce_switch_page(self, page_name: str, delay: float = 0.15) -> None:
+        return self.page_manager.debounce_switch_page(page_name, delay=delay)
+
+    def abort_page_switch(self) -> None:
+        return self.page_manager.abort_page_switch()
+
+    def full_update(self) -> None:
+        return self.page_manager.full_update()
+    # -------------------------------------------------------------
+
+    def _build_config(self):
+        timeout_command, timeout_data = self.switch_page(self._timeout_page, send=False)
+        timeout_data = "".join(f"{x:02x}" for x in timeout_data)
+
+        # Let DWINComm compose the MCU config command and register response handlers.
+        self.comm.add_config_cmd(self._baud, TIMEOUT_SECS, timeout_command, timeout_data)
+
+        curtime = self.reactor.monotonic()
+        self._last_cmd_time = self.mcu.estimated_print_time(curtime)
+
+        # Prepare MCU command objects and register the response callback via DWINComm.
+        self.comm.init_commands()
+        self.comm.register_response(self._handle_t5uid1_received, "t5uid1_received")
+
+    def _handle_ready(self):
+        self.toolhead = self.printer.lookup_object('toolhead')
+
+        self.heaters.lookup_heater('extruder')
+        self.heaters.lookup_heater('heater_bed')
+
         try:
-            self.send_page_vars(complete=True)
-            self.reactor.update_timer(self._update_timer, self.reactor.monotonic() + self._update_interval)
-        except UnicodeEncodeError as e:
-            logging.exception("Unicode encoding error during full update: %s", e)
+            self.bed_mesh = self.printer.lookup_object('bed_mesh')
+        except self.printer.config_error:
+            logging.warning("No 'bed_mesh' configuration found")
+            self.bed_mesh = None
+
+        try:
+            self.probe = self.printer.lookup_object('probe')
+        except self.printer.config_error:
+            logging.warning("No 'probe' configuration found")
+            self.probe = None
+
+        has_bltouch = False
+        try:
+            self.printer.lookup_object('bltouch')
+            has_bltouch = True
+        except self.printer.config_error:
+            pass
+
+        if self._original_M73 is None:
+            original_M73 = self.gcode.register_command('M73', None)
+            if original_M73 != macros_mod.cmd_M73:  # pylint: disable=comparison-with-callable
+                self._original_M73 = original_M73
+            self.gcode.register_command('M73', lambda gcmd: macros_mod.cmd_M73(self, gcmd))
+ 
+        if self._original_M117 is None:
+            original_M117 = self.gcode.register_command('M117', None)
+            if original_M117 != macros_mod.cmd_M117:  # pylint: disable=comparison-with-callable
+                self._original_M117 = original_M117
+            self.gcode.register_command('M117', lambda gcmd: macros_mod.cmd_M117(self, gcmd))
+
+        self._status_data.update({
+            'limits': self.limits(),
+            'has_bltouch': has_bltouch
+        })
+
+        self._is_connected = True
+        self.reactor.register_timer(self._on_ready, self.reactor.NOW)
+
+    def _on_ready(self, eventtime):
+        if not self._is_connected:
+            return self.reactor.NEVER
+        self._last_cmd_time = self.mcu.estimated_print_time(eventtime)
+        self.t5uid1_command_read(T5UID1_ADDR_VERSION, 1)
+        self.set_brightness(self._brightness)
+        self.switch_page(self._boot_page)
+        if self._boot_sound >= 0:
+            self.play_sound(self._boot_sound, volume=self._volume)
+        else:
+            self.set_volume(self._volume)
+        return self.reactor.NEVER
+
+    def _handle_shutdown(self):
+        msg = getattr(self.mcu, "_shutdown_msg", "").strip()
+        parts = textwrap.wrap(msg, 32)
+        while len(parts) < 4:
+            parts.append("")
+        self.set_variable("line1", parts[0].strip())
+        self.set_variable("line2", parts[1].strip())
+        self.set_variable("line3", parts[2].strip())
+        self.set_variable("line4", parts[3].strip())
+        self.switch_page(self._shutdown_page)
+        if self._notification_sound >= 0:
+            self.play_sound(self._notification_sound)
+
+    def _handle_disconnect(self):
+        self._is_connected = False
+        self._current_page = ""
+        self.reactor.update_timer(self._update_timer, self.reactor.NEVER)
+        self.reactor.update_timer(self._ping_timer, self.reactor.NEVER)
+
+    def _handle_t5uid1_received(self, params):
+        """
+        Accept either a parsed dict from DWINComm.unpack_message, or legacy raw MCU params.
+        """
+        if not self._is_connected:
+            return
+
+        # parsed dict path
+        if isinstance(params, dict) and ('ok' in params or 'address' in params):
+            parsed = params
+            if parsed.get('ok'):
+                address = parsed.get('address')
+                data = parsed.get('data')
+                if address is None or data is None:
+                    self.logger.warning("t5uid1: parsed message missing address/data: %s", parsed)
+                    return
+                self.reactor.register_async_callback(
+                    (lambda e, s=self, a=address, d=data: s.handle_received(a, d)))
+                return
+            # fallback: try legacy raw params if present
+            raw = parsed.get('_raw_params')
+            if raw:
+                params = raw
+            else:
+                return
+
+        # legacy/raw MCU params handling (robust checks)
+        try:
+            self.logger.debug("t5uid1_received (raw) %s", params)
+            cmd = None
+            if isinstance(params, dict):
+                cmd = params.get('command')
+                data_field = params.get('data')
+            elif isinstance(params, (list, tuple)):
+                # typical: [oid, command, data_list]
+                if len(params) >= 3:
+                    cmd = params[1]
+                    data_field = params[2]
+                else:
+                    cmd = None
+                    data_field = None
+            else:
+                cmd = None
+                data_field = None
+
+            if cmd is None or cmd != T5UID1_CMD_READVAR:
+                return
+
+            if not data_field:
+                self.logger.warning("Received empty/invalid T5UID1 data_field")
+                return
+
+            data = bytearray(data_field)
+            if len(data) < 3:
+                self.logger.warning("Received invalid T5UID1 message")
+                return
+            address = struct.unpack(">H", data[:2])[0]
+            data_len = data[2] << 1
+            if len(data) < data_len + 3:
+                self.logger.warning("Received invalid T5UID1 message")
+                return
+            payload = data[3:3 + data_len]
+            self.reactor.register_async_callback(
+                (lambda e, s=self, a=address, d=payload: s.handle_received(a, d)))
+        except Exception:
+            self.logger.exception("Unhandled exception in _handle_t5uid1_received")
 
     def start_routine(self, routine):    # pylint: disable=redefined-outer-name
         """Launch called routine. Abort and raise error if cannot"""
@@ -749,22 +927,9 @@ class T5UID1:
             self._print_pause_time = -1
 
     def get_start_countdown_status(self):
-        """Check whether to start the Splicer-Estimated Print Time Remaining countdown timer""" 
+        """Check whether to start the Slicer-Estimated Print Time Remaining countdown timer"""
         variables_file = '/home/pi/klipper/klippy/extras/dgus_reloaded/cr6_scripts/variables.cfg'
-        start_countdown_timer = None
-        try:
-            with open(variables_file, 'r', encoding="utf-8") as file:
-                for line in file:
-                    if 'start_countdown_timer' in line:
-                        # Strip out unnecessary characters and split the line key,
-                        key, value = line.strip().split(' = ')
-                        if key == 'start_countdown_timer':
-                            start_countdown_timer = value.strip().lower() == 'true'
-                            return start_countdown_timer
-        except FileNotFoundError:
-            logging.exception("File not found: %s", variables_file)
-        except Exception as e:
-            logging.exception("Error reading %s: %s", variables_file, e)
+        return fu_get_start_countdown_status(variables_file)
 
     def get_status(self, eventtime):
         """Update the values of the displayed printer status variables"""
@@ -857,19 +1022,19 @@ class T5UID1:
                                       curtime + TIMEOUT_SECS - 2)
 
     def t5uid1_command_write(self, address, data, send=True):
-        """Build message to send to DWIN_SET. Flag if invalid address or data"""
-        if address < 0 or address > 0xffff:
-            raise ValueError("invalid address")
-        if not isinstance(data, bytearray):
-            raise ValueError("invalid data")
-        if len(data) < 1 or len(data) > 64 or len(data) % 2 != 0:
-            raise ValueError("invalid data length")
+        """Write a payload to the display. If send=False return (cmd, payload) tuple."""
+        if not isinstance(data, (bytes, bytearray)):
+            raise ValueError("data must be bytes or bytearray")
         command = T5UID1_CMD_WRITEVAR
-        command_data = bytearray([ (address >> 8), (address & 0xff) ])
-        command_data.extend(data)
+        # build the command payload as existing code did
+        cmd_payload = bytearray()
+        cmd_payload.append((address >> 8) & 0xff)
+        cmd_payload.append(address & 0xff)
+        cmd_payload.extend(data)
         if not send:
-            return (command, command_data)
-        self._t5uid1_write(command, command_data)
+            return (command, cmd_payload)
+        # delegate actual sending to DWINComm
+        self.comm.send_write(command, cmd_payload, schedule_ping=True)
 
     def t5uid1_command_read(self, address, wlen, send=True):
         """Parse message received from DWIN_SET. Flag if not valid content"""
@@ -884,99 +1049,6 @@ class T5UID1:
         self._t5uid1_write(command, command_data)
         return None
 
-    def debounce_switch_page(self, name, interval=0.5):
-        '''Call this method directly from user-activated controls which used to call for switch_page, to debounce those controls for the specified interval'''
-        now = time.monotonic()
-        last_time = self._last_debounced_page_switch.get(name, float('-inf'))
-
-        if now - last_time < interval:
-            logging.debug("Debounced duplicate icon tap for '%s' at %.3f", name, now)
-            return
-
-        self._last_debounced_page_switch[name] = now
-        self.switch_page(name)
-
-    def switch_page(self, name, send=True):
-        """Switch to named page. Flag if page name not known.  Remember where we came from, so we can get back."""
-
-        # Log each call of switch_page, for troubleshooting
-        logging.warning("switch_page('%s') requested. Stack trace:\n%s", name, ''.join(traceback.format_stack()))
-
-        now = time.monotonic()  # Fix: define 'now' for logging
-
-        # If switching to the current page, no action required. Exit routine
-        if name == self._current_page:
-            logging.exception("Ignored request to switch again to current page '%s' at time '%s'.", name, now)
-            return None
-
-        # If the name of the page to which we must switch is not contained within the known dictionary of self._pages, then exit with an error
-        if name not in self._pages:
-            raise ValueError("invalid page")
-
-        # If told not to send the switch page message to the display, just return what would have been sent.
-        if not send:
-            return self.t5uid1_command_write(
-                T5UID1_ADDR_PAGE,
-                bytearray([0x5a, 0x01, 0x00, self._pages[name].id]),
-                send
-            )
-
-        # Push the current page identity to the navigation history stack before switching (to facilitate always returning to the calling page)
-        if self._current_page:
-            self._page_history.append(self._current_page)
-
-        # If there are no (optional) "enter_pre" routines defined for the new page, then return
-        if not self._start_page_routines(name, "enter_pre"):
-            return None
-
-        # Update - in the display memory - the variables listed in pages.cfg, for the page to which we are switching
-        self.send_page_vars(name, complete=True)
-
-        # Command the display to switch to the new page
-        self.t5uid1_command_write(
-            T5UID1_ADDR_PAGE,
-            bytearray([0x5a, 0x01, 0x00, self._pages[name].id]),
-            send
-        )
-
-        # If we are switching away from an existing page with ongoing routines, stop those routines
-        # Since we are leaving the current page, run the "leave" routines for this page
-        if self._current_page:
-            self._stop_page_routines(self._current_page)
-            self._start_page_routines(self._current_page, "leave")
-
-        # Change the self._current_page variable value to the ID of the new page to which we have switched
-        self._current_page = name
-
-        # Log to which page we just switched and at what time
-        logging.info("Switched to page: %s at time %.3f", name, time.monotonic())
-
-        # Start running the "enter" routines for the new page
-        self._start_page_routines(name, "enter")
-
-        # Reset the timer that controls refreshing the var_auto variables every 2 seconds, while we remain on this new page
-        self.reactor.update_timer(
-            self._update_timer,
-            self.reactor.monotonic() + self._update_interval
-        )
-
-        return None
-
-    def abort_page_switch(self):
-        """Send message to calling routine, if abort page switch"""
-        return "DGUS_ABORT_PAGE_SWITCH"
-
-    def return_to_previous_page(self):
-        """Pop the last entry off the page navigation stack as the ID of the page to which we want to return"""
-        # If the stack is empty, we have nowhere left to go back to. Exit routine.
-        if not self._page_history:
-            return  # No previous page to return to
-
-        # The last page we were on must have been the one from which we came, let's go back there.
-        previous_page = self._page_history.pop()
-        self.switch_page(previous_page, send=True)
-
-
     def play_sound(self, start, slen=1, volume=-1, send=True):
         """Play sound defined by the calling function."""
         if start < 0 or start > 255:
@@ -987,70 +1059,19 @@ class T5UID1:
             raise ValueError("invalid volume")
         if volume < 0:
             volume = self._volume
-        val = map_value_range(volume, 0, 100, 0, 255)
-        return self.t5uid1_command_write(T5UID1_ADDR_SOUND,
-                                         bytearray([start, slen, val, 0]),
-                                         send)
-
-    def enable_control(self, page, ctype, control, send=True):   # pylint: disable=redefined-outer-name
-        """Build and send a message to DWIN_SET to enable a control"""
-        if page < 0 or page > 255:
-            raise ValueError("invalid page")
-        if ctype < 0 or ctype > 255:
-            raise ValueError("invalid ctype")
-        if control < 0 or control > 255:
-            raise ValueError("invalid control")
-        return self.t5uid1_command_write(T5UID1_ADDR_CONTROL,
-                                         bytearray([
-                                             0x5a, 0xa5, 0, page,
-                                             control, ctype, 0, 0x01
-                                         ]),
-                                         send)
-
-    def disable_control(self, page, ctype, control, send=True):   # pylint: disable=redefined-outer-name
-        """Build and send a message to DWIN_SET to disable a control"""
-        if page < 0 or page > 255:
-            raise ValueError("invalid page")
-        if ctype < 0 or ctype > 255:
-            raise ValueError("invalid ctype")
-        if control < 0 or control > 255:
-            raise ValueError("invalid control")
-        return self.t5uid1_command_write(T5UID1_ADDR_CONTROL,
-                                         bytearray([
-                                             0x5a, 0xa5, 0, page,
-                                             control, ctype, 0, 0
-                                         ]),
-                                         send)
+        return ui_play_sound(self, start, slen, volume, send)
 
     def set_brightness(self, brightness, send=True):
         """Build and send a message to DWIN_SET to set the display brightness"""
         if brightness < 0 or brightness > 100:
             raise ValueError("invalid brightness")
-        val = map_value_range(brightness, 0, 100, 5, 100)
-        result = self.t5uid1_command_write(T5UID1_ADDR_BRIGHTNESS,
-                                           bytearray([val, val]),
-                                           send)
-        if not send:
-            return result
-        if self._brightness != brightness:
-            self._brightness = brightness
-            self.configfile.set(self.name, 'brightness', brightness)
-        return None
+        return ui_set_brightness(self, brightness, send)
 
     def set_volume(self, volume, send=True):
         """Build and send a message to DWIN_SET to set the display speaker volume"""
         if volume < 0 or volume > 100:
             raise ValueError("invalid volume")
-        val = map_value_range(volume, 0, 100, 0, 255)
-        result = self.t5uid1_command_write(T5UID1_ADDR_VOLUME,
-                                           bytearray([val, 0]),
-                                           send)
-        if not send:
-            return result
-        if self._volume != volume:
-            self._volume = volume
-            self.configfile.set(self.name, 'volume', volume)
-        return None
+        return ui_set_volume(self, volume, send)
 
     def all_steppers_enabled(self):
         """Return which of the three steppers is/are enabled"""
@@ -1200,184 +1221,26 @@ class T5UID1:
         # return True, else return False
         return (self.probe is not None and self.probe.homing_helper.multi_probe_pending)
 
-    def cmd_DGUS_ABORT_PAGE_SWITCH(self, gcmd):
-        """define abort_page_switch as a no-op function"""
-        pass
-
-    def cmd_DGUS_PLAY_SOUND(self, gcmd):
-        """Play Sound gcode handler"""
-        if self._notification_sound >= 0:
-            start = gcmd.get_int('START', self._notification_sound,
-                                 minval=0, maxval=255)
-        else:
-            start = gcmd.get_int('START', minval=0, maxval=255)
-        slen = gcmd.get_int('LEN', 1, minval=0, maxval=255)
-        volume = gcmd.get_int('VOLUME', -1, minval=0, maxval=100)
-        try:
-            self.play_sound(start, slen, volume)
-        except Exception as e:
-            raise gcmd.error(str(e))
-        gcmd.respond_info(f"Playing sound {start} (len={slen}, volume={volume})")
-
-    def cmd_DGUS_PRINT_START(self, gcmd):
-        """DGUS_Print_Start gcode handler"""
-        self._print_progress = 0
-        self._print_start_time = self.reactor.monotonic()
-        self._print_pause_time = -1
-        self._print_end_time = -1
-
-        # If the gcode includes M73 R messages, then capture the first one as the slicer's estimated total print time
-        if self._latest_rvalue > 0:
-            self._slicer_estimated_print_time = self._latest_rvalue
-        else:
-            self._slicer_estimated_print_time = 0
-
-        self._is_printing = True
-        self.check_paused()
-        if 'print_start' in self._routines:
-            self.start_routine('print_start')
-
-    def cmd_DGUS_PRINT_END(self, gcmd):
-        """DGUS_Print_End gcode handler"""
-        if not self._is_printing:
-            return
-        self._print_progress = 100
-        curtime = self.reactor.monotonic()
-        if self._print_pause_time >= 0:
-            pause_duration = curtime - self._print_pause_time
-            if pause_duration > 0:
-                self._print_start_time += pause_duration
-            self._print_pause_time = -1
-        self._print_end_time = curtime
-        self._print_time_remaining = 0
-        self._latest_rvalue = 0
-        self._slicer_estimated_print_time = 0
-        self._is_printing = False
-        if 'print_end' in self._routines:
-            self.start_routine('print_end')
-
-    def cmd_M73(self, gcmd):
-        """Custom M73 function""" 
-        # The message format may be M73 P_ R_ or M73 P_ or M73 R
-        if gcmd.get_int('P', 0):
-            progress = gcmd.get_int('P', 0)
-            self._print_progress = min(100, max(0, progress))
-        if gcmd.get_int('R', 0):
-            self._latest_rvalue = gcmd.get_int('R', 0)
-        if self._original_M73 is not None:
-            self._original_M73(gcmd)
-
-    def cmd_M117(self, gcmd):
-        """Custom M117 function"""
-        msg = gcmd.get_commandline()
-        umsg = msg.upper()
-        if not umsg.startswith('M117'):
-            start = umsg.find('M117')
-            end = msg.rfind('*')
-            msg = msg[start:end]
-        if len(msg) > 5:
-            self.set_message(msg[5:])
-        else:
-            self.set_message("")
-        if self._original_M117 is not None:
-            self._original_M117(gcmd)
-
-    def cmd_M300(self, gcmd):
-        """Custom M300 function"""
-        if self._notification_sound >= 0:
-            start = gcmd.get_int('S', self._notification_sound)
-        else:
-            start = gcmd.get_int('S', minval=0, maxval=255)
-        slen = gcmd.get_int('P', 1, minval=1, maxval=255)
-        volume = gcmd.get_int('V', -1, minval=0, maxval=100)
-        if start < 0 or start > 255:
-            start = self._notification_sound
-        try:
-            self.play_sound(start, slen, volume)
-        except Exception as e:
-            raise gcmd.error(str(e))
+    # moved gcode handler implementations to bin/macros.py (macros_mod).
+    # The gcode commands are registered to call the functions in macros_mod.
 
     def get_preset_values(self, parameter_name, default_value=None):
         """Get the material preset value from the [Presets] section of presets.cfg"""
-        variables_file = '/home/pi/klipper/klippy/extras/dgus_reloaded/cr6_scripts/presets.cfg'
-        parameter_value = default_value
-        in_presets_section = False
-        try:
-            with open(variables_file, 'r', encoding="utf-8") as file:
-                for line in file:
-                    line = line.strip()
-                    if line == "[presets]":
-                        in_presets_section = True
-                    elif line.startswith("[") and line.endswith("]"):
-                        in_presets_section = False
-                    elif in_presets_section and parameter_name in line:
-                        key, value = line.split(' = ')
-                        if key == parameter_name:
-                            parameter_value = value.strip().strip("'").strip('"')
-                            return parameter_value
-        except FileNotFoundError:
-            logging.exception("File not found: %s", variables_file)
-        except Exception as e:
-            logging.exception("Error reading %s: %s", variables_file, e)
-        logging.warning("Parameter %s has value: %s", parameter_name, parameter_value)  # Debugging line
-        return parameter_value
+        presets_path = '/home/pi/klipper/klippy/extras/dgus_reloaded/cr6_scripts/presets.cfg'
+        return fu_get_preset_values(presets_path, parameter_name, default_value)
 
     def update_preset_value(self, parameter_name, new_value):
         """Update the default material settings in presets.cfg"""
-        variables_file = '/home/pi/klipper/klippy/extras/dgus_reloaded/cr6_scripts/presets.cfg'
-        lines = []
-        in_presets_section = False
-        updated = False
-
-        try:
-            with open(variables_file, 'r', encoding="utf-8") as file:
-                lines = file.readlines()
-
-            with open(variables_file, 'w', encoding="utf-8") as file:
-                for line in lines:
-                    line_stripped = line.strip()
-                    if line_stripped == "[presets]":
-                        in_presets_section = True
-                    elif line_stripped.startswith("[") and line_stripped.endswith("]"):
-                        in_presets_section = False
-
-                    if in_presets_section and parameter_name in line_stripped:
-                        key, _ = line_stripped.split(' = ')
-                        if key == parameter_name:
-                            file.write(f"{parameter_name} = {new_value}\n")
-                            updated = True
-                        else:
-                            file.write(line)
-                    else:
-                        file.write(line)
-
-                if in_presets_section and not updated:
-                    # Append the new parameter to the [presets] section if it wasn't updated
-                    file.write(f"{parameter_name} = {new_value}\n")
-        except Exception as e:
-            logging.exception("Error updating presets: %s", e)
+        presets_path = '/home/pi/klipper/klippy/extras/dgus_reloaded/cr6_scripts/presets.cfg'
+        return fu_update_preset_value(presets_path, parameter_name, new_value)
 
     def get_abl_profiles(self, macro_names, profile_names):
         """Get the material preset value from the [Presets] section of presets.cfg"""
-        variables_file = '/home/pi/klipper/klippy/extras/dgus_reloaded/cr6_scripts/presets.cfg'
-        in_profiles_section = False
-        try:
-            with open(variables_file, 'r', encoding="utf-8") as file:
-                for line in file:
-                    line = line.strip()
-                    if line == "[profiles]":
-                        in_profiles_section = True
-                    elif line.startswith("[") and line.endswith("]"):
-                        in_profiles_section = False
-                    elif in_profiles_section and ' = ' in line:
-                        key, value = line.split(' = ')
-                        macro_names.append(key.strip())
-                        profile_names.append(value.strip().strip("'").strip('"'))
-        except FileNotFoundError:
-            self.set_message(f"File not found: {variables_file}")
-        except Exception as e:
-            self.set_message(f"Error reading {variables_file}: {e}")
-
+        presets_path = '/home/pi/klipper/klippy/extras/dgus_reloaded/cr6_scripts/presets.cfg'
+        macros, profiles = fu_get_abl_profiles(presets_path)
+        # extend provided lists to preserve original behavior
+        macro_names.extend(macros)
+        profile_names.extend(profiles)
         return macro_names, profile_names
 
     def set_mesh_point_colour(self, mesh_point_value):
@@ -1400,157 +1263,101 @@ class T5UID1:
 
     def get_abl_green_threshold(self):
         """Get the value of abl_green_threshold for get_mesh_point_colour()""" 
-        variables_file = '/home/pi/klipper/klippy/extras/dgus_reloaded/cr6_scripts/presets.cfg'
-        threshold = 0.00
-        try:
-            with open(variables_file, 'r', encoding="utf-8") as file:
-                for line in file:
-                    if 'abl_green_threshold' in line:
-                        # Strip out unnecessary characters and split the line key,
-                        _, value = line.strip().split(' = ')
-                        threshold = float(value)
-                        self._threshold = threshold
-                        return threshold
-
-        except FileNotFoundError:
-            logging.exception("File not found: %s", {variables_file})
-        except Exception as e:
-            logging.exception("Error reading %s: %s", {variables_file}, {e})
-
-        # If the variable isn't found, force the value to 0.1
-        if threshold == 0.00:
-            logging.exception("abl_green_threshold value missing or 0.00")
-            threshold = 0.1
+        presets_path = '/home/pi/klipper/klippy/extras/dgus_reloaded/cr6_scripts/presets.cfg'
+        threshold = fu_get_abl_green_threshold(presets_path)
+        self._threshold = threshold
         return threshold
 
     # Added at v0.4.8 to read extruder rotation distance. Generalized for future use.
     # Take care to specify variable type in calling routine!! [This routine always returns a string]
     def get_printer_cfg_value(self, section_name, parameter_name):
-        '''Find and return the current value of parameter_name in section_name'''
+        '''Retrieve a value from the printer.cfg file'''
         config_file_path = '/home/pi/printer_data/config/printer.cfg'
-        with open(config_file_path, "r", encoding="utf-8") as f:
-            lines = f.readlines()
-            in_target_section = False
-            for line in lines:
-                line = line.strip()  # Remove leading/trailing spaces
-
-                # Skip comment lines (those that start with '#' or ';')
-                if line.startswith("#") or line.startswith(";"):
-                    continue
-
-                # Detect the start of the target section
-                if f"[{section_name}]" in line:
-                    in_target_section = True
-                    continue
-
-                # Stop searching if a new section starts
-                if in_target_section and line.startswith("["):
-                    break
-
-                # Search for the parameter within the target section
-                if in_target_section:
-                    match = re.match(rf"^\s*{parameter_name}\s*[:=]\s*([\d\.]+)", line)
-                    if match:
-                        return match.group(1)
-
-        return 0  # If parameter not found, return 0
+        return fu_get_printer_cfg_value(config_file_path, section_name, parameter_name) or 0
 
     def replace_printer_cfg_value(self, section_name, parameter_name, new_value):
-        '''Find and replace the current value of parameter_name in section_name with new_value'''
+        '''Replace a value in the printer.cfg file'''
         cfg_file_path = '/home/pi/printer_data/config/printer.cfg'
-        with open(cfg_file_path, "r", encoding="utf-8") as file:
-            lines = file.readlines()
+        return fu_replace_printer_cfg_value(cfg_file_path, section_name, parameter_name, new_value)
 
-        updated_lines = []
-        in_target_section = False
+    # _load_macro_menus removed — cache is managed via file_utilities.get_macros_for_section
 
-        for line in lines:
-            # Preserve comments, "as-is"
-            if line.startswith("#") or line.startswith(";"):
-                updated_lines.append(line)
-                continue
-
-            # Detect the start of the target section
-            if f"[{section_name}]" in line:
-                in_target_section = True # We have now entered the named section
-                updated_lines.append(line)  # Keep named section header
-                continue
-
-            # Exit section if a new section starts
-            if in_target_section and line.startswith("["):
-                in_target_section = False  # We have now left the named section
-                updated_lines.append(line)  # Keep new section header
-
-            # Find - and replace with new_value - the current value of the named parameter inside the named section
-            if in_target_section:
-                match = re.match(rf"^\s*{parameter_name}\s*[:=]\s*([\d\.]+)", line)
-                if match:
-                    updated_lines.append(f"{parameter_name} = {new_value}\n")  # Replace current value with new_value
-                    continue  # Skip writing the old version of the matched line to the updated_lines[] dictionary
-
-            # Keep all other lines unchanged
-            updated_lines.append(line)
-
-        # Write updated contents back to printer.cfg
-        with open(cfg_file_path, "w", encoding="utf-8") as file:
-            file.writelines(updated_lines)
-
-        # Example Usage
-        # update_printer_cfg("extruder", "rotation_distance", "35.801")
-
-    def _load_macro_menus(self):
-        '''Read the user-defined macro menus from DGUS_Menu_Macros.cfg into a dictionary'''
-        macros_file_path = '/home/pi/printer_data/config/DGUS_Menu_Macros.cfg'
-
-        if not os.path.exists(macros_file_path):
-            raise self.printer.config_error("Error: DGUS_Menu_Macros.cfg file not found!")
-
-        self._macro_cache.clear()
-        current_section = None
-
-        with open(macros_file_path, "r", encoding="utf-8") as f:
-            for line in f:
-                line = line.strip()
-                if line.startswith("#") or line.startswith(";") or line == "":
-                    continue
-
-                if line.startswith("[") and line.endswith("]"):
-                    current_section = line[1:-1].strip()
-                    self._macro_cache[current_section.upper()] = []
-                elif current_section:
-                    self._macro_cache[current_section.upper()].append(line.upper())
-
-        # Save the last modified timestamp
-        self._macro_cfg_mtime = os.path.getmtime(macros_file_path)
-
-    # Create one dedicated macros page for each of the workflow contexts.
-    # Call this routine with the applicable section_name when entering a workflow's dedicated macros page.
     def capture_macros_list(self, section_name):
-        '''Build a list of all macros listed in the named section of DGUS_Menu_Macros.cfg'''
-
+        """Return macros for the named section, refreshing cache if file changed."""
         macros_file_path = '/home/pi/printer_data/config/DGUS_Menu_Macros.cfg'
         try:
-            current_mtime = os.path.getmtime(macros_file_path)
+            macros, new_cache, new_mtime = fu_get_macros_for_section(
+                macros_file_path, section_name, self._macro_cache, self._macro_cfg_mtime
+            )
         except FileNotFoundError as e:
             logging.error("DGUS_Menu_Macros.cfg file not found at: %s", macros_file_path)
-            raise self.printer.config_error(
-                "Error: DGUS_Menu_Macros.cfg file not found!"
-            ) from e
+            raise self.printer.config_error("Error: DGUS_Menu_Macros.cfg file not found!") from e
 
-        # IFF the cfg file has been modified, reload the dictionary
-        if self._macro_cfg_mtime != current_mtime:
-            self._load_macro_menus()
-
-        # Read the list of macros to be displayed for the selected context
-        macros = self._macro_cache.get(section_name.upper(), [])
+        # update instance cache/state and return list
+        self._macro_cache = new_cache
+        self._macro_cfg_mtime = new_mtime
         self._current_macros = macros
         return macros
 
+    def _load_macro_menus(self):
+        """Backwards-compatible loader used by legacy templates/scripts.
+
+        Updates self._macro_cache and self._macro_cfg_mtime or raises a config error
+        if the macros file is missing (preserves previous behavior).
+        """
+        macros_file_path = '/home/pi/printer_data/config/DGUS_Menu_Macros.cfg'
+        menus, mtime = fu_load_macro_menus(macros_file_path)
+        if mtime is None:
+            raise self.printer.config_error("Error: DGUS_Menu_Macros.cfg file not found!")
+        self._macro_cache.clear()
+        self._macro_cache.update(menus)
+        self._macro_cfg_mtime = mtime
+
     def get_now(self):
-        '''Retrieve the current time in seconds since the epoch, as a float'''
-        curtime = self.reactor.monotonic()
-        return curtime
+        """Deprecated instance shim — use bin.t5uid1_utils.get_now when possible."""
+        # Keep a tiny shim for backwards compatibility (templates might call instance.get_now).
+        return t5uid1_utils.get_now(self.reactor)
+
+    def _on_parsed_message(self, msg):
+        # msg is a dict from protocol.unpack_message
+        if not msg.get('ok'):
+            self.logger.warning("bad/invalid parsed message: %s", msg.get('error'))
+            return
+        # high-level handling — use existing handle_received() which parses address/data
+        addr = msg.get('address')
+        data = msg.get('data')
+        if addr is None or data is None:
+            self.logger.warning("parsed message missing address/data: %s", msg)
+            return
+        # delegate to existing handler
+        self.handle_received(addr, data)
+
+        # Ensure original write method reference exists (do not override it here).
+        # (No assignment to self.t5uid1_command_write in this handler — avoid hiding the method.)
+        if not hasattr(self, "_orig_t5uid1_command_write"):
+            orig_func = getattr(type(self), "t5uid1_command_write", None)
+            # bind original class method to the instance (callable) or set None
+            self._orig_t5uid1_command_write = orig_func.__get__(self, type(self)) if orig_func is not None else None
+
+        # helper to emit the list of loaded pages and ids
+        def log_pages():
+            try:
+                pages = getattr(self, "_pages", {}) or {}
+                for name, page in pages.items():
+                    self.logger.info("T5 page: %s id=%r boot=%r timeout=%r shutdown=%r", name,
+                                     getattr(page, "id", None),
+                                     getattr(page, "is_boot", None),
+                                     getattr(page, "is_timeout", None),
+                                     getattr(page, "is_shutdown", None))
+            except Exception:
+                pass
+        self.log_pages = log_pages
+
+    @property
+    def pages(self) -> dict:
+        """Public read-only access to internal page mapping (avoids protected-access)."""
+        return getattr(self, "_pages", {})
 
 def load_config(config):
-    """Load the DGUS-Reloaded.cfg file settings into this instance of T5UID1"""
+    """Klipper entry point — return an instance of T5UID1 for the given config section."""
     return T5UID1(config)
