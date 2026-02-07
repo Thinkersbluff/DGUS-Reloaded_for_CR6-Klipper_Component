@@ -1088,7 +1088,17 @@ class T5UID1:
         # The remaining nine points are stored in the second word (0x3123)
         if self.bed_mesh is None:
             return 0
-        count = len(self.probe.probe_session.results)
+        # Count the number of probe points collected so far in the current ABL session
+        try:
+            count = len(self.probe.probe_session.results)
+        except Exception:
+            return 0
+        
+        FULLY_PROBED_MASK = 0xFFFF01FF  # bits for all 25 probe points
+
+        # Set the variable abl_active to zero ONLY when all 25 probe points have been collected
+        # This prevents the display from switching from the probed_matrix page back to the auto_bed_leveling page before the ABL process is complete.
+
         points_map = [ 0,  1,  2,  3,  4,
                        9,  8,  7,  6,  5,
                       10, 11, 12, 13, 14,
@@ -1103,6 +1113,19 @@ class T5UID1:
                     res |= 1 << (i + 16)
                 else:
                     res |= 1 << (i - 16)
+            # Clear `abl_active` when the displayed matrix is fully populated,
+            # or when we've reached the final probe(s) and the probe/session is no longer active.
+            try:
+                probe_done_mask = (res == FULLY_PROBED_MASK)
+                last_probe_finished = (
+                    count >= 24
+                    and not getattr(self.probe.homing_helper, "multi_probe_pending", False)
+                    and not self.is_busy()
+                )
+                if probe_done_mask or last_probe_finished:
+                    self.set_variable('abl_active', 0)
+            except Exception:
+                pass
         return res
 
     def pid_param(self, heater, param):
