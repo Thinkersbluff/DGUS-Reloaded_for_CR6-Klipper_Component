@@ -7,3 +7,6 @@ klippy/.version
 test\*.*
 klippy/extras/t5uid1/Was/*.*
 *.bak
+Development_Project/DevPrinter/*.*
+Development_Project/DevPrinter/t5uid1/*.*
+Development_Project/DevPrinter/t5uid1/dgus_reloaded/*.*
