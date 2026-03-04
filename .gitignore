@@ -7,4 +7,4 @@ klippy/.version
 test\*.*
 klippy/extras/t5uid1/Was/*.*
 *.bak
-Development_Project/DevPrint
+Development_Project/DevPrinter
