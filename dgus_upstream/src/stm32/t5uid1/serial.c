@@ -2,9 +2,19 @@
 
 #include "autoconf.h" // CONFIG_T5UID1_SERIAL_PORT
 #include "board/armcm_boot.h" // armcm_enable_irq
-#include "board/t5uid1/serial_irq.h" // t5uid1_rx_byte
+#include "board/t5uid1/serial_irq.h" // t5uid1_serial, t5uid1_wake
 #include "command.h" // DECL_CONSTANT_STR
+#include "sched.h" // sched_wake_task
 #include "../internal.h" // enable_pclock
+
+// Single global struct for all ISR/task shared state.
+// __visible (__attribute__((externally_visible))) prevents GCC LTO
+// -fwhole-program from internalizing this symbol. Without it, GCC
+// adds a .lto_priv.N suffix, treats the symbol as internal, and
+// IPA-CP then creates per-partition clones at separate BSS addresses.
+// externally_visible guarantees ONE definition, ONE address, forever.
+__visible volatile struct t5uid1_serial_state t5uid1_serial;
+struct task_wake t5uid1_wake;
 
 #if CONFIG_MACH_STM32F0
   #include "stm32f0_serial.h"
@@ -77,16 +87,27 @@
 void
 t5uid1_USARTx_IRQHandler(void)
 {
-    uint32_t isr = USART_ISR(USARTx);
-    if (isr & ISR_RX)
-        t5uid1_rx_byte(USART_RDR(USARTx));
-    if (isr & ISR_TXEN && USART_CR1(USARTx) & CR1_TXEN) {
-        uint8_t data;
-        int ret = t5uid1_get_tx_byte(&data);
-        if (ret)
+    uint32_t sr = USART_ISR(USARTx);
+    if (sr & ISR_RX) {
+        uint8_t data = USART_RDR(USARTx);
+        // Store received byte directly
+        uint8_t rpos = receive_pos;
+        if (rpos < sizeof(receive_buf)) {
+            receive_buf[rpos++] = data;
+            receive_pos = rpos;
+        }
+        if (rpos > 3)
+            sched_wake_task(&t5uid1_wake);
+    }
+    if (sr & ISR_TXEN && USART_CR1(USARTx) & CR1_TXEN) {
+        uint8_t tpos = transmit_pos;
+        if (tpos >= transmit_max) {
+            // No data left - disable TX interrupt
             USART_CR1(USARTx) = CR1_BASE;
-        else
-            USART_TDR(USARTx) = data;
+        } else {
+            USART_TDR(USARTx) = transmit_buf[tpos];
+            transmit_pos = tpos + 1;
+        }
     }
 }
 
@@ -110,3 +131,7 @@ t5uid1_init(uint32_t baud)
     gpio_peripheral(GPIO_Rx, USARTx_FUNCTION, 1);
     gpio_peripheral(GPIO_Tx, USARTx_FUNCTION, 0);
 }
+
+// Include generic task/command logic in same TU to prevent LTO
+// -fwhole-program from cloning buffer variables across partitions.
+#include "../../generic/t5uid1/serial_irq.c"

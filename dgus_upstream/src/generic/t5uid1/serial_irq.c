@@ -2,7 +2,6 @@
 
 #include <string.h> // memmove
 #include "basecmd.h" // oid_alloc
-#include "board/io.h" // readb
 #include "board/irq.h" // irq_save
 #include "board/misc.h" // timer_read_time
 #include "board/t5uid1/serial_irq.h" // t5uid1_enable_tx_irq
@@ -13,7 +12,6 @@
 #define T5UID1_HEADER2 0xA5
 #define T5UID1_HEADER_LEN 3
 
-#define RX_BUFFER_SIZE 192
 #define TIMER_MS 500
 
 struct t5uid1 {
@@ -26,11 +24,6 @@ struct t5uid1 {
     uint8_t timeout_data[];
 };
 
-static uint8_t receive_buf[RX_BUFFER_SIZE], receive_pos;
-static uint8_t transmit_buf[96], transmit_pos, transmit_max;
-
-static struct task_wake t5uid1_wake;
-
 void
 t5uid1_send_command(uint_fast8_t command, uint8_t *data, uint_fast8_t data_len)
 {
@@ -38,11 +31,11 @@ t5uid1_send_command(uint_fast8_t command, uint8_t *data, uint_fast8_t data_len)
         return;
 
     // Verify space for message
-    uint_fast8_t tpos = readb(&transmit_pos), tmax = readb(&transmit_max);
+    uint_fast8_t tpos = transmit_pos, tmax = transmit_max;
     if (tpos >= tmax) {
         tpos = tmax = 0;
-        writeb(&transmit_max, 0);
-        writeb(&transmit_pos, 0);
+        transmit_max = 0;
+        transmit_pos = 0;
     }
     uint_fast8_t msglen = T5UID1_HEADER_LEN + 1 + data_len;
     if (tmax + msglen > sizeof(transmit_buf)) {
@@ -50,12 +43,12 @@ t5uid1_send_command(uint_fast8_t command, uint8_t *data, uint_fast8_t data_len)
             // Not enough space for message
             return;
         // Disable TX irq and move buffer
-        writeb(&transmit_max, 0);
-        tpos = readb(&transmit_pos);
+        transmit_max = 0;
+        tpos = transmit_pos;
         tmax -= tpos;
-        memmove(&transmit_buf[0], &transmit_buf[tpos], tmax);
-        writeb(&transmit_pos, 0);
-        writeb(&transmit_max, tmax);
+        memmove((void *)&transmit_buf[0], (const void *)&transmit_buf[tpos], tmax);
+        transmit_pos = 0;
+        transmit_max = tmax;
         t5uid1_enable_tx_irq();
     }
 
@@ -64,10 +57,10 @@ t5uid1_send_command(uint_fast8_t command, uint8_t *data, uint_fast8_t data_len)
     transmit_buf[tmax + 1] = T5UID1_HEADER2;
     transmit_buf[tmax + 2] = data_len + 1;
     transmit_buf[tmax + 3] = command;
-    memcpy(&transmit_buf[tmax + 4], data, data_len);
+    memcpy((void *)&transmit_buf[tmax + 4], data, data_len);
 
     // Start message transmit
-    writeb(&transmit_max, tmax + msglen);
+    transmit_max = tmax + msglen;
     t5uid1_enable_tx_irq();
 }
 
@@ -148,44 +141,23 @@ command_t5uid1_write(uint32_t *args)
 DECL_COMMAND_FLAGS(command_t5uid1_write, HF_IN_SHUTDOWN,
                    "t5uid1_write oid=%c command=%c data=%*s");
 
-// Rx interrupt - store read data
-void
-t5uid1_rx_byte(uint_fast8_t data)
-{
-    if (receive_pos > T5UID1_HEADER_LEN)
-        sched_wake_task(&t5uid1_wake);
-    if (receive_pos >= sizeof(receive_buf))
-        // Serial overflow - ignore it
-        return;
-    receive_buf[receive_pos++] = data;
-}
-
-// Tx interrupt - get next byte to transmit
-int
-t5uid1_get_tx_byte(uint8_t *pdata)
-{
-    if (transmit_pos >= transmit_max)
-        return -1;
-    *pdata = transmit_buf[transmit_pos++];
-    return 0;
-}
-
 // Remove from the receive buffer the given number of bytes
 static void
 t5uid1_pop_input(uint_fast8_t len)
 {
     uint_fast8_t copied = 0;
     for (;;) {
-        uint_fast8_t rpos = readb(&receive_pos), pop_count;
+        uint_fast8_t rpos = receive_pos;
         uint_fast8_t needcopy = rpos - len;
         if (needcopy) {
-            memmove(&receive_buf[copied], &receive_buf[copied + len]
-                    , needcopy - copied);
+            memmove((void *)&receive_buf[copied],
+                    (const void *)&receive_buf[copied + len],
+                    needcopy - copied);
             copied = needcopy;
             sched_wake_task(&t5uid1_wake);
         }
         irqstatus_t flag = irq_save();
-        if (rpos != readb(&receive_pos)) {
+        if (rpos != (uint_fast8_t)receive_pos) {
             // Raced with irq handler - retry
             irq_restore(flag);
             continue;
@@ -226,12 +198,12 @@ t5uid1_task(void)
 {
     if (!sched_check_wake(&t5uid1_wake))
         return;
-    uint_fast8_t rpos = readb(&receive_pos), pop_count;
-    int_fast8_t ret = t5uid1_find_command(receive_buf, rpos, &pop_count);
+    uint_fast8_t rpos = receive_pos, pop_count;
+    int_fast8_t ret = t5uid1_find_command((uint8_t *)receive_buf, rpos, &pop_count);
     if (ret > 0) {
         uint_fast8_t command = receive_buf[T5UID1_HEADER_LEN];
         uint_fast8_t data_len = pop_count - T5UID1_HEADER_LEN - 1;
-        uint8_t *data = &receive_buf[T5UID1_HEADER_LEN + 1];
+        uint8_t *data = (uint8_t *)&receive_buf[T5UID1_HEADER_LEN + 1];
         sendf("t5uid1_received command=%c data=%*s", command, data_len, data);
     }
     if (ret) {
