@@ -178,6 +178,7 @@ for f in \
   ~/klipper/klippy/extras/t5uid1/dgus_reloaded/routines.cfg \
   ~/klipper/klippy/extras/t5uid1/dgus_reloaded/pages.cfg \
   ~/klipper/src/stm32/t5uid1/serial.c \
+  ~/klipper/src/stm32/t5uid1/stm32_serial.h \
   ~/klipper/src/stm32/t5uid1/Kconfig \
   ~/klipper/src/stm32/t5uid1/Makefile \
   ~/klipper/src/generic/t5uid1/serial_irq.c \
@@ -273,8 +274,13 @@ Save and exit (press Q, then Y to confirm).
 
 ```bash
 cd ~/klipper
+mkdir -p out/src/stm32/t5uid1 out/src/generic/t5uid1
 make
 ```
+
+The `mkdir -p` line pre-creates the output subdirectories for the T5UID1 source
+files. Without it the compiler fails with:
+`fatal error: opening dependency file out/src/stm32/t5uid1/serial.d: No such file or directory`
 
 ### Board-specific flash instructions printed after a successful `make`
 
