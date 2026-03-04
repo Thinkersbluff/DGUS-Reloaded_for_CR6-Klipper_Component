@@ -1,12 +1,6 @@
-The CrealityMB_Klipper.bin file in this folder was made by using the following instructions, while logged into the Klipper Host:
+Last Updated: 4 March, 2026
 
-$ cd klipper
-$ make menuconfig
-Select the settings shown in the screen image "Make Menuconfig.jpg"
-Enter Q
-Enter Y
-$ make
+The firmware.bin file in this folder is Version: v0.13.0-557-g54c7b65d-dirty
 
-
-WARNING: It is NOT possible for you to make your own klipper.bin file that way, using the official Klipper3D.org version of Klipper.
-You must instead flash your printer with the CrealityMB_Klipper.bin file.
+This file has been verified to work on the BTT SKR CR6 v1.0 motherboard, 
+with Klipper v0.13.0-557 and higher.
