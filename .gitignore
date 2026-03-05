@@ -8,4 +8,5 @@ test\*.*
 klippy/extras/t5uid1/Was/*.*
 *.bak
 Latest_Release_Assets/*.*
+Latest_Release_Assets/Related Changes/*.*
 
