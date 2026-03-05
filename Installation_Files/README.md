@@ -1,49 +1,38 @@
-# make menuconfig Extensions to Integrate DGUS-Reloaded for CR6 (t5uid1) - DWIN Component With Klipper3D
+Last Updated: 4 March 2026
 
+# Installation_Files - DGUS-Reloaded for CR6 - Klipper Component
 
-This folder contains the files needed to add the DGUS T5UID1 full-stack support
-to a Klipper3D repository (minimal set for CR6 printers: STM32 motherboard + stock display).
+This folder organizes and provides the files that collectively "extend" an existing Klipper3D + Mainsail system to install the "back-end" of the DGUS-Reloaded for CR6 system.
 
-## PLEASE NOTE:
-Before you try to install these [make menuconfig] extensions, I strongly recommend that you complete the first three steps in this sequence:
+Once this back-end is installed and operating, the user can flash the [DGUS-Reloaded for CR6 - DWIN_SET Component](https://github.com/Thinkersbluff/DGUS-Reloaded_for_CR6-DWIN-SET_Component) to the CR6 stock touchscreen display, restoring your ability to monitor and control your Klipper-based CR6 printer directly from the stock display.
 
-  1. First, install and configure Klipper3D on your host, and get it working with either Mainsail or Fluidd.
-       Our friend KoenVanduffel [aka @K2Van on the CR6Community Discord] provides this very accessible guide to that process, specifically for CR6 users: https://github.com/KoenVanduffel/CR-6_Klipper.
+## Overview
 
-  2. Then apply and calibrate the DGUS-Reloaded For CR6 - klippy_extras_Extensions.
-     I offer guidance on how to do that, here in the ReadMe file:  https://github.com/Thinkersbluff/DGUS-Reloaded_for_CR6-Klipper_Component. 
-     If, after completing this step, you do not see any errors or notifications requiring that you rebuild the MCU klipper.bin file, then applying the [make menuconfig] extensions is optional, until some future Klipper3D flags a problem.
-     You can instead safely proceed directly to step 4.
+- docs
+    Guidelines detailing the installation process
 
-  3. If Klipper does report a problem with MCU klipper.bin after completing step 2 (e.g.: MCU 'mcu' has deprecated code (it is missing feature 'STEPPER_STEP_BOTH_EDGE'), 
-     then you do need to install these extensions, as described below.  Then use 'make menuconfig and make' to build and flash a new klipper.bin file to your motherboard.`
+- klipper.bin_files
+    A pre-compiled binary to flash to the BTT or the Creality motherboard in your printer.  This version replaces the Klipper3D klipper.bin file and adds full-stack communications support between Klipper and the stock display.
 
-  4. Flash to your stock display the DGUS-Related For CR6 component that matches the Klipper component you installed at step 2.
+- klippy_extras_Extensions
+  - klippy/extras
+      Klipper does not explicitly support "add-ons" or "extensions", but it does find and run python applications installed in the ~klipper/klippy/extras folder and it does expose various macros and state variables to these applications, at runtime.
+      To "install" these DGUS-Reloaded for CR6 python modules and configuration files, copy the folder klippy/extras/t5uid1 and its contents to klippy/extras on your Klipper3D host. Klippy will then process the t5uid1/_init_.py at boot time, and these files will collectively implement the DGUS-Reloaded for CR6 "back-end."
+  - Related Changes
+    - Custom_Klipper+Mainsail_FIles
+        Both Klipper and Mainsail rely on various text files, to control their behaviour.  This folder provides a set of these files, pre-configured for each of the four supported CR6 motherboards.
+        You will need to edit/tailor some of these files (e.g. printer.cfg), to function correctly with your printer.  This need for tailoring can be a little "intimidating" for new users.  I have done my best to annotate those files which are most likely to require edits and have often included reasonable starting values for you.
+        If you need advice or clarification, do not hesitate to engage me in the Discussions forum.
+     - Slicer_integration_tips
+        I happen to use Cura as my default slicer, so I have learned to integrate that one with Klipper and DGUS-Reloaded.  In this folder, I share what I have done, so that you can either do the same or as examples to adapt for the slicer you prefer.
 
+- make_menuconfig_Extensions/klipper
+    The Klipper3D developers provide [extensive guidance for installation and configuration of their firmware, online](https://www.klipper3d.org/), so I will not try to repeat or paraphrase that guidance here.
+    I will mention, though, that the klipper.bin_files I provide should make it unnecessary to follow the Klipper3D instructions for making and flashing your own klipper.bin file.
+    The one exception to that is when Klipper3D developers make changes to the functionality of their klipper.bin file.  In those cases, you will need to install these extensions before performing the make menuconfig step in their build process.
+    The README.md file in the make_menuconfig_Extensions folder details how and where to install those files.
 
-## How to install these [make menuconfig] extensions:
-
-1. Copy these files from this folder into the klipper3D tree, preserving these paths:
-  - klipper/src/generic/t5uid1/serial_irq.h
-  - klipper/src/generic/t5uid1/serial_irq.c
-  - klipper/src/stm32/t5uid1/serial.c
-  - klipper/src/stm32/t5uid1/stm32_serial.h
-
-
-2. Edit `src/stm32/Makefile` and add this line (at the bottom of the file):
-
-    include src/stm32/t5uid1/Makefile
-		See example at klipper/src/stm32/t5uid1/Makefile
-
-3. Edit `src/stm32/Kconfig` and add this line (at the bottom of the file, just above 'endif'):
-
-    source "src/stm32/t5uid1/Kconfig"
-		See example at klipper/src/stm32/t5uid1/Kconfig
-
-
-## Note: 
-This extensions package is intentionally minimal — it implements the MCU-side
-generic IRQ handler and an STM32 UART glue file ONLY for the STM32f103 processor,
-and ONLY for the four CR6 motherboards supported by DGUS-Reloaded for CR6. 
-If you wish to support additional architectures, you will need to add the applicable `src/<arch>/t5uid1` files yourself.
-You may find helpful examples from Desuuu in the Reference Only folder.
+# Full Disclosure:
+  I use this firmware as my "daily-driver" on my Kickstarter CR6-SE. 
+  I also run KlipperScreen on a 7" touchscreen tablet, and I run Mainsail on a Linux PC on a laptop located just beside my printer.
+  I very rarely interact with KlipperScreen, but I do need to use either Klipperscreen or Mainsail to run Firmware Restart, after power-cycling the printer, to activate the stock display.  That is the one objectionable limitation I have not (yet?) overcome, with this system.
