@@ -438,7 +438,14 @@ class T5UID1:
         self._t5uid1_write_cmd = self.mcu.lookup_command(
             "t5uid1_write oid=%c command=%c data=%*s", cq=cmd_queue)
 
-        self.mcu.register_response(self._handle_t5uid1_received, "t5uid1_received")
+        # NB: c89393c — "mcu: Rework mcu.register_response() to mcu.register_serial_response()" broke this:
+        # self.mcu.register_response(self._handle_t5uid1_received, "t5uid1_received")
+        # ref: https://github.com/Klipper3d/klipper/commit/c89393cdaf1a19c687ba2e28c5f81c8e45d32117
+        # It was not enough to just rename the function to register_serial_response, but also needed to update the registered command format to match the new API's expected format, as follows:
+        # Register the serial response with the full expected format so
+        # the host and MCU message formats match (new API validates format).
+        self.mcu.register_serial_response(self._handle_t5uid1_received,
+                          "t5uid1_received command=%c data=%*s")
 
     def _handle_ready(self):
         self.toolhead = self.printer.lookup_object('toolhead')
