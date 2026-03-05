@@ -223,6 +223,16 @@ Set the options exactly as listed for your motherboard below.
 > standard Klipper values and are correct for this board. Press **ESC** to leave
 > that submenu without making changes.
 
+**BTT SKR CR6 V1.0 — Important menuconfig details**
+
+- **Enable extra low-level configuration options:** This must be enabled so the
+  `GPIO pins to set at micro-controller startup` and other low-level options are visible.
+- **GPIO pins to set at micro-controller startup:** Enter `!PA14` (exclamation mark
+  before the pin) to ensure the board initializes the required GPIO at reset.
+
+These two settings are required for correct behavior on the BTT SKR CR6 V1.0 board; omit-
+ting them can prevent the MCU USB interface or display serial configuration from working as expected.
+
 > **Important:** The BTT SKR CR6 uses **two separate serial interfaces** — USB for
 > host communication and USART2 for the display. Make sure **Communication interface**
 > is set to `USB (on PA11/PA12)` and **Screen serial interface** is set to

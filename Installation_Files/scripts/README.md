@@ -13,11 +13,11 @@ This folder contains a lightweight installer for the DGUS-Reloaded assets in the
 
 Use your SFTP client to transfer the scripts into the host's Klipper directory and run them from a stable host path. This avoids assuming your PC can run remote git commands.
 
-1) Create the destination folder on the host (one-line SSH or create it with your SFTP client):
+1) Create the destination folder ~/klipper/scripts/dgus-reloaded on the host, either with your SFTP client or with this command in an SSH window on the host: 
 
 ```bash
 # create the target path under the Klipper user home
-ssh user@<klipper-host> 'mkdir -p ~/klipper/scripts/dgus-reloaded'
+'mkdir -p ~/klipper/scripts/dgus-reloaded'
 ```
 
 2) Using your SFTP tool, upload the contents of the repository folder `Installation_Files/scripts/` into the newly-created host folder `~/klipper/scripts/dgus-reloaded/`.
@@ -29,6 +29,7 @@ ssh user@<klipper-host> 'mkdir -p ~/klipper/scripts/dgus-reloaded'
 cd ~/klipper/scripts/dgus-reloaded
 chmod +x *.sh
 ls -la
+# verify that all of the scripts show these attributes: -rwxr-xr-x and that the filenames are shown in a bright green font.
 ```
 
 4) Run the installer or the patch manager from `~/klipper` (copy/paste into an SSH session):
