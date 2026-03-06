@@ -16,7 +16,9 @@ set -euo pipefail
 
 REPO_URL="https://github.com/Thinkersbluff/DGUS-Reloaded_for_CR6-Klipper_Component.git"
 DGUS_BRANCH="${DGUS_BRANCH:-}"
-TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/dgus_install.XXXXXX")"
+# Use a stable tmp folder so users can easily find the latest report.
+# This intentionally overwrites the previous run's temp tree at $TMP_DIR.
+TMP_DIR="/tmp/dgus_install"
 SPARSE_PATHS=("Installation_Files")
 KLIPPER_DIR_DEFAULT="$HOME/klipper"
 
@@ -24,6 +26,7 @@ KLIPPER_DIR_DEFAULT="$HOME/klipper"
 # and --keep-temp to retain the cloned/staged temp directory after the run
 DRY_RUN=0
 KEEP_TEMP=0
+CLEAN=0
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --dry-run|-n)
@@ -32,6 +35,10 @@ while [ "$#" -gt 0 ]; do
       ;;
     --keep-temp)
       KEEP_TEMP=1
+      shift
+      ;;
+    --clean)
+      CLEAN=1
       shift
       ;;
     *)
@@ -151,6 +158,49 @@ else
 fi
 
 echo "Sparse-cloning Installation_Files to $TMP_DIR (only necessary files)..."
+# If user asked for a clean run, remove artifacts and exit (interactive)
+if [ "$CLEAN" = "1" ]; then
+  echo "--clean requested. Interactively removing artifacts created by this script."
+  if [ -d "$TMP_DIR" ]; then
+    if prompt_yesno "Remove cloned install tree at $TMP_DIR?"; then
+      rm -rf "$TMP_DIR"
+      echo "Removed $TMP_DIR"
+    else
+      echo "Left $TMP_DIR in place." 
+    fi
+  else
+    echo "No current temp tree at $TMP_DIR"
+  fi
+
+  # Also detect any older temp trees created with mktemp-style names
+  OLD_TREES="$(ls -d /tmp/dgus_install.* 2>/dev/null || true)"
+  if [ -n "$OLD_TREES" ]; then
+    echo "Found older temp trees:" 
+    for t in $OLD_TREES; do echo "  $t"; done
+    if prompt_yesno "Remove the older temp trees listed above?"; then
+      rm -rf $OLD_TREES
+      echo "Removed older temp trees."
+    else
+      echo "Left older temp trees in place."
+    fi
+  fi
+
+  # Offer to remove staging area
+  STAGE_DIR="$HOME/t5uid1_staging"
+  if [ -d "$STAGE_DIR" ]; then
+    if prompt_yesno "Remove staging directory $STAGE_DIR?"; then
+      rm -rf "$STAGE_DIR"
+      echo "Removed $STAGE_DIR"
+    else
+      echo "Left staging directory in place."
+    fi
+  fi
+
+  echo "Clean complete.";
+  exit 0
+fi
+
+# remove any previous temp tree so we use a fresh workspace
 rm -rf "$TMP_DIR"
 if [ -n "$DGUS_BRANCH" ]; then
   git clone --no-checkout --depth 1 --filter=blob:none --branch "$DGUS_BRANCH" "$REPO_URL" "$TMP_DIR"
@@ -199,7 +249,15 @@ fi
 if [ "${DRY_RUN:-0}" = "1" ]; then
   echo "Dry-run mode: will not modify your live ~/klipper tree. Forcing staging mode (2)."
   choice=2
+  # Create a stable dry-run report header with timestamp and branch information
   echo "DRY-RUN REPORT: $TMP_DIR/dryrun_report.txt" > "$TMP_DIR/dryrun_report.txt"
+  echo "Timestamp: $(date -u '+%Y-%m-%d %H:%M:%SZ')" >> "$TMP_DIR/dryrun_report.txt"
+  if [ -n "${DGUS_BRANCH:-}" ]; then
+    echo "Branch: $DGUS_BRANCH" >> "$TMP_DIR/dryrun_report.txt"
+  else
+    echo "Branch: <remote default>" >> "$TMP_DIR/dryrun_report.txt"
+  fi
+  echo "" >> "$TMP_DIR/dryrun_report.txt"
 else
   echo "Files fetched. Next: choose how to deploy files:"
   echo "  1) Overwrite live Klipper files"

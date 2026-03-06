@@ -81,6 +81,26 @@ DGUS_BRANCH=dgus-reloaded ./install_dgus_minimal.sh --dry-run --keep-temp
 
 When `--dry-run` is used the installer forces staging mode (does not apply changes to `~/klipper`). The dry-run report file inside the temporary directory lists the planned `rsync`/patch commands and the files that would be copied.
 
+### `--clean` (new)
+
+- `--clean`: interactively remove temporary artifacts created by the installer.
+  - Usage: `./install_dgus_minimal.sh --clean`
+  - The script will prompt to remove `/tmp/dgus_install` (the stable temp workspace), any older `/tmp/dgus_install.*` trees, and the staging directory `~/t5uid1_staging` if present. This command exits after cleaning.
+
+### Dry-run report header
+
+When you run `--dry-run`, the script writes a stable dry-run report at `/tmp/dgus_install/dryrun_report.txt` and prepends a short header containing the timestamp (UTC) and the branch used (or `<remote default>` when no `DGUS_BRANCH` was provided). Example lines at the top of the report:
+
+```
+DRY-RUN REPORT: /tmp/dgus_install/dryrun_report.txt
+Timestamp: 2026-03-06 12:34:56Z
+Branch: Implement_scripted_download_install
+
+[DRY-RUN] SOURCE: /tmp/dgus_install/Installation_Files/... -> DEST: /home/pi/t5uid1_staging/...
+```
+
+This makes it easier to find the most recent report and to confirm which branch was simulated.
+
 
 ### Board-specific repository locations
 
