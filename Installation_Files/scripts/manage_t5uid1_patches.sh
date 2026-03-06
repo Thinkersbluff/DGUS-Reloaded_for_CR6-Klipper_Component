@@ -37,7 +37,8 @@ require_file() {
 
 backup_dir() {
   local tag="$1"
-  local dir="$HOME/.dgus_patch_backups/${tag}_$(TS)"
+  local dir
+  dir="$HOME/.dgus_patch_backups/${tag}_$(TS)"
   mkdir -p "$dir"
   echo "$dir"
 }

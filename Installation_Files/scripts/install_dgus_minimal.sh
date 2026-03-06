@@ -6,10 +6,54 @@ set -euo pipefail
 # - copies extras and src/t5uid1 if present
 # - idempotently patches ~/klipper/src/stm32/Kconfig and Makefile
 
+# Usage
+#   DGUS_BRANCH=<branch> sudo bash install_dgus_minimal.sh
+#
+# If `DGUS_BRANCH` is set, the script will attempt to clone that branch from
+# the repository defined in `REPO_URL`. If unset, the remote repository's
+# default branch will be used. The script validates the branch exists before
+# proceeding when `DGUS_BRANCH` is provided.
+
 REPO_URL="https://github.com/Thinkersbluff/DGUS-Reloaded_for_CR6-Klipper_Component.git"
+DGUS_BRANCH="${DGUS_BRANCH:-}"
 TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/dgus_install.XXXXXX")"
 SPARSE_PATHS=("Installation_Files")
 KLIPPER_DIR_DEFAULT="$HOME/klipper"
+
+# CLI parsing: support --dry-run / -n to simulate actions without writing to ~/klipper
+# and --keep-temp to retain the cloned/staged temp directory after the run
+DRY_RUN=0
+KEEP_TEMP=0
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --dry-run|-n)
+      DRY_RUN=1
+      shift
+      ;;
+    --keep-temp)
+      KEEP_TEMP=1
+      shift
+      ;;
+    *)
+      break
+      ;;
+  esac
+done
+
+run_rsync() {
+  local src="$1" dst="$2"
+  if [ "${DRY_RUN:-0}" = "1" ]; then
+    echo "[DRY-RUN] rsync --dry-run -av \"$src\" \"$dst\""
+    mkdir -p "$(dirname "$dst")" 2>/dev/null || true
+    rsync -av --dry-run "$src" "$dst" 2>&1 | sed 's/^/[DRY-RUN] /' >> "$TMP_DIR/dryrun_report.txt" || true
+  else
+    rsync -av --progress "$src" "$dst"
+  fi
+}
+
+log_action() {
+  echo "$@" | tee -a "$TMP_DIR/dryrun_report.txt"
+}
 
 prompt_yesno() {
   while true; do
@@ -21,6 +65,32 @@ prompt_yesno() {
     esac
   done
 }
+
+# Print and validate DGUS_BRANCH if provided, and ensure installer directory exists
+if [ -z "${DGUS_BRANCH:-}" ]; then
+  echo "DGUS_BRANCH not set; installer will use the remote repository's default branch."
+else
+  echo "DGUS_BRANCH set to '$DGUS_BRANCH' — validating remote branch exists..."
+  if ! git ls-remote --heads "$REPO_URL" "$DGUS_BRANCH" | grep -q "refs/heads/$DGUS_BRANCH"; then
+    echo "ERROR: branch '$DGUS_BRANCH' not found on remote $REPO_URL" >&2
+    echo "Set DGUS_BRANCH to a valid branch or unset it to use the remote default." >&2
+    exit 1
+  fi
+  echo "Remote branch '$DGUS_BRANCH' found."
+fi
+
+INSTALLER_DIR="$HOME/klipper/scripts/dgus-reloaded"
+if [ -d "$INSTALLER_DIR" ]; then
+  echo "Installer location verified: $INSTALLER_DIR"
+else
+  echo "Warning: installer directory not found at $INSTALLER_DIR"
+  if prompt_yesno "Continue anyway from current working directory?"; then
+    echo "Continuing from $(pwd)"
+  else
+    echo "Aborting. Copy the installer to $INSTALLER_DIR or run it from that path and re-run this script." >&2
+    exit 1
+  fi
+fi
 
 backup_file() {
   local f="$1"
@@ -79,7 +149,11 @@ fi
 
 echo "Sparse-cloning Installation_Files to $TMP_DIR (only necessary files)..."
 rm -rf "$TMP_DIR"
-git clone --no-checkout --depth 1 --filter=blob:none "$REPO_URL" "$TMP_DIR"
+if [ -n "$DGUS_BRANCH" ]; then
+  git clone --no-checkout --depth 1 --filter=blob:none --branch "$DGUS_BRANCH" "$REPO_URL" "$TMP_DIR"
+else
+  git clone --no-checkout --depth 1 --filter=blob:none "$REPO_URL" "$TMP_DIR"
+fi
 cd "$TMP_DIR"
 git sparse-checkout init --cone
 git sparse-checkout set "${SPARSE_PATHS[@]}"
@@ -126,6 +200,12 @@ echo "  3) Cancel"
 echo "  4) Apply from existing staging area (apply files previously staged at ~/t5uid1_staging)"
 read -rp "Enter 1,2,3 or 4: " choice
 
+if [ "${DRY_RUN:-0}" = "1" ]; then
+  echo "Dry-run mode: will not modify your live ~/klipper tree. Forcing staging mode (2)."
+  choice=2
+  echo "DRY-RUN REPORT: $TMP_DIR/dryrun_report.txt" > "$TMP_DIR/dryrun_report.txt"
+fi
+
 if [ "$choice" = "3" ]; then
   echo "Cancelling. Cleaning up..."
   rm -rf "$TMP_DIR"
@@ -140,22 +220,22 @@ if [ "$choice" = "2" ]; then
 
   # stage extras
   if [ -d "$TMP_DIR/Installation_Files/klippy_extras_Extensions/klippy/extras/t5uid1" ]; then
-    rsync -av --progress "$TMP_DIR/Installation_Files/klippy_extras_Extensions/klippy/extras/t5uid1/" "$STAGE_DIR/klippy_extras_Extensions/klippy/extras/t5uid1/"
+    run_rsync "$TMP_DIR/Installation_Files/klippy_extras_Extensions/klippy/extras/t5uid1/" "$STAGE_DIR/klippy_extras_Extensions/klippy/extras/t5uid1/"
   fi
 
   # stage source trees if present
   if [ -d "$TMP_DIR/Installation_Files/src/stm32/t5uid1" ]; then
-    rsync -av --progress "$TMP_DIR/Installation_Files/src/stm32/t5uid1/" "$STAGE_DIR/src/stm32/t5uid1/"
+    run_rsync "$TMP_DIR/Installation_Files/src/stm32/t5uid1/" "$STAGE_DIR/src/stm32/t5uid1/"
   fi
   if [ -d "$TMP_DIR/Installation_Files/src/generic/t5uid1" ]; then
-    rsync -av --progress "$TMP_DIR/Installation_Files/src/generic/t5uid1/" "$STAGE_DIR/src/generic/t5uid1/"
+    run_rsync "$TMP_DIR/Installation_Files/src/generic/t5uid1/" "$STAGE_DIR/src/generic/t5uid1/"
   fi
 
   # stage board-specific printer configs if selected
   if [ -n "$SRC_DIR_REL" ]; then
     SRC_PATH="$TMP_DIR/Installation_Files/$SRC_DIR_REL"
     if [ -d "$SRC_PATH" ]; then
-      rsync -av --progress "$SRC_PATH" "$STAGE_DIR/printer_data/"
+      run_rsync "$SRC_PATH" "$STAGE_DIR/printer_data/"
     else
       echo "Board-specific config not found at $SRC_PATH; skipping that part."
     fi
@@ -164,7 +244,7 @@ if [ "$choice" = "2" ]; then
   # stage entire scripts folder so users can review all helpers locally
   if [ -d "$TMP_DIR/Installation_Files/scripts" ]; then
     mkdir -p "$STAGE_DIR/scripts/dgus-reloaded"
-    rsync -av --progress "$TMP_DIR/Installation_Files/scripts/" "$STAGE_DIR/scripts/dgus-reloaded/"
+    run_rsync "$TMP_DIR/Installation_Files/scripts/" "$STAGE_DIR/scripts/dgus-reloaded/"
   fi
 
   echo "Staged files at $STAGE_DIR. Review before copying to your live Klipper tree."
@@ -177,7 +257,7 @@ else
   # copy extras
   mkdir -p "$KLIPPER_DIR_DEFAULT/klippy/extras"
   if [ -d "$TMP_DIR/Installation_Files/klippy_extras_Extensions/klippy/extras/t5uid1" ]; then
-    rsync -av --progress "$TMP_DIR/Installation_Files/klippy_extras_Extensions/klippy/extras/t5uid1/" "$KLIPPER_DIR_DEFAULT/klippy/extras/t5uid1/"
+    run_rsync "$TMP_DIR/Installation_Files/klippy_extras_Extensions/klippy/extras/t5uid1/" "$KLIPPER_DIR_DEFAULT/klippy/extras/t5uid1/"
     echo "Copied klippy extras."
   fi
 
@@ -186,10 +266,10 @@ else
     mkdir -p "$KLIPPER_DIR_DEFAULT/src/stm32"
     mkdir -p "$KLIPPER_DIR_DEFAULT/src/generic"
     if [ -d "$TMP_DIR/Installation_Files/src/stm32/t5uid1" ]; then
-      rsync -av --progress "$TMP_DIR/Installation_Files/src/stm32/t5uid1/" "$KLIPPER_DIR_DEFAULT/src/stm32/t5uid1/"
+      run_rsync "$TMP_DIR/Installation_Files/src/stm32/t5uid1/" "$KLIPPER_DIR_DEFAULT/src/stm32/t5uid1/"
     fi
     if [ -d "$TMP_DIR/Installation_Files/src/generic/t5uid1" ]; then
-      rsync -av --progress "$TMP_DIR/Installation_Files/src/generic/t5uid1/" "$KLIPPER_DIR_DEFAULT/src/generic/t5uid1/"
+      run_rsync "$TMP_DIR/Installation_Files/src/generic/t5uid1/" "$KLIPPER_DIR_DEFAULT/src/generic/t5uid1/"
     fi
   fi
 
@@ -212,11 +292,11 @@ else
       SRC_PATH="$TMP_DIR/Installation_Files/$SRC_DIR_REL"
       if [ -d "$SRC_PATH" ]; then
         echo "Copying printer config files from chosen source to $HOME/printer_data/"
-        rsync -av --progress "$SRC_PATH" "$HOME/printer_data/" || true
+        run_rsync "$SRC_PATH" "$HOME/printer_data/" || true
       else
         echo "Expected files not found in $SRC_PATH — falling back to generic 'Related Changes' if present."
         if [ -d "$TMP_DIR/Installation_Files/Related Changes/" ]; then
-          rsync -av --progress "$TMP_DIR/Installation_Files/Related Changes/" "$HOME/printer_data/" || true
+          run_rsync "$TMP_DIR/Installation_Files/Related Changes/" "$HOME/printer_data/" || true
         else
           echo "No printer_data found in the fetched install tree."
         fi
@@ -239,7 +319,7 @@ fi
   if [ -f "$TMP_DIR/Installation_Files/scripts/git_ignore.sh" ]; then
     mkdir -p "$KLIPPER_DIR_DEFAULT/scripts/dgus-reloaded"
     # copy all scripts into the Klipper scripts folder
-    rsync -av --progress "$TMP_DIR/Installation_Files/scripts/" "$KLIPPER_DIR_DEFAULT/scripts/dgus-reloaded/"
+    run_rsync "$TMP_DIR/Installation_Files/scripts/" "$KLIPPER_DIR_DEFAULT/scripts/dgus-reloaded/"
     chmod +x "$KLIPPER_DIR_DEFAULT/scripts/dgus-reloaded"/*.sh || true
     echo "Installed scripts to $KLIPPER_DIR_DEFAULT/scripts/dgus-reloaded/ (run git_ignore.sh when you need to add host-local ignores)"
   fi
@@ -261,24 +341,24 @@ if [ "$choice" = "4" ]; then
   # copy extras from staging
   if [ -d "$STAGE_DIR/klippy_extras_Extensions/klippy/extras/t5uid1" ]; then
     mkdir -p "$KLIPPER_DIR_DEFAULT/klippy/extras"
-    rsync -av --progress "$STAGE_DIR/klippy_extras_Extensions/klippy/extras/t5uid1/" "$KLIPPER_DIR_DEFAULT/klippy/extras/t5uid1/"
+    run_rsync "$STAGE_DIR/klippy_extras_Extensions/klippy/extras/t5uid1/" "$KLIPPER_DIR_DEFAULT/klippy/extras/t5uid1/"
   fi
 
   # copy src trees from staging
   if [ -d "$STAGE_DIR/src/stm32/t5uid1" ]; then
     mkdir -p "$KLIPPER_DIR_DEFAULT/src/stm32"
-    rsync -av --progress "$STAGE_DIR/src/stm32/t5uid1/" "$KLIPPER_DIR_DEFAULT/src/stm32/t5uid1/"
+    run_rsync "$STAGE_DIR/src/stm32/t5uid1/" "$KLIPPER_DIR_DEFAULT/src/stm32/t5uid1/"
   fi
   if [ -d "$STAGE_DIR/src/generic/t5uid1" ]; then
     mkdir -p "$KLIPPER_DIR_DEFAULT/src/generic"
-    rsync -av --progress "$STAGE_DIR/src/generic/t5uid1/" "$KLIPPER_DIR_DEFAULT/src/generic/t5uid1/"
+    run_rsync "$STAGE_DIR/src/generic/t5uid1/" "$KLIPPER_DIR_DEFAULT/src/generic/t5uid1/"
   fi
 
   # apply board-specific printer configs from staging if present and selected earlier
   if [ -n "$SRC_DIR_REL" ]; then
     # staged board configs are under $STAGE_DIR/printer_data or similar
     if [ -d "$STAGE_DIR/printer_data/" ]; then
-      rsync -av --progress "$STAGE_DIR/printer_data/" "$HOME/printer_data/" || true
+      run_rsync "$STAGE_DIR/printer_data/" "$HOME/printer_data/" || true
     else
       echo "No staged printer_data found in $STAGE_DIR/printer_data/; skipping printer_data copy."
     fi
@@ -287,7 +367,7 @@ if [ "$choice" = "4" ]; then
   # copy git_ignore helper from staging if present
   if [ -d "$STAGE_DIR/scripts/dgus-reloaded" ]; then
     mkdir -p "$KLIPPER_DIR_DEFAULT/scripts/dgus-reloaded"
-    rsync -av --progress "$STAGE_DIR/scripts/dgus-reloaded/" "$KLIPPER_DIR_DEFAULT/scripts/dgus-reloaded/"
+    run_rsync "$STAGE_DIR/scripts/dgus-reloaded/" "$KLIPPER_DIR_DEFAULT/scripts/dgus-reloaded/"
     chmod +x "$KLIPPER_DIR_DEFAULT/scripts/dgus-reloaded"/*.sh || true
     echo "Installed staged scripts to $KLIPPER_DIR_DEFAULT/scripts/dgus-reloaded/"
   fi
@@ -310,11 +390,15 @@ if [ "$choice" = "4" ]; then
 fi
 
 # Cleanup
-if prompt_yesno "Remove cloned install tree at $TMP_DIR?"; then
-  rm -rf "$TMP_DIR"
-  echo "Cleaned up."
+if [ "${KEEP_TEMP:-0}" = "1" ]; then
+  echo "KEEP_TEMP set; leaving cloned install tree at $TMP_DIR for inspection"
 else
-  echo "Left install files in $TMP_DIR for inspection."
+  if prompt_yesno "Remove cloned install tree at $TMP_DIR?"; then
+    rm -rf "$TMP_DIR"
+    echo "Cleaned up."
+  else
+    echo "Left install files in $TMP_DIR for inspection."
+  fi
 fi
 
 echo "Done. Verify installed files with:"
