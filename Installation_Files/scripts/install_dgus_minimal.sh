@@ -276,6 +276,14 @@ else
     fi
   fi
 
+  # install scripts into the Klipper scripts folder when applying immediately
+  if [ -d "$TMP_DIR/Installation_Files/scripts" ]; then
+    mkdir -p "$KLIPPER_DIR_DEFAULT/scripts/dgus-reloaded"
+    run_rsync "$TMP_DIR/Installation_Files/scripts/" "$KLIPPER_DIR_DEFAULT/scripts/dgus-reloaded/"
+    chmod +x "$KLIPPER_DIR_DEFAULT/scripts/dgus-reloaded"/*.sh || true
+    echo "Installed scripts to $KLIPPER_DIR_DEFAULT/scripts/dgus-reloaded/ (run git_ignore.sh when you need to add host-local ignores)"
+  fi
+
   # Idempotently patch Kconfig and Makefile in the target Klipper tree
   if [ -f "$KLIPPER_DIR_DEFAULT/src/stm32/Kconfig" ]; then
     patch_kconfig_idempotent "$KLIPPER_DIR_DEFAULT/src/stm32/Kconfig"
@@ -318,14 +326,8 @@ else
   fi
 fi
 
-  # install git_ignore helper into the Klipper scripts folder so user can run it if needed
-  if [ -f "$TMP_DIR/Installation_Files/scripts/git_ignore.sh" ]; then
-    mkdir -p "$KLIPPER_DIR_DEFAULT/scripts/dgus-reloaded"
-    # copy all scripts into the Klipper scripts folder
-    run_rsync "$TMP_DIR/Installation_Files/scripts/" "$KLIPPER_DIR_DEFAULT/scripts/dgus-reloaded/"
-    chmod +x "$KLIPPER_DIR_DEFAULT/scripts/dgus-reloaded"/*.sh || true
-    echo "Installed scripts to $KLIPPER_DIR_DEFAULT/scripts/dgus-reloaded/ (run git_ignore.sh when you need to add host-local ignores)"
-  fi
+  # (previously here was a live-install block; scripts are now installed in the
+  # apply-immediate branch above and from staging in choice 4. No-op here.)
 
 if [ "$choice" = "4" ]; then
   STAGE_DIR="$HOME/t5uid1_staging"
