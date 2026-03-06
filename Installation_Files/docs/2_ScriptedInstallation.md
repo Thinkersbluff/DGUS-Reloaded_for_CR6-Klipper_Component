@@ -82,6 +82,20 @@ DGUS_BRANCH=dgus-reloaded ./install_dgus_minimal.sh --dry-run --keep-temp
 When `--dry-run` is used the installer forces staging mode (does not apply changes to `~/klipper`). The dry-run report file inside the temporary directory lists the planned `rsync`/patch commands and the files that would be copied.
 
 
+### Board-specific repository locations
+
+When you choose a board during the interactive prompt, the installer looks for matching board-specific configuration files under the `Installation_Files` tree. The current repository layout uses the `klippy_extras_Extensions/Related Changes/Custom_Klipper+Mainsail_Files/` location for those files. Examples:
+
+- BTT SKR CR6 V1.0:
+  `Installation_Files/klippy_extras_Extensions/Related Changes/Custom_Klipper+Mainsail_Files/BTT SKR CR6 Only/`
+- Creality 4.5.2 motherboard files:
+  `Installation_Files/klippy_extras_Extensions/Related Changes/Custom_Klipper+Mainsail_Files/Creality CR6 Mobo/4.5.2 MB/`
+- Creality 4.5.3 / ERA 1.1.0.3 motherboard files:
+  `Installation_Files/klippy_extras_Extensions/Related Changes/Custom_Klipper+Mainsail_Files/Creality CR6 Mobo/ERA 1.1.0.3 or 4.5.3 MB/`
+
+If the branch you request to clone does not contain the selected board directory, the installer will abort to avoid applying partial or missing board configurations.
+
+
 ### Summary
 
 ### Installer modes and switches

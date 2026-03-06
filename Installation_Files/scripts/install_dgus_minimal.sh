@@ -45,6 +45,9 @@ run_rsync() {
   if [ "${DRY_RUN:-0}" = "1" ]; then
     echo "[DRY-RUN] rsync --dry-run -av \"$src\" \"$dst\""
     mkdir -p "$(dirname "$dst")" 2>/dev/null || true
+    # Record the source/destination for clarity so users know which repo folder
+    # would be staged into which local folder.
+    echo "[DRY-RUN] SOURCE: $src -> DEST: $dst" >> "$TMP_DIR/dryrun_report.txt"
     rsync -av --dry-run "$src" "$dst" 2>&1 | sed 's/^/[DRY-RUN] /' >> "$TMP_DIR/dryrun_report.txt" || true
   else
     rsync -av --progress "$src" "$dst"
@@ -168,13 +171,13 @@ read -rp "Enter 0-3: " mb_choice
 
 case "$mb_choice" in
   1)
-    SRC_DIR_REL="Development_Project/Related Changes/Creality CR6 Mobo/Custom Klipper host files/For ERA 1.1.0.3 and 4.5.3 MB/"
+    SRC_DIR_REL="klippy_extras_Extensions/Related Changes/Custom_Klipper+Mainsail_Files/Creality CR6 Mobo/ERA 1.1.0.3 or 4.5.3 MB/"
     ;;
   2)
-    SRC_DIR_REL="Development_Project/Related Changes/Creality CR6 Mobo/Custom Klipper host files/For 4.5.2 MB/"
+    SRC_DIR_REL="klippy_extras_Extensions/Related Changes/Custom_Klipper+Mainsail_Files/Creality CR6 Mobo/4.5.2 MB/"
     ;;
   3)
-    SRC_DIR_REL="Development_Project/Related Changes/BTT SKR CR6 Only/Custom Klipper host files/"
+    SRC_DIR_REL="klippy_extras_Extensions/Related Changes/Custom_Klipper+Mainsail_Files/BTT SKR CR6 Only/"
     ;;
   *)
     SRC_DIR_REL=""
@@ -193,17 +196,17 @@ if [ -n "$SRC_DIR_REL" ]; then
   fi
 fi
 
-echo "Files fetched. Next: choose how to deploy files:"
-echo "  1) Overwrite live Klipper files"
-echo "  2) Stage printer_data for manual compare/edit (recommended)"
-echo "  3) Cancel"
-echo "  4) Apply from existing staging area (apply files previously staged at ~/t5uid1_staging)"
-read -rp "Enter 1,2,3 or 4: " choice
-
 if [ "${DRY_RUN:-0}" = "1" ]; then
   echo "Dry-run mode: will not modify your live ~/klipper tree. Forcing staging mode (2)."
   choice=2
   echo "DRY-RUN REPORT: $TMP_DIR/dryrun_report.txt" > "$TMP_DIR/dryrun_report.txt"
+else
+  echo "Files fetched. Next: choose how to deploy files:"
+  echo "  1) Overwrite live Klipper files"
+  echo "  2) Stage printer_data for manual compare/edit (recommended)"
+  echo "  3) Cancel"
+  echo "  4) Apply from existing staging area (apply files previously staged at ~/t5uid1_staging)"
+  read -rp "Enter 1,2,3 or 4: " choice
 fi
 
 if [ "$choice" = "3" ]; then
