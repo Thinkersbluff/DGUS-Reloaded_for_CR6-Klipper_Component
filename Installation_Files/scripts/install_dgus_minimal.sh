@@ -467,4 +467,4 @@ fi
 echo "Done. Verify installed files with:"
 echo "  ls -la $KLIPPER_DIR_DEFAULT/klippy/extras/t5uid1"
 echo "  grep -n 't5uid1' $KLIPPER_DIR_DEFAULT/src/stm32/Kconfig || true"
-echo "To view the dry-run report (if present): cat /tmp/dgus_install.*/*dryrun_report.txt"
+echo "To view the dry-run report (if present): cat /tmp/dgus_install/dryrun_report.txt"
