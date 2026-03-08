@@ -28,7 +28,7 @@ Once this back-end is installed and operating, the user can flash the [DGUS-Relo
 - [make_menuconfig_Extensions/klipper](make_menuconfig_Extensions/klipper/)  
     The Klipper3D developers provide [extensive guidance for installation and configuration of their firmware, online](https://www.klipper3d.org/), so I will not try to repeat or paraphrase that guidance here.
     I will mention, though, that the klipper.bin_files I provide should make it unnecessary to follow the Klipper3D instructions for making and flashing your own klipper.bin file.
-    The one exception to that will be when the Klipper3D developers make changes to the functionality of their klipper.bin file.  In those cases, you will need to install these extensions before performing the make menuconfig step in their build process.
+    The one exception to that will be when the Klipper3D developers make changes to the functionality of their mcu.py module.  In those cases, you will need to install these extensions before performing the make menuconfig step in their build process.
 ---
 # Full Disclosure:
   I use this firmware as my "daily-driver" on my Kickstarter CR6-SE.  
