@@ -12,7 +12,7 @@ The t5uid1 folder and all of its contents (including the sub-folder dgus_reloade
 Deploying this extension onto your host is as simple as copying all of this to the klipper/klippy/extras folder on your Klipper host.
 
 # Do I need to manually edit any of these files?
-Just a couple of them - as explained below.
+Just one - as explained below.
 I recommend that you don't modify any of the other files, if you are not trying to modify the functionality of the application.
 
 ## Default Filament Type Names
