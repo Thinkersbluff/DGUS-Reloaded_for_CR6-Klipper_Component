@@ -11,11 +11,11 @@ Once this back-end is installed and operating, the user can flash the [DGUS-Relo
 ## Overview
 
 - [Installation_Help_Docs](1-Installation_Help_Docs/)  
-    Guidelines detailing the suggested installation process; either manual or scripted.
+    Guidelines detailing the suggested installation process; either manual or scripted.  
 --
 - [DGUS-Reloaded for CR6 Add-on](2-DGUS-Reloaded_Add-on/)   
     Klipper does not explicitly support "add-ons" or "extensions", but it does find and run python applications installed in the ~klipper/klippy/extras folder and it does expose various macros and state variables to these applications, at runtime.  
-    To "install" these DGUS-Reloaded for CR6 python modules and configuration files, copy the folder klippy/extras/t5uid1 and its contents to klippy/extras on your Klipper3D host. Klippy will then process the t5uid1/_init_.py at boot time, and these files will collectively implement the DGUS-Reloaded for CR6 "back-end."
+    To "install" these DGUS-Reloaded for CR6 python modules and configuration files, copy the folder klippy/extras/t5uid1 and its contents to klippy/extras on your Klipper3D host. Klippy will then process the t5uid1/_init_.py at boot time, and these files will collectively implement the DGUS-Reloaded for CR6 "back-end."  
 --
 - [Custom_Klipper+Mainsail_Files](3-Custom_Klipper%2BMainsail_Files/)  
     Both Klipper and Mainsail rely on various text files, to control their behaviour.  This folder provides a set of these files, pre-configured for each of the four supported CR6 motherboards.
@@ -23,7 +23,7 @@ Once this back-end is installed and operating, the user can flash the [DGUS-Relo
     If you need advice or clarification, do not hesitate to engage me in the Discussions forum.  
 --
 - [klipper.bin_files](4-klipper.bin_files/)  
-    A pre-compiled binary to flash to the BTT or the Creality motherboard in your printer.  This version replaces the Klipper3D klipper.bin file and adds full-stack communications support between Klipper and the stock display.
+    A pre-compiled binary to flash to the BTT or the Creality motherboard in your printer.  This version replaces the Klipper3D klipper.bin file and adds full-stack communications support between Klipper and the stock display.  
  -- 
 - [make_menuconfig_Extensions/klipper](make_menuconfig_Extensions/klipper/)  
     The Klipper3D developers provide [extensive guidance for installation and configuration of their firmware, online](https://www.klipper3d.org/), so I will not try to repeat or paraphrase that guidance here.
