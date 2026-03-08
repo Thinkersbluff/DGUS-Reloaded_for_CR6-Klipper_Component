@@ -1,5 +1,6 @@
-# make menuconfig Extensions to Integrate DGUS-Reloaded for CR6 (t5uid1) - DWIN Component With Klipper3D
+Last Updated: 7 March 2026
 
+# Introduction
 
 This folder contains the files needed to add the DGUS T5UID1 full-stack support
 to a Klipper3D repository (minimal set for CR6 printers: STM32 motherboard + stock display).
@@ -15,10 +16,9 @@ Before you try to install these [make menuconfig] extensions, I strongly recomme
      If, after completing this step, you do not see any errors or notifications requiring that you rebuild the MCU klipper.bin file, then applying the [make menuconfig] extensions is optional, until some future Klipper3D flags a problem.
      You can instead safely proceed directly to step 4.
 
-  3. If Klipper does report a problem with MCU klipper.bin after completing step 2 (e.g.: MCU 'mcu' has deprecated code (it is missing feature 'STEPPER_STEP_BOTH_EDGE'), 
-     then you do need to install these extensions, as described below.  Then use 'make menuconfig and make' to build and flash a new klipper.bin file to your motherboard.`
+  3. If Klipper does report a problem with MCU klipper.bin after completing step 2 (e.g.: MCU 'mcu' has deprecated code (it is missing feature 'STEPPER_STEP_BOTH_EDGE'), then you do need to install these extensions, as described below.  Then use 'make menuconfig and make' to build a new klipper.bin file and flash that to your motherboard.`
 
-  4. Flash to your stock display the DGUS-Related For CR6 component that matches the Klipper component you installed at step 2.
+  4. When Klipper starts without throwing an error, flash to your stock display the DGUS-Related For CR6 - DWIN Component that is linked to the Klipper component version you installed at step 2.
 
 
 ## How to install these [make menuconfig] extensions:
