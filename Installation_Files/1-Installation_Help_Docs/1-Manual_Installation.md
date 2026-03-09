@@ -30,11 +30,11 @@
 | 3 | Flash the DWIN_SET firmware to the CR6 touchscreen display |
 | 4 | Install the DGUS-Reloaded t5uid1 Klipper extras onto the Pi |
 | 5 | Install the `stable_z_home` add-on onto the Pi |
-| 6 | Install the `gcode_shell_command` add-on onto the Pi |
-| 7 | Flash the Klipper firmware binary to your CR6 motherboard |
-| 8 | Copy and configure the Klipper host config files |
-| 9 | Find and set the MCU serial interface ID in `printer.cfg` |
-| 10 | Restart, verify, and perform initial calibrations |
+| 6 | Flash the Klipper firmware binary to your CR6 motherboard |
+| 7 | Copy and configure the Klipper host config files |
+| 8 | Find and set the MCU serial interface ID in `printer.cfg` |
+| 9 | Restart Klipper and verify |
+| 10 | Post-install calibrations |
 | 11 | (Optional) Configure your slicer |
 
 ---
@@ -42,11 +42,8 @@
 ## Step 1: Install Klipper and Mainsail (or Fluidd) on Your Raspberry Pi
 
 > **What is Klipper?**  
-> Klipper is a 3D printer firmware system that splits the work between a host computer
-> (your Raspberry Pi) and the printer motherboard. The Pi runs the intelligence;
-> the motherboard runs the motors and heaters. Klipper requires a web front-end
-> (Mainsail or Fluidd) and a communication broker (Moonraker). These are all installed
-> together as a package.
+> Klipper is a 3D printer firmware system that splits the work between a host computer (your Raspberry Pi) and the printer motherboard. The Pi runs the intelligence, the motherboard runs the motors and heaters.  
+> Klipper requires a web front-end (Mainsail or Fluidd) and a communication broker (Moonraker). These are all installed together, as a package in this step.
 
 
 ### 1a. Download and install the Raspberry Pi Imager
@@ -135,7 +132,7 @@ motherboard firmware.
    - Power off, remove the microSD, and reattach the bezel
 
 3. Power the printer back on to confirm the new display UI is running.
-   Expect the display to show the splash screen, but it will not switch to the main menu until the motherboard firmware has also been flashed at step 7d.
+   Expect the display to show the splash screen, but it will not switch to the main menu until the motherboard firmware has also been flashed at step 6d.
 
 ---
 
@@ -205,31 +202,11 @@ The entry should show an arrow (`->`) pointing to
 
 ---
 
-## Step 6: Install the `gcode_shell_command` Add-On
-
-`gcode_shell_command` allows Klipper macros to call shell scripts on the Pi.
-It is used by certain DGUS-Reloaded macros for operations such as saving resonance measurement data.
-
-From an SSH session on the Pi:
-
-```bash
-wget -O ~/klipper/klippy/extras/gcode_shell_command.py \
-  https://raw.githubusercontent.com/dw-0/kiauh/master/resources/gcode_shell_command.py
-```
-
-Verify:
-
-```bash
-ls ~/klipper/klippy/extras/gcode_shell_command.py
-```
-
----
-
-## Step 7: Flash the Klipper Firmware Binary to Your Motherboard
+## Step 6: Flash the Klipper Firmware Binary to Your Motherboard
 
 Klipper requires a small firmware binary to be flashed to your CR6 motherboard.  This binary handles the low-level printer hardware under direction from the Pi.  It also handles communications between the DGUS display firmware and Klipper, via the t5uid1 firmware.
 
-### 7a. Locate the pre-built firmware binary
+### 6a. Locate the pre-built firmware binary
 
 In the extracted release package, navigate to the subfolder for your motherboard:
 
@@ -248,7 +225,7 @@ Inside that folder you will find a `.bin` file already built and named appropria
 > and have been tested to work together with the DGUS-Reloaded display firmware.
 > Using `make menuconfig` and `make` per the standard Klipper installation instructions will **not** produce a compatible binary unless the DGUS-Reloaded `make_menu_Extensions` have first been applied. (See Installation Help document '3-Rebuilding_MCU_Firmware.md` for guidance on that approach.)
 
-### 7b. Prepare the SD card
+### 6b. Prepare the SD card
 
 Format a microSD card as **FAT32 with allocation unit size of 4096 bytes.**
 Any other format will prevent the motherboard from reading the SD card.
@@ -256,14 +233,14 @@ Any other format will prevent the motherboard from reading the SD card.
 > A micro-SD card in a full-size SD adapter works fine, provided the formatting
 > is correct.
 
-### 7c. Copy and rename the binary
+### 6c. Copy and rename the binary
 
 | Motherboard | Required filename on SD card |
 |---|---|
 | Creality 4.5.2, 4.5.3, ERA 1.1.0.3 | Any `.bin` filename — but it **must not** match the filename used at the last flash (e.g. rename to `klipper_new.bin`) |
 | BTT SKR CR6 V1.0 | Exactly `firmware.bin` — the BTT bootloader requires this name |
 
-### 7d. Flash the board
+### 6d. Flash the board
 
 1. Power off the printer.
 2. Insert the prepared SD card into the printer's motherboard SD slot.
@@ -276,12 +253,12 @@ NOTES:
 
 ---
 
-## Step 8: Copy and Configure the Klipper Host Config Files
+## Step 7: Copy and Configure the Klipper Host Config Files
 
 Klipper, Moonraker, and Mainsail (or Fluidd) each require configuration files.
 The DGUS-Reloaded release package includes a set of pre-configured files for each supported motherboard.
 
-### 8a. Locate the config files for your board
+### 7a. Locate the config files for your board
 
 In the extracted release package:
 
@@ -293,7 +270,7 @@ In the extracted release package:
 
 Read the `README.txt` file inside that folder first — it explains the purpose of each file and notes any changes made in the latest release.
 
-### 8b. Upload the config files to the Pi
+### 7b. Upload the config files to the Pi
 
 The Klipper configuration files live at **`~/printer_data/config/`** on the Pi.
 
@@ -320,7 +297,7 @@ shell_command.cfg
 > Do **not** overwrite it blindly. Use a comparison tool such as
 > [WinMerge](https://winmerge.org/downloads/?lang=en) to compare the new files with your existing ones and selectively transfer only the DGUS-Reloaded-specific additions.
 
-### 8c. Critical customisations required in `printer.cfg`
+### 7c. Critical customisations required in `printer.cfg`
 
 Open `printer.cfg` in a text editor and review **every section carefully**.
 Several settings must be tailored to your specific printer before you attempt to print.
@@ -341,7 +318,7 @@ Key items to check and adjust:
 - **Fluidd users:** In `printer.cfg`, locate the line `[include mainsail.cfg]` and
   change it to `[include fluidd.cfg]`.
 
-### 8d. Notes on probe configuration
+### 7d. Notes on probe configuration
 
 - **`stockprobe.cfg`** is configured for the stock CR6 strain gauge levelling probe.  Use this file if you have the stock probe.
 - **`microprobe.cfg`** is an alternative probe configuration for the BTT microprobe, if you have converted the printer from strain gauge to microprobe. Check the `README.txt` in your board's config folder to understand which file applies to your setup.
@@ -349,15 +326,15 @@ Key items to check and adjust:
 
 ---
 
-## Step 9: Find and Set the MCU Serial Interface ID in `printer.cfg`
+## Step 8: Find and Set the MCU Serial Interface ID in `printer.cfg`
 
 Klipper needs to know the USB path that the Pi uses to communicate with your motherboard.
 
-### 9a. Connect the Pi to the printer via USB
+### 8a. Connect the Pi to the printer via USB
 
 Make sure the Pi and printer are connected with a USB cable, and that the printer is powered on.
 
-### 9b. Find the serial ID
+### 8b. Find the serial ID
 
 From an SSH session on the Pi, run:
 
@@ -374,7 +351,7 @@ Copy the full path string of the printer device.
 
 >TIP: If the ls command returns multiple device IDs, unplug the printer and re-run the command. Then plug it back in and re-run the command.  The string you need to copy is the one that disappears/reappears, when you unplug, replug the printer.
 
-### 9c. Update `printer.cfg`
+### 8c. Update `printer.cfg`
 
 Open `printer.cfg` (via the Mainsail/Fluidd Machine tab, or via SSH + nano) and replace the placeholder value in the `[mcu]` section with the string you just copied:
 
@@ -387,9 +364,9 @@ Save the file.
 
 ---
 
-## Step 10: Restart Klipper and Verify
+## Step 9: Restart Klipper and Verify
 
-### 10a. Restart Klipper
+### 9a. Restart Klipper
 
 From the Mainsail or Fluidd web interface, click the **Restart Firmware** button (or **Host Restart** followed by **Firmware Restart**).
 
@@ -399,26 +376,25 @@ Alternatively, from an SSH session:
 sudo systemctl restart klipper
 ```
 
-### 10b. Verify Klipper is ready
+### 9b. Verify Klipper is ready
 
 In the Mainsail or Fluidd web interface, watch the console. Within a few seconds you should see Klipper report `MCU` connection followed by a `Klipper state: Ready` message.
 
 If you see error messages instead, the most common causes are:
 
-- **Incorrect serial ID:** Re-run Step 9b and verify the string in `printer.cfg` matches exactly.
+- **Incorrect serial ID:** Re-run Step 8b and verify the string in `printer.cfg` matches exactly.
 - **Config file errors:** Read the error message carefully — Klipper will report the filename and line number of any configuration problem.
-- **Missing extras:** Confirm the `t5uid1`, `stable_z_home`, and `gcode_shell_command` files are in `~/klipper/klippy/extras/` (Steps 4–6).
+- **Missing extras:** Confirm the `t5uid1` and `stable_z_home` files are in `~/klipper/klippy/extras/` (Steps 4–5).
 
 For a full configuration verification checklist, follow the Klipper documentation here:  
 [https://www.klipper3d.org/Config_checks.html](https://www.klipper3d.org/Config_checks.html)
 
-### 10c. Verify the display
+### 9c. Verify the display
 
 With Klipper reporting Ready and your printer powered on, the CR6 touchscreen should now show the DGUS-Reloaded home screen. If the display is still showing the old Creality or a blank/corrupt screen, re-check that the DWIN_SET was flashed correctly (Step 3).
 
 ---
-
-## Step 11: Post-Install Calibrations
+## Step 10: Post-Install Calibrations
 
 **Do not attempt to print anything until you have completed the following calibrations.**
 The config files contain the developer's calibration values, which will be wrong for your printer.
@@ -465,8 +441,7 @@ Perform these steps in order:
    [https://www.klipper3d.org/Config_checks.html](https://www.klipper3d.org/Config_checks.html)
 
 ---
-
-## Step 12 (Optional): Configure Your Slicer
+## Step 11 (Optional): Configure Your Slicer
 
 The DGUS-Reloaded display relies on specific gcode commands from your slicer to show
 print progress and time remaining:
@@ -509,11 +484,11 @@ Consult your slicer's documentation for how to enable these.
 
 | Symptom | Likely Cause | Resolution |
 |---|---|---|
-| Klipper shows `Unable to connect` | Firmware not flashed, or wrong serial ID | Re-do Steps 7 and 9 |
+| Klipper shows `Unable to connect` | Firmware not flashed, or wrong serial ID | Re-do Steps 6 and 8 |
 | Display shows old Creality UI or blank screen | DWIN_SET not flashed or flash failed | Re-do Step 3 |
 | Klipper error: `Unknown pin chip name 't5uid1'` | t5uid1 extras not installed | Re-do Step 4 |
 | Klipper error: `Module 'stable_z_home' not found` | stable_z_home symlink missing | Re-do Step 5 |
-| Display shows Ready screen but print crashes immediately | Config values not tailored to your hardware | Review Step 8c |
+| Display shows Ready screen but print crashes immediately | Config values not tailored to your hardware | Review Step 7c |
 | `timelapse.cfg` error on startup | moonraker-timelapse not installed | Comment out `[include timelapse.cfg]` in printer.cfg |
 
 ---
