@@ -41,6 +41,9 @@ This does not remove the "insult" from the System Loads window, but it does caus
 # WARNING:  Always backup your Klipper System before applying updates, in case you need to roll-back the update!!
 
 There, I remembered to warn you, even if I always forget, myself...
+
+See [4-Backup_Restore_Klipper.md](../1-Installation_Help_Docs/4-Backup_Restore_Klipper.md) for guidance on how to backup and restore the full klipper tree.
+
 ---
 
 ## If Updated Klipper throws an "mcu" error
