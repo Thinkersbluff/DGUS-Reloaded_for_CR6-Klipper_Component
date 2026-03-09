@@ -1,11 +1,7 @@
 # Manual Installation Guide: DGUS-Reloaded for CR6 Printers on Klipper
 
-> **Acknowledgement:** The structure of this guide is based on the excellent
-> [KoenVanduffel/CR-6_Klipper README](https://github.com/KoenVanduffel/CR-6_Klipper),
-> which covers the general Klipper-on-CR6 installation process clearly and concisely.
-> This guide extends that base with the additional steps required to install the
-> DGUS-Reloaded component, which restores touchscreen functionality to the stock
-> Creality CR6 display.
+> **Acknowledgement:** The structure of this guide is inspired by the excellent [KoenVanduffel/CR-6_Klipper README](https://github.com/KoenVanduffel/CR-6_Klipper), which covers the general Klipper-on-CR6 installation process clearly and concisely.
+> This guide elaborates on that base with the additional steps required to install the DGUS-Reloaded for CR6 Klipper component, to restore touchscreen functionality to the stock Creality CR6 display.
 
 ---
 
@@ -13,7 +9,7 @@
 
 ### What You Will Need
 
-- A Raspberry Pi (3B+ or 4 recommended) as your Klipper host
+- A Raspberry Pi (3b+ or 4b+, min 2 GB RAM recommended) as your Klipper host
 - A Creality CR6 printer with one of these motherboards:
   - **Creality 4.5.2**
   - **Creality 4.5.3**
@@ -22,8 +18,8 @@
 - A Windows or Mac PC with internet access for downloading files
 - Two microSD cards: one for the Pi (≥8 GB), one for flashing your printer (any size)
 - A USB cable to connect the Pi to the printer
-- An SSH client (e.g. [PuTTY](https://www.putty.org/)) and an SFTP client
-  (e.g. [WinSCP](https://winscp.net/) or [MobaXterm](https://mobaxterm.mobatek.net/), which includes both SSH and SFTP in one tool)
+- An SSH client (e.g. [PuTTY](https://www.putty.org/)) and an SFTP client (e.g. [FileZilla](https://filezilla-project.org/))
+  or a tool that combines both functions (e.g. [WinSCP](https://winscp.net/) or [MobaXterm](https://mobaxterm.mobatek.net/))
 
 ### Overview of the Full Process
 
@@ -51,10 +47,7 @@
 > the motherboard runs the motors and heaters. Klipper requires a web front-end
 > (Mainsail or Fluidd) and a communication broker (Moonraker). These are all installed
 > together as a package.
->
-> YouTuber NERO3D is a reliable source of tutorials for installing Klipper.
-> His [Ender 3 V2 install video](https://www.youtube.com/watch?v=gfZ9Lbyh8qU)
-> is a good general walkthrough, even though it is for a different printer.
+
 
 ### 1a. Download and install the Raspberry Pi Imager
 
@@ -86,11 +79,8 @@ you can pre-configure:
 ### 1c. Boot the Pi and verify SSH access
 
 Insert the flashed microSD into the Pi, connect it to your network, and power it on.
-Wait about 90 seconds, then connect via SSH:
+Wait about 90 seconds, then connect via your SSH tool.
 
-```
-ssh pi@<your-pi-hostname-or-ip>
-```
 
 If this is the first boot and you did not pre-configure credentials via the Imager,
 run the following first to set a new password:
@@ -119,9 +109,7 @@ You should see the Mainsail or Fluidd interface.
 3. Extract the zip archive.
 
    > **NOTE:** The top-level folder name inside the zip can be very long (e.g.
-   > `DGUS-Reloaded_for_CR6-Klipper_Component-1.4.4`). If your extraction fails,
-   > shorten the top-level folder name first (e.g. to `DGUS-Reloaded`) before
-   > extracting.
+   > `DGUS-Reloaded_for_CR6-Klipper_Component-1.4.4`). If your extraction fails due to path length,  shorten the top-level folder name first (e.g. to `DGUS-Reloaded`) before extracting.
 
 You will refer to the contents of this extracted folder throughout the remaining steps.
 
@@ -129,7 +117,7 @@ You will refer to the contents of this extracted folder throughout the remaining
 
 ## Step 3: Flash the DWIN_SET Firmware to Your CR6 Display
 
-The CR6 stock touchscreen requires its own companion firmware (the "DWIN_SET") to
+The CR6 stock touchscreen requires its own companion firmware (DWIN_SET) to
 communicate with DGUS-Reloaded. This is a separate step from flashing the Klipper
 motherboard firmware.
 
@@ -139,7 +127,7 @@ motherboard firmware.
 2. Download the latest release and follow the flashing instructions provided there.
    The general procedure is:
    - Create a Master Boot Record (MBR) partition on a microSD card [Ensure that it is the first active partition on the card, and that it is less than 15Gb in size] 
-   - Format the partition as FAT32, with 4096 allocation units per sector
+   - Format the partition as FAT32, with an allocation unit size of 4069 bytes.
    - Copy the `DWIN_SET` folder to the **root** of the SD card in that MBR partition
    - Power off the printer
    - Remove the display bezel on the back of the CR6 screen; insert the microSD into
@@ -158,27 +146,25 @@ The `t5uid1` folder is the Python host-side component that enables Klipper to co
 
 ### 4a. Transfer the files to the Pi
 
-Using your SFTP client, connect to the Pi and copy the entire `t5uid1` folder from the extracted release package:
+Using your SFTP client, connect to the Pi and upload the entire `t5uid1` folder and its contents, from the extracted release package onto the Pi.
 
 ```
 Source (on your PC):
-  <extracted release folder>/klippy/extras/t5uid1/
+  <extracted release folder 't5uid1' in >/klippy/extras/
 
 Destination (on the Pi):
-  ~/klipper/klippy/extras/t5uid1/
+Upload that 't5uid1' folder into
+  ~/klipper/klippy/extras/
 ```
-
-Alternatively, from an SSH session on the Pi, you can use `scp` or `wget` to transfer the folder.
 
 ### 4b. Verify the copy
 
-From an SSH session on the Pi, confirm the key files are present:
+From an SSH session on the Pi, confirm the transferred files are present, by copy/pasting this script into your SSH window:
 
 ```bash
 ls ~/klipper/klippy/extras/t5uid1/
 ```
-
-You should see at minimum: `__init__.py`, `t5uid1.py`, `var.py`, `page.py`, `routine.py`, and a `dgus_reloaded/` subfolder.
+Verify that the resulting list of files and folders on the Pi matches the contents of Installation_Files/2-DGUS-Reloaded_add-on/t5uid1/
 
 ---
 
@@ -204,6 +190,7 @@ git clone https://github.com/matthewlloyd/Klipper-Stable-Z-Home.git
 cd ~/klipper/klippy/extras
 ln -s ~/Klipper-Stable-Z-Home/stable_z_home.py
 ```
+NB: Linux file and folder names are case-sensitive. 
 
 ### 5c. Verify
 
@@ -253,21 +240,18 @@ In the extracted release package, navigate to the subfolder for your motherboard
 | Creality 4.5.3 or ERA 1.1.0.3 | `Related Changes/Creality CR6 Mobo/Flash motherboard/For ERA 1.1.0.3 and 4.5.3 MB/` |
 | BTT SKR CR6 V1.0 | `Related Changes/BTT SKR CR6 Only/Flash motherboard/` |
 
-Inside that folder you will find a `klipper.bin` file.
+Inside that folder you will find a `.bin` file already built and named appropriately for flashing to your motherboard.
 
 > **Why use the pre-built binary?**  
 > The DGUS-Reloaded display protocol requires specific MCU firmware that includes the
 > T5UID1 serial interface support. This support is not present in standard upstream
 > Klipper. The pre-built `.bin` files in this release incorporate those modifications
 > and have been tested to work together with the DGUS-Reloaded display firmware.
-> Using `make menuconfig` and `make` from a standard Klipper installation will **not**
-> produce a compatible binary unless the `dgus_upstream` patch package has first been
-> applied. (See the `dgus_upstream/INSTALL_SCRIPT_PROPOSAL.md` file in the
-> development repository for information on that approach.)
+> Using `make menuconfig` and `make` per the standard Klipper installation instructions will **not** produce a compatible binary unless the DGUS-Reloaded `make_menu_Extensions` have first been applied. (See Installation Help document '3-Rebuilding_MCU_Firmware.md` for guidance on that approach.)
 
 ### 7b. Prepare the SD card
 
-Format a microSD card as **FAT32 with a 4096-byte (4 KB) sector size.**
+Format a microSD card as **FAT32 with allocation unit size of 4096 bytes.**
 Any other format will prevent the motherboard from reading the SD card.
 
 > A micro-SD card in a full-size SD adapter works fine, provided the formatting
@@ -284,8 +268,12 @@ Any other format will prevent the motherboard from reading the SD card.
 
 1. Power off the printer.
 2. Insert the prepared SD card into the printer's motherboard SD slot.
-3. Power on the printer. The board will flash automatically (approximately 30 seconds).
-4. Power off the printer and **remove the SD card** before the next power cycle.
+3. Power on the printer. The board will flash automatically (approximately 10 seconds). The BTT motherboard will also flicker the nozzle LED while flashing the firmware.
+4. Power off the printer and **remove the SD card** before the next power cycle.  
+
+NOTES:
+1. The BTT motherboard will rename the firmware.bin file FIRMWARE.CUR.
+2. The Creality motherboards will not rename the bin file but will ignore that filename on subsequent power cycles.  That is why you need to rename the Creality klipper.bin file, each time you try again to flash it to the Creality boards.
 
 ---
 
@@ -304,8 +292,7 @@ In the extracted release package:
 | Creality 4.5.3 or ERA 1.1.0.3 | `Related Changes/Creality CR6 Mobo/Custom Klipper host files/For ERA 1.1.0.3 and 4.5.3 MB/` |
 | BTT SKR CR6 V1.0 | `Related Changes/BTT SKR CR6 Only/Custom Klipper host files/` |
 
-Read the `README.txt` file inside that folder first — it explains the purpose of each
-file and notes any changes made in the latest release.
+Read the `README.txt` file inside that folder first — it explains the purpose of each file and notes any changes made in the latest release.
 
 ### 8b. Upload the config files to the Pi
 
@@ -384,8 +371,9 @@ The output will look something like this (your exact ID will differ):
 ```
 /dev/serial/by-id/usb-Klipper_stm32f103xe_36FFD8054255373740662057-if00
 ```
+Copy the full path string of the printer device.  
 
-Copy the full path string.
+>TIP: If the ls command returns multiple device IDs, unplug the printer and re-run the command. Then plug it back in and re-run the command.  The string you need to copy is the one that disappears/reappears, when you unplug, replug the printer.
 
 ### 9c. Update `printer.cfg`
 

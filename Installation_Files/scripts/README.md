@@ -145,6 +145,7 @@ git status --porcelain
 
 Notes
 - This helper creates `.git/info/exclude` entries — it does not create commits.
+- If the files listed in git_ignore.sh are not tracked by git, you do not need to run this script. It is only necessary if you are installing from a klipper fork that contains and tracks those files.
 
 ---
 
