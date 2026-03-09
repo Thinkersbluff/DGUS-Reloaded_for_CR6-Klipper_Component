@@ -130,8 +130,7 @@ motherboard firmware.
    - Format the partition as FAT32, with an allocation unit size of 4069 bytes.
    - Copy the `DWIN_SET` folder to the **root** of the SD card in that MBR partition
    - Power off the printer
-   - Remove the display bezel on the back of the CR6 screen; insert the microSD into
-     the slot on the display PCB
+   - Remove the display bezel on the back of the CR6 screen; insert the microSD into the SD card slot on the display PCB
    - Power on the printer — the display will flash automatically (the screen turns blue during flashing) wait for the display to show END!
    - Power off, remove the microSD, and reattach the bezel
 
