@@ -122,7 +122,7 @@ communicate with DGUS-Reloaded. This is a separate step from flashing the Klippe
 motherboard firmware.
 
 1. Navigate to the companion display firmware repository:
-   [https://github.com/Thinkersbluff/DGUS-reloadedForKlipper_CR6](https://github.com/Thinkersbluff/DGUS-reloadedForKlipper_CR6)
+   [https://github.com/Thinkersbluff/DGUS-Reloaded_for_CR6-DWIN-SET_Component](https://github.com/Thinkersbluff/DGUS-Reloaded_for_CR6-DWIN-SET_Component)
 
 2. Download the latest release and follow the flashing instructions provided there.
    The general procedure is:
