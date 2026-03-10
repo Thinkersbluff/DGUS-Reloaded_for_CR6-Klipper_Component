@@ -144,58 +144,6 @@ If instead you see error messages in Mainsail, you will need to resolve whatever
   e.g. If your MCU serial interface id is not set correctly, then follow [the Klipper3D.org Klipper installation guidelines](https://www.klipper3d.org/Installation.html) to obtain the correct id and edit printer.cfg to insert it.
 </details>
 
-<details>
-<summary><strong>How To Configure and Integrate your Slicer</strong></summary>
-## Slicer-Specific Configuration Guidelines
-The Print screens rely on receiving M73 P.. messages, to display % progress and M73 R.. messages, to display time remaining.
-You will need to find and configure those settings in your slicer, for the screen to display those parameters. 
-
-Klipper also differs from Marlin, regarding gcode commands and settings, as do each of the slicers. (e.g. variable names passed to Klipper macros are likely to differ between slicers)
-
-See, "Configuring the Data Displayed", below, for what guidelines I can give you.
-
-### Configuring the Data Displayed
-#### Ultimaker Cura
-At 5.7.0, Cura redacted the two Add-ins I used to recommend using, and replaced them with one new Add-In, "Display Info on LCD."
-Here are the settings that I use, at 5.7.0+:  
-![New Cura PlugIns_1of2](https://github.com/user-attachments/assets/f6f27bf4-17b7-4303-aefe-ce1373df5e83)
-![New Cura PlugIns_2of2](https://github.com/user-attachments/assets/7422acee-a78c-447e-86e4-d79ef7a2c321)
-
-The M118 instruction will log reports into the Klipper Log and display them in the Mainsail Console window.  
-The M73 messages feed the % progress and Time remaining displays on the UI.
-The Display Progress setting uses M117 messages to display Current Layer #, Total Layers and Estimated Time to complete the current print, on the display.  
-#### OrcaSlicer
-By default, OrcaSlicer sends both M73 R.. and M73 P.. messages.  Be sure that the box "Disable set remaining print time" in your printer profile is not checked.  
-![image](https://github.com/Thinkersbluff/DGUS-Reloaded_for_CR6-Klipper_Component/assets/36551518/52f534ed-6a92-4424-a446-52903681d0a5)  
-
-NOTE: I have not yet found any way to configure OrcaSlicer display the Layer information provided by Cura.
-If you know of a way, please post a Discussion or Issue on the DGUS-Reloaded repo.
-
-### Configuring the Start and End Gcodes
-#### Ultimaker Cura
-These are the Machine Code settings I use with Cura:  
-![image](https://github.com/Thinkersbluff/DGUS-Reloaded_for_CR6-Klipper_Component/assets/36551518/6b7568cd-b96b-48b1-b9c3-61c7ecd22744)  
-
-That last truncated line in the above image is:
-start_print EXTRUDER_TEMP={material_print_temperature_layer_0} BED_TEMP={material_bed_temperature_layer_0}  
-NOTE: I changed HOTEND_TEMP to EXTRUDER_TEMP because that is the parameter name recommended to OrcaSlicer users and I wanted the Klipper START_PRINT macro to be compatible, regardless of which slicer I used.  Apologies to any users of DGUS-reloaded who hits a Klipper error message because of this.  
-
-#### OrcaSlicer
-These are the Machine Code settings I use with OrcaSlicer:  
-![image](https://github.com/Thinkersbluff/DGUS-Reloaded_for_CR6-Klipper_Component/assets/36551518/2e456fd4-1c9b-4baa-93ce-d60575bca2ca)  
-  
-![image](https://github.com/Thinkersbluff/DGUS-Reloaded_for_CR6-Klipper_Component/assets/36551518/2beb7124-e2c8-465e-b6c5-c9b333a2a4cb)  
-
-![image](https://github.com/Thinkersbluff/DGUS-Reloaded_for_CR6-Klipper_Component/assets/36551518/d59a75fc-87db-4e0d-b522-983051909daa)   
-
-NOTE: I also select "Use relative E distances, which is why the G92 E0 is necessary at the start of each new layer",  
-![image](https://github.com/Thinkersbluff/DGUS-Reloaded_for_CR6-Klipper_Component/assets/36551518/03e0599b-670c-48c6-845a-370e8214ae08)  
-
-
-#### Other Slicers
-I do not use any other slicers. If you have information you think should be added here about configuring other slicers, please post a Discussion or Issue on the DGUS-Reloaded repo.
-</details>
-
  
  ## How to Contribute To This Project
 
