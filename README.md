@@ -4,7 +4,7 @@ Last Updated: 9 March 2026
 # DGUS-reloaded-Klipper, CR6Community Edition!
 Lets you use your stock Creality CR6 display with Klipper firmware, restoring touchscreen functionality after converting your printer to Klipper.
 
-### NOTE: If you don’t use the stock display, you do not need this firmware.  Just install the latest Klipper from [Klipper3D.org](https://www.klipper3d.org/).
+### NOTE: If you don’t want to use the stock display, you do not need this firmware.  Just install the latest Klipper from [Klipper3D.org](https://www.klipper3d.org/).
 ---
 ## Supported Hardware
 
@@ -59,7 +59,7 @@ The guide includes:
 
 ---
 
-**Want more context first?** Expand the sections below for backstory, credits, and useful references.
+**Want more context?** Expand the sections below for backstory, credits, and useful references.
 
 <details>
 <summary><strong>Backstory and Credits</strong></summary>
