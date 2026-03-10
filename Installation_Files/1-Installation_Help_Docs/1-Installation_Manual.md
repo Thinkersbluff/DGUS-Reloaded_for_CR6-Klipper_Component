@@ -1,10 +1,16 @@
 # Manual Installation Guide: DGUS-Reloaded for CR6 Printers on Klipper
 
-> **Acknowledgement:** The structure of this guide is inspired by the excellent [KoenVanduffel/CR-6_Klipper README](https://github.com/KoenVanduffel/CR-6_Klipper), which covers the general Klipper-on-CR6 installation process clearly and concisely.
-> This guide elaborates on that base with the additional steps required to install the DGUS-Reloaded for CR6 Klipper component, to restore touchscreen functionality to the stock Creality CR6 display.
+> **Acknowledgement:** The structure of this guide is inspired by the excellent [KoenVanduffel/CR-6_Klipper README](https://github.com/KoenVanduffel/CR-6_Klipper), which covers the general process of installiing Klipper onto CR6 printers, clearly and concisely.
+> This guide extends that process with the additional steps required to install the DGUS-Reloaded for CR6 'Add-on', to restore touchscreen functionality to the stock Creality CR6 display.
+"
+
+## Scope
+
+This document walks you through the process of installing the full DGUS-Reloaded for CR6 system (including the display component) step-by-step, requiring that you manually perform each discrete task.
+
+>**NOTE: If you already have a full system installed, and you want instead to update that system with a new release, close this document and refer to [4-Updating_Existing_Installation.md](4-Updating_Existing_Installation.md).**
 
 ---
-
 ## Before You Begin
 
 ### What You Will Need
