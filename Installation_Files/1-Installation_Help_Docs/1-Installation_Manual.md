@@ -310,7 +310,7 @@ Several settings must be tailored to your specific printer before you attempt to
 
 Key items to check and adjust:
 
-- **`[mcu]` serial:** Leave the placeholder for now — you will set this in Step 9.
+- **`[mcu]` serial:** Leave the placeholder for now — you will set this in Step 8.
 - **Stepper motor currents and steps-per-mm:** These reflect the developer's specific hardware (direct-drive Orbiter extruder, etc.) and will likely not all match your printer, as-is.
 - **`[extruder]` settings:** `rotation_distance`, `nozzle_diameter`, PID values,
   `pressure_advance`.
