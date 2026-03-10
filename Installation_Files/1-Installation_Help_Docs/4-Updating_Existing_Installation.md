@@ -67,7 +67,7 @@ git rev-parse --short HEAD
 
 Expected: short SHA matches release notes prefix.
 
-Detailed recovery path: `5-Force_Klipper_Version.md`.
+Detailed instructions: `5-Force_Klipper_Version.md`.
 
 ---
 
