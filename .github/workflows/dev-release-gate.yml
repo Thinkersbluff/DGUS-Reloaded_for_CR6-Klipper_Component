@@ -1,0 +1,27 @@
+name: Dev Release Gate
+
+on:
+  pull_request:
+  push:
+    branches:
+      - New-At-1.4.4
+      - DGUS-ReloadedForCR6
+
+jobs:
+  pre-release-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PowerShell
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Run pre-release checks
+        shell: pwsh
+        run: |
+          $version = "1.4.4"
+          $claims = "Development_Docs/Verification/Claims_v1.4.4.md"
+          ./Development_Docs/Scripts/pre_release_checks.ps1 -Version $version -ClaimsFile $claims -CI
