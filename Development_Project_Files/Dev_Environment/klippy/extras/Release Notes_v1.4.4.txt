@@ -3,25 +3,15 @@ New at release 1.4.4
 
 WELCOME!
 
-If this is your first installation of DGUS-Reloaded for CR6Community, I recommend that you:
-   1. install and configure Mainsail and Klipper on your system first
-   2. modify that base installation, using the following elements of the content in this repository:
-      - ~klipper/klippy/extras/t5uid1 (folder and contents)
-      - Related Changes (configuration files and klipper.bin file for your motherboard)
-   3. install and configure the Stable_Z-Home add-in
-   4. tailor your slicer configuration, per any guidance in README.MD
-   5. using Mainsail, verify that your system now works correctly, except for the stock display. (Troubleshoot and resolve any issues, if/as applicable.)
-   6. return to the DWIN_SET component repository, to flash the matching release of DWIN_SET and integrate the stock TFT display into your system.
-   7. verify that the stock display now functions with Klipper, as described in the release notes for that version of the DWIN_SET component.
+Installation and update instructions are maintained in the Installation Files for this repository.
+I recommend that you:
 
-If you are here to update an existing installation of DGUS-Reloaded for CR6Community, I recommend that you:
-   1. replace the contents of the ~klipper/klippy/extras/t5uid1 folder on your Klipper host, with the new version in this release
-   2. use Winmerge to compare your current Klipper/Mainsail configuration files with the new configuration files of the same name in the Related Changes folder and incorporate any changes that you see at this release
-   3. tailor your slicer configuration, if the Related Changes folder contains any modified instructions at this release
-   4. using Mainsail, verify that your system now works correctly, except for the stock display
-   5. return to the DWIN_SET component repository, to flash the new release of DWIN_SET and re-integrate the stock TFT display into your system.
-   6. verify that the stock display now functions with Klipper, as described in the release notes for the new version of the DWIN_SET component.
+1) Download this release as Source.zip
+2) Extract it locally
+3) Open Installation_Files/README.md
+4) Follow the documented sequence in Installation_Manual.md
 
+For the stock touchscreen component, use the matching DWIN_SET release referenced by this back-end release and follow the same installation sequence.
 
 New/Modified Features at this release:
 
