@@ -26,6 +26,7 @@ Source: `Development_Project_Files/Development_Environment/klippy/extras/Release
     - Changes t5uid1 extras?
       - [x] Yes
         - Fix commit(s): `https://github.com/Thinkersbluff/DGUS-Reloaded_for_CR6-Klipper_Component/commit/d720e510ddfbdcb0bdd8ee9b16f89a1c3483222b`
+      - [ ] No
     - Changes klipper.bin?
       - [ ] Yes
         - Fix commit(s):
