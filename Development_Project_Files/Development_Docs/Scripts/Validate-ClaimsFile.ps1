@@ -1,53 +1,52 @@
 param(
     [Parameter(Mandatory = $true)]
     [string]$ClaimsFile,
-
     [switch]$AllowPlaceholders
 )
 
 $ErrorActionPreference = "Stop"
 
-function Test-Checked([string]$Mark) {
-    return $Mark -match '^[xX]$'
+function Test-Checked([string]$m) { $m -match '^[xX]$' }
+
+function Get-Urls([string]$text) {
+    if (-not $text) { return @() }
+    $urlMatches = [regex]::Matches($text, 'https?://[^\s\)`>]+')
+    $urls = @()
+    foreach ($u in $urlMatches) { $urls += $u.Value.TrimEnd(')', '.', ',') }
+    return $urls
 }
 
-function Get-UrlFromText([string]$Text) {
-    if (-not $Text) { return $null }
-
-    $md = [regex]::Match($Text, '\((https?://[^)\s]+)\)')
-    if ($md.Success) { return $md.Groups[1].Value }
-
-    $raw = [regex]::Match($Text, '(https?://\S+)')
-    if ($raw.Success) { return $raw.Groups[1].Value.TrimEnd(')', '.', ',') }
-
+function Get-Section([string]$text, [string]$heading) {
+    $m = [regex]::Match($text, "(?ms)^\s*###\s*$heading\s*$" + '(?:\r?\n)' + "(?<b>.*?)(?=^\s*###\s+|\Z)")
+    if ($m.Success) { return $m.Groups['b'].Value }
     return $null
 }
 
-function Test-PlaceholderValue([string]$Text) {
-    if (-not $Text) { return $true }
-    $t = $Text.Trim()
-    if ($t -match '^(NA|N/A|`?NA`?)$') { return $true }
-    if ($t -match '<[A-Z0-9_]+>') { return $true }
-    return $false
+function Get-QuestionBlock([string]$impact, [string]$q) {
+    $e = [regex]::Escape($q)
+    $m = [regex]::Match($impact, "(?ms)^\s*-\s*$e\s*$" + '(?:\r?\n)' + "(?<b>.*?)(?=^\s*-\s*[^\r\n]+\?\s*$|\Z)")
+    if ($m.Success) { return $m.Groups['b'].Value }
+    return $null
 }
 
-if (-not (Test-Path -LiteralPath $ClaimsFile)) {
-    throw "Claims file not found: $ClaimsFile"
+function Get-YesNo([string]$qb) {
+    $yes = [regex]::Match($qb, '(?mi)^\s*-\s*\[(?<m>[ xX])\]\s*Yes\s*$')
+    $no  = [regex]::Match($qb, '(?mi)^\s*-\s*\[(?<m>[ xX])\]\s*No\s*$')
+    if (-not $yes.Success -or -not $no.Success) { return @{Valid=$false;State=$null} }
+    $yc = Test-Checked $yes.Groups['m'].Value
+    $nc = Test-Checked $no.Groups['m'].Value
+    if (($yc -and $nc) -or (-not $yc -and -not $nc)) { return @{Valid=$false;State=$null} }
+    return @{Valid=$true;State=($(if ($yc) {"Yes"} else {"No"}))}
 }
 
+if (-not (Test-Path -LiteralPath $ClaimsFile)) { throw "Claims file not found: $ClaimsFile" }
 $content = Get-Content -LiteralPath $ClaimsFile -Raw
-if (-not $content) {
-    throw "Claims file is empty: $ClaimsFile"
-}
-
-$blocks = [regex]::Split($content, '(?m)(?=^##\s+Claim\s+\d+:)') | Where-Object { $_ -match '^##\s+Claim\s+\d+:' }
-if ($blocks.Count -eq 0) {
-    throw "No claim sections found. Expected headings like: '## Claim N: ...'"
-}
+$claims = [regex]::Split($content, '(?m)(?=^##\s+Claim\s+\d+:)') | Where-Object { $_ -match '^##\s+Claim\s+\d+:' }
+if ($claims.Count -eq 0) { throw "No claim sections found." }
 
 $errors = New-Object System.Collections.Generic.List[string]
 
-$requiredValidationItems = @(
+$requiredChecks = @(
     "Pre-fix behavior documented",
     "Post-fix test steps documented",
     "Confirmed correct operation on Dev SE",
@@ -55,75 +54,59 @@ $requiredValidationItems = @(
 )
 
 $impactQuestions = @(
-    "Breaks previous DWIN-t5uid1 interface contract?",
-    "Breaks previous Klipper-t5uid1 interface contract?",
-    "Breaks previous Klipper-mcu interface contract?",
     "Impacts printer_data?",
-    "Changes the back-end?",
-    "Changes the front-end?"
+    "Changes t5uid1 extras?",
+    "Changes klipper.bin?",
+    "Changes klipper/src?",
+    "Changes DWIN_SET?"
 )
 
-foreach ($block in $blocks) {
-    $header = [regex]::Match($block, '(?m)^##\s+Claim\s+(\d+):\s*(.+)$')
-    if (-not $header.Success) {
-        $errors.Add("Malformed claim heading.")
-        continue
+$componentQuestions = @(
+    "Impacts printer_data?",
+    "Changes t5uid1 extras?",
+    "Changes klipper.bin?",
+    "Changes klipper/src?",
+    "Changes DWIN_SET?"
+)
+
+foreach ($c in $claims) {
+    $h = [regex]::Match($c, '(?m)^##\s+Claim\s+(\d+):')
+    $n = if ($h.Success) { $h.Groups[1].Value } else { "?" }
+
+    foreach ($item in $requiredChecks) {
+        $m = [regex]::Match($c, '(?mi)^\s*-\s*\[(?<x>[ xX])\]\s*' + [regex]::Escape($item) + '\s*$')
+        if (-not $m.Success) { $errors.Add("Claim ${n}: missing '$item'."); continue }
+        if (-not (Test-Checked $m.Groups['x'].Value)) { $errors.Add("Claim ${n}: unchecked '$item'.") }
     }
 
-    $claimNo = $header.Groups[1].Value
-
-    foreach ($item in $requiredValidationItems) {
-        $pat = '(?mi)^\s*-\s*\[(?<m>[ xX])\]\s*' + [regex]::Escape($item) + '\s*$'
-        $m = [regex]::Match($block, $pat)
-        if (-not $m.Success) {
-            $errors.Add("Claim ${claimNo}: missing validation checkbox '$item'.")
-            continue
-        }
-        if (-not (Test-Checked $m.Groups['m'].Value)) {
-            $errors.Add("Claim ${claimNo}: validation item not checked '$item'.")
-        }
+    $issue = [regex]::Match($c, '(?mi)^\s*-\s*Issue:\s*(?<v>.+)$')
+    if (-not $issue.Success) { $errors.Add("Claim ${n}: missing Issue line.") }
+    elseif (-not $AllowPlaceholders) {
+        if ((Get-Urls $issue.Groups['v'].Value).Count -eq 0) { $errors.Add("Claim ${n}: Issue must include URL.") }
     }
 
-    $issueLine  = [regex]::Match($block, '(?mi)^\s*-\s*Issue:\s*(?<v>.+)$')
-    $commitLine = [regex]::Match($block, '(?mi)^\s*-\s*Fix commit\(s\):\s*(?<v>.+)$')
+    $impact = Get-Section $c 'Impact classification'
+    if (-not $impact) { $errors.Add("Claim ${n}: missing Impact classification."); continue }
 
-    if (-not $issueLine.Success) {
-        $errors.Add("Claim ${claimNo}: missing 'Issue:' evidence line.")
-    }
-    if (-not $commitLine.Success) {
-        $errors.Add("Claim ${claimNo}: missing 'Fix commit(s):' evidence line.")
-    }
-
-    if ($issueLine.Success -and -not $AllowPlaceholders) {
-        $issueVal = $issueLine.Groups['v'].Value.Trim()
-        $issueUrl = Get-UrlFromText $issueVal
-        if ((Test-PlaceholderValue $issueVal) -or -not $issueUrl) {
-            $errors.Add("Claim ${claimNo}: Issue evidence must contain a real URL.")
-        }
-    }
-
-    if ($commitLine.Success -and -not $AllowPlaceholders) {
-        $commitVal = $commitLine.Groups['v'].Value.Trim()
-        $commitUrl = Get-UrlFromText $commitVal
-        if ((Test-PlaceholderValue $commitVal) -or -not $commitUrl) {
-            $errors.Add("Claim ${claimNo}: Fix commit evidence must contain a real URL.")
-        }
-    }
-
+    $states = @{}
     foreach ($q in $impactQuestions) {
-        $qEsc = [regex]::Escape($q)
-        $pat = '(?mis)^\s*-\s*' + $qEsc + '\s*$\s*^\s*-\s*\[(?<yes>[ xX])\]\s*Yes\s*$\s*^\s*-\s*\[(?<no>[ xX])\]\s*No\s*$'
-        $m = [regex]::Match($block, $pat)
-        if (-not $m.Success) {
-            $errors.Add("Claim ${claimNo}: malformed or missing Yes/No pair for '$q'.")
-            continue
-        }
+        $qb = Get-QuestionBlock $impact $q
+        if (-not $qb) { $errors.Add("Claim ${n}: missing '$q'."); continue }
+        $yn = Get-YesNo $qb
+        if (-not $yn.Valid) { $errors.Add("Claim ${n}: '$q' must have exactly one of Yes/No checked."); continue }
+        $states[$q] = @{State=$yn.State;Block=$qb}
+    }
 
-        $yesChecked = Test-Checked $m.Groups['yes'].Value
-        $noChecked  = Test-Checked $m.Groups['no'].Value
-
-        if (($yesChecked -and $noChecked) -or (-not $yesChecked -and -not $noChecked)) {
-            $errors.Add("Claim ${claimNo}: '$q' must have exactly one of Yes/No checked.")
+    foreach ($cq in $componentQuestions) {
+        if ($states.ContainsKey($cq) -and $states[$cq].State -eq "Yes") {
+            $qb = $states[$cq].Block
+            if ($qb -notmatch '(?mi)^\s*-\s*Fix commit\(s\):') {
+                $errors.Add("Claim ${n}: '$cq' is Yes but missing 'Fix commit(s):' label.")
+                continue
+            }
+            if ((Get-Urls $qb).Count -eq 0) {
+                $errors.Add("Claim ${n}: '$cq' is Yes but no fix commit URL found.")
+            }
         }
     }
 }

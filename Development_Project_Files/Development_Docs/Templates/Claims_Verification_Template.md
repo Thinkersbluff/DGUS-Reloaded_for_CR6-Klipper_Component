@@ -1,77 +1,69 @@
 # Claims Verification - v<version>
 
-> Copy this file to: `Development_Project_Files/Development_Docs/Verification/Claims_v<version>.md`
->
-> Replace all placeholders before release:
-> - `<version>` → release version number (e.g. `1.5.0`)
-> - `<copy exact release-note claim>` → exact text from Release Notes
-> - `<DWIN_ISSUE_URL>` → full URL to issue in DWIN repo (or `N/A` if no issue)
-> - `<KLIPPER_COMMIT_URL>` → full URL to fix commit in Klipper repo
-> - `<KLIPPER_PR_URL>` → full URL to PR (optional)
-> - `<TEST_ARTIFACT_URL>` → link to log/screenshot (optional)
+Source: `Development_Project_Files/Development_Environment/klippy/extras/Release Notes_v<version>.txt`
 
 ---
 
-## Claim 1: <copy exact release-note claim>
+## Claim 1: <CLAIM_TEXT_FROM_RELEASE_NOTES>
 - [ ] Pre-fix behavior documented
 - [ ] Post-fix test steps documented
 - [ ] Confirmed correct operation on Dev SE
 - [ ] Result confirms claim
 - Evidence:
-  - Issue: `<DWIN_ISSUE_URL>`
-  - Fix commit(s): `<KLIPPER_COMMIT_URL>`
-  - PR (optional): `<KLIPPER_PR_URL>`
-  - Test artifact (optional): `<TEST_ARTIFACT_URL>`
+  - Issue: `<ISSUE_URL_OR_NA>`
+  - Test artifact (optional): `<TEST_ARTIFACT_URL_OR_NA>`
 
-  ### Impact classification
-  - Breaks previous DWIN-t5uid1 interface contract?
-    - [ ] Yes
-    - [ ] No
-  - Breaks previous Klipper-t5uid1 interface contract?
-    - [ ] Yes
-    - [ ] No
-  - Breaks previous Klipper-mcu interface contract?
-    - [ ] Yes
-    - [ ] No
-  - Impacts printer_data?
-    - [ ] Yes
-    - [ ] No
-  - Changes the back-end?
-    - [ ] Yes
-    - [ ] No
-  - Changes the front-end?
-    - [ ] Yes
-    - [ ] No
+    ### Impact classification
+    - Impacts printer_data?
+      - [ ] Yes
+        - Fix commit(s):
+      - [ ] No
+    - Changes t5uid1 extras?
+      - [ ] Yes
+        - Fix commit(s):
+      - [ ] No
+    - Changes klipper.bin?
+      - [ ] Yes
+        - Fix commit(s):
+      - [ ] No
+    - Changes klipper/src?
+      - [ ] Yes
+        - Fix commit(s):
+      - [ ] No
+    - Changes DWIN_SET?
+      - [ ] Yes
+        - Fix commit(s):
+      - [ ] No
 
 ---
 
-## Claim 2: <copy exact release-note claim>
+## Claim 2: <CLAIM_TEXT_FROM_RELEASE_NOTES>
 - [ ] Pre-fix behavior documented
 - [ ] Post-fix test steps documented
 - [ ] Confirmed correct operation on Dev SE
 - [ ] Result confirms claim
 - Evidence:
-  - Issue: `<DWIN_ISSUE_URL>`
-  - Fix commit(s): `<KLIPPER_COMMIT_URL>`
-  - PR (optional): `<KLIPPER_PR_URL>`
-  - Test artifact (optional): `<TEST_ARTIFACT_URL>`
+  - Issue: `<ISSUE_URL_OR_NA>`
+  - Test artifact (optional): `<TEST_ARTIFACT_URL_OR_NA>`
 
-  ### Impact classification
-  - Breaks previous DWIN-t5uid1 interface contract?
-    - [ ] Yes
-    - [ ] No
-  - Breaks previous Klipper-t5uid1 interface contract?
-    - [ ] Yes
-    - [ ] No
-  - Breaks previous Klipper-mcu interface contract?
-    - [ ] Yes
-    - [ ] No
-  - Impacts printer_data?
-    - [ ] Yes
-    - [ ] No
-  - Changes the back-end?
-    - [ ] Yes
-    - [ ] No
-  - Changes the front-end?
-    - [ ] Yes
-    - [ ] No
+    ### Impact classification
+    - Impacts printer_data?
+      - [ ] Yes
+        - Fix commit(s):
+      - [ ] No
+    - Changes t5uid1 extras?
+      - [ ] Yes
+        - Fix commit(s):
+      - [ ] No
+    - Changes klipper.bin?
+      - [ ] Yes
+        - Fix commit(s):
+      - [ ] No
+    - Changes klipper/src?
+      - [ ] Yes
+        - Fix commit(s):
+      - [ ] No
+    - Changes DWIN_SET?
+      - [ ] Yes
+        - Fix commit(s):
+      - [ ] No
