@@ -24,9 +24,8 @@ Source: `Development_Project_Files/Development_Environment/klippy/extras/Release
         - Fix commit(s): `https://github.com/Thinkersbluff/DGUS-Reloaded_for_CR6-Klipper_Component/commit/d720e510ddfbdcb0bdd8ee9b16f89a1c3483222b`
       - [ ] No
     - Changes t5uid1 extras?
-      - [ ] Yes
-        - Fix commit(s):
-      - [x] No
+      - [x] Yes
+        - Fix commit(s): `https://github.com/Thinkersbluff/DGUS-Reloaded_for_CR6-Klipper_Component/commit/d720e510ddfbdcb0bdd8ee9b16f89a1c3483222b`
     - Changes klipper.bin?
       - [ ] Yes
         - Fix commit(s):
@@ -40,44 +39,13 @@ Source: `Development_Project_Files/Development_Environment/klippy/extras/Release
         - Fix commit(s):
       - [x] No
 
-## Claim 2: Moved the filament RunoutSensor configuration into its own cfg file, according to sensor type, with an [include...] in printer.cfg.
+## Claim 2: #86: 'MCU' object has no attribute 'register_response'.
 - [x] Pre-fix behavior documented
 - [x] Post-fix test steps documented
 - [x] Confirmed correct operation on Dev SE
 - [x] Result confirms claim
 - Evidence:
-  - Issue: `https://github.com/Thinkersbluff/DGUS-Reloaded_for_CR6-DWIN-SET_Component/issues/89`
-  - Test artifact (optional): `NA`
-
-    ### Impact classification
-    - Impacts printer_data?
-      - [x] Yes
-        - Fix commit(s): `https://github.com/Thinkersbluff/DGUS-Reloaded_for_CR6-Klipper_Component/commit/d720e510ddfbdcb0bdd8ee9b16f89a1c3483222b`
-      - [ ] No
-    - Changes t5uid1 extras?
-      - [ ] Yes
-        - Fix commit(s):
-      - [x] No
-    - Changes klipper.bin?
-      - [ ] Yes
-        - Fix commit(s):
-      - [x] No
-    - Changes klipper/src?
-      - [ ] Yes
-        - Fix commit(s):
-      - [x] No
-    - Changes DWIN_SET?
-      - [ ] Yes
-        - Fix commit(s):
-      - [x] No
-
-## Claim 3: Made vars_out.cfg conditional, based on which type is defined in printer.cfg.
-- [x] Pre-fix behavior documented
-- [x] Post-fix test steps documented
-- [x] Confirmed correct operation on Dev SE
-- [x] Result confirms claim
-- Evidence:
-  - Issue: `https://github.com/Thinkersbluff/DGUS-Reloaded_for_CR6-DWIN-SET_Component/issues/89`
+  - Issue: `https://github.com/Thinkersbluff/DGUS-Reloaded_for_CR6-DWIN-SET_Component/issues/86`
   - Test artifact (optional): `NA`
 
     ### Impact classification
@@ -87,7 +55,7 @@ Source: `Development_Project_Files/Development_Environment/klippy/extras/Release
       - [x] No
     - Changes t5uid1 extras?
       - [x] Yes
-        - Fix commit(s): `https://github.com/Thinkersbluff/DGUS-Reloaded_for_CR6-Klipper_Component/commit/d720e510ddfbdcb0bdd8ee9b16f89a1c3483222b`
+        - Fix commit(s): `https://github.com/Thinkersbluff/DGUS-Reloaded_for_CR6-Klipper_Component/commit/4d85b53c425a62600bdf23047be545cd144e2fab`
       - [ ] No
     - Changes klipper.bin?
       - [ ] Yes
@@ -101,6 +69,37 @@ Source: `Development_Project_Files/Development_Environment/klippy/extras/Release
       - [ ] Yes
         - Fix commit(s):
       - [x] No
+
+## Claim 3: #87: Pressing the Preset buttons does not change the nozzle or bed temperatures on the Manage Heaters page.
+- [x] Pre-fix behavior documented
+- [x] Post-fix test steps documented
+- [x] Confirmed correct operation on Dev SE
+- [x] Result confirms claim
+- Evidence:
+  - Issue: `https://github.com/Thinkersbluff/DGUS-Reloaded_for_CR6-DWIN-SET_Component/issues/87`
+  - Test artifact (optional): `NA`
+
+    ### Impact classification
+    - Impacts printer_data?
+      - [ ] Yes
+        - Fix commit(s):
+      - [x] No
+    - Changes t5uid1 extras?
+      - [ ] Yes
+        - Fix commit(s):
+      - [x] No
+    - Changes klipper.bin?
+      - [ ] Yes
+        - Fix commit(s):
+      - [x] No
+    - Changes klipper/src?
+      - [ ] Yes
+        - Fix commit(s):
+      - [x] No
+    - Changes DWIN_SET?
+      - [x] Yes
+        - Fix commit(s): `https://github.com/Thinkersbluff/DGUS-Reloaded_for_CR6-DWIN-SET_Component/pull/88`
+      - [ ] No
 
 ## Claim 4: #84: The Auto_Unload_After_Print function ignores the Enable/Disable Toggle Button.
 - [x] Pre-fix behavior documented
@@ -319,38 +318,7 @@ Source: `Development_Project_Files/Development_Environment/klippy/extras/Release
         - Fix commit(s):
       - [x] No
 
-## Claim 11: #75: Updating the displayed State of RUNOUT_SENSOR and of AUTO_UNLOAD_FILAMENT_AFTER_PRINT sometimes takes up to 2 seconds.
-- [x] Pre-fix behavior documented
-- [x] Post-fix test steps documented
-- [x] Confirmed correct operation on Dev SE
-- [x] Result confirms claim
-- Evidence:
-  - Issue: `[DWIN_ISSUE_75](https://github.com/Thinkersbluff/DGUS-Reloaded_for_CR6-DWIN-SET_Component/issues/75)`
-  - Test artifact (optional): `NA`
-
-    ### Impact classification
-    - Impacts printer_data?
-      - [ ] Yes
-        - Fix commit(s):
-      - [x] No
-    - Changes t5uid1 extras?
-      - [x] Yes
-        - Fix commit(s): `https://github.com/Thinkersbluff/DGUS-Reloaded_for_CR6-Klipper_Component/commit/fc5266169383e83bf123b8b069eb83a8f549fac0`
-      - [ ] No
-    - Changes klipper.bin?
-      - [ ] Yes
-        - Fix commit(s):
-      - [x] No
-    - Changes klipper/src?
-      - [ ] Yes
-        - Fix commit(s):
-      - [x] No
-    - Changes DWIN_SET?
-      - [ ] Yes
-        - Fix commit(s):
-      - [x] No
-
-## Claim 12: #85: MCU 'mcu' has deprecated code (it is missing feature 'STEPPER_STEP_BOTH_EDGE').
+## Claim 11: #85: MCU 'mcu' has deprecated code (it is missing feature 'STEPPER_STEP_BOTH_EDGE').
 - [x] Pre-fix behavior documented
 - [x] Post-fix test steps documented
 - [x] Confirmed correct operation on Dev SE
@@ -381,67 +349,6 @@ Source: `Development_Project_Files/Development_Environment/klippy/extras/Release
         - Fix commit(s):
       - [x] No
 
-## Claim 13: #86: 'MCU' object has no attribute 'register_response'.
-- [x] Pre-fix behavior documented
-- [x] Post-fix test steps documented
-- [x] Confirmed correct operation on Dev SE
-- [x] Result confirms claim
-- Evidence:
-  - Issue: `https://github.com/Thinkersbluff/DGUS-Reloaded_for_CR6-DWIN-SET_Component/issues/86`
-  - Test artifact (optional): `NA`
-
-    ### Impact classification
-    - Impacts printer_data?
-      - [ ] Yes
-        - Fix commit(s):
-      - [x] No
-    - Changes t5uid1 extras?
-      - [x] Yes
-        - Fix commit(s): `https://github.com/Thinkersbluff/DGUS-Reloaded_for_CR6-Klipper_Component/commit/4d85b53c425a62600bdf23047be545cd144e2fab`
-      - [ ] No
-    - Changes klipper.bin?
-      - [ ] Yes
-        - Fix commit(s):
-      - [x] No
-    - Changes klipper/src?
-      - [ ] Yes
-        - Fix commit(s):
-      - [x] No
-    - Changes DWIN_SET?
-      - [ ] Yes
-        - Fix commit(s):
-      - [x] No
-
-## Claim 14: #87: Pressing the Preset buttons does not change the nozzle or bed temperatures on the Manage Heaters page.
-- [x] Pre-fix behavior documented
-- [x] Post-fix test steps documented
-- [x] Confirmed correct operation on Dev SE
-- [x] Result confirms claim
-- Evidence:
-  - Issue: `https://github.com/Thinkersbluff/DGUS-Reloaded_for_CR6-DWIN-SET_Component/issues/87`
-  - Test artifact (optional): `NA`
-
-    ### Impact classification
-    - Impacts printer_data?
-      - [ ] Yes
-        - Fix commit(s):
-      - [x] No
-    - Changes t5uid1 extras?
-      - [ ] Yes
-        - Fix commit(s):
-      - [x] No
-    - Changes klipper.bin?
-      - [ ] Yes
-        - Fix commit(s):
-      - [x] No
-    - Changes klipper/src?
-      - [ ] Yes
-        - Fix commit(s):
-      - [x] No
-    - Changes DWIN_SET?
-      - [x] Yes
-        - Fix commit(s): `https://github.com/Thinkersbluff/DGUS-Reloaded_for_CR6-DWIN-SET_Component/pull/88`
-      - [ ] No
 
 
 

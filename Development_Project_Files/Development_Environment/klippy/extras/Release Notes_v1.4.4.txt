@@ -1,4 +1,4 @@
-Last Updated:  10 March 26
+Last Updated:  13 March 26
 New at release 1.4.4
 
 WELCOME!
@@ -15,20 +15,21 @@ For the stock touchscreen component, use the matching DWIN_SET release reference
 
 New/Modified Features at this release:
 
-1. Added support for the BTT Smart Filament Sensor v1.0, while retaining the stock switch sensor type as the default config.
-   Moved the filament RunoutSensor configuration into its own cfg file, according to sensor type, with an [include...] in printer.cfg. 
-   Made vars_out.cfg conditional, based on which type is defined in printer.cfg.
+ - #89: Added support for the BTT Smart Filament Sensor v1.0, while retaining the stock switch sensor type as the default config.
+
  
 Bugs/Issues Resolved at This Release:	
 
- -  #84: The Auto_Unload_After_Print function ignores the Enable/Disable Toggle Button
- -  #83: The display switches prematurely away showing the probing screen (checkmarks) almost immediately
- -  #81: Rotation Distance is not updating with new value
- -  #80: Change Filament Temperature Preset buttons are not responsive
- -  #79: FIRMWARE_RESTART and RESTART take so long to affect the display that one wonders whether the command is running...
- -  #77: Auto Unload of filament may overspeed extruder, if Flow Rate >> 100
- -  #76: The PID menu temperature value defaults to the init_py pla constants instead of to the type1 preset values
- -  #75: Updating the displayed State of RUNOUT_SENSOR and of AUTO_UNLOAD_FILAMENT_AFTER_PRINT sometimes takes up to 2 seconds
+ -  #86: Refactored t5uid1.py to resolve problems caused when Klipper renamed and refactored register_response() to register_serial_response().
+	- Also added script and documentation support to enable users to roll-back and pin their version of klipper, to restore operations while waiting for a DGUS-Reloaded update.
+ -  #85: Built new klipper.bin files, to repair the t5uid1 - DWIN serial interface broken when Klipper refactored mcu.py at Klipper version v0.13.0-557-g54c7b65d.  
+	- Added installation files, scripts and guidance to enable users to now rebuild the klipper.bin files any time that a similar mod breaks this interface.
+ -  #84: Repaired the Auto_Unload_After_Print function. (Memory address error)
+ -  #83: The display switched prematurely away showing the probing screen (checkmarks) almost immediately.  Modified the script to wait until the final probe point before switching.
+ -  #81: Rotation Distance was not updating with new value. Corrected data type.
+ -  #79: FIRMWARE_RESTART and RESTART take so long to affect the display that one wonders whether the command is running.  Added scripts to present a message screen confirming the actions being taken.
+ -  #77: Auto Unload of filament could overspeed extruder, if Flow Rate >> 100. Modified END_PRINT macro to force the flow and federate values back to 100, before homing and retracting.
+ -  #76: Corrected the vars_out.cfg script so that The PID menu temperature value defaults to the init_py pla constants instead of to the type1 preset values.
 
 
 Known Issues at this Release: 
