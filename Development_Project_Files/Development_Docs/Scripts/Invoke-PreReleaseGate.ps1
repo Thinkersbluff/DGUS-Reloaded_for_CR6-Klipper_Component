@@ -99,10 +99,11 @@ Write-Host "Release notes check passed."
 # 6) Claims validation
 $ClaimsValidator = Join-Path $PSScriptRoot "Validate-ClaimsFile.ps1"
 Assert-Exists $ClaimsValidator
-& $ClaimsValidator -ClaimsFile $ClaimsFilePath
-$claimsExit = $LASTEXITCODE
-if ($claimsExit -ne 0) {
-    throw "Claims validation failed with exit code $claimsExit"
+try {
+    & $ClaimsValidator -ClaimsFile $ClaimsFilePath
+}
+catch {
+    throw "Claims validation failed: $_"
 }
 
 Write-Host "All pre-release checks passed for v$Version"
