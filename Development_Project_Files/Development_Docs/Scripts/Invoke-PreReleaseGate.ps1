@@ -23,11 +23,11 @@ $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..\..")).Path
 Write-Host "Running pre-release checks for v$Version"
 
 # Canonical paths
-$CompatFile    = Join-Path $RepoRoot "Development_Project_Files\Development_Project_Files\Development_Docs\Compatibility_and_Version_Mapping.md"
-$ManualFile    = Join-Path $RepoRoot "Development_Project_Files\Development_Project_Files\Development_Docs\Development_Manual.md"
-$PrimerFile    = Join-Path $RepoRoot "Development_Project_Files\Development_Project_Files\Development_Docs\SOPs\00-Quick_Primer.md"
-$ReleaseSop    = Join-Path $RepoRoot "Development_Project_Files\Development_Project_Files\Development_Docs\SOPs\02-Release_Process.md"
-$ChecklistFile = Join-Path $RepoRoot "Development_Project_Files\Development_Project_Files\Development_Docs\Checklists\Release_Gate_Checklist.md"
+$CompatFile    = Join-Path $RepoRoot "Development_Project_Files\Development_Docs\Compatibility_and_Version_Mapping.md"
+$ManualFile    = Join-Path $RepoRoot "Development_Project_Files\Development_Docs\Development_Manual.md"
+$PrimerFile    = Join-Path $RepoRoot "Development_Project_Files\Development_Docs\SOPs\00-Quick_Primer.md"
+$ReleaseSop    = Join-Path $RepoRoot "Development_Project_Files\Development_Docs\SOPs\02-Release_Process.md"
+$ChecklistFile = Join-Path $RepoRoot "Development_Project_Files\Development_Docs\Checklists\Release_Gate_Checklist.md"
 $InstallReadme = Join-Path $RepoRoot "Installation_Files\README.md"
 
 # Claims file may be relative; normalize to absolute
