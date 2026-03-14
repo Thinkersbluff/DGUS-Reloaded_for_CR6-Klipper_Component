@@ -1,6 +1,6 @@
 # Claims Verification - v<version>
 
-Source: `Release Notes_v1.4.4.txt`
+Source: `Release Notes_v2.0.0.txt`
 
 ---
 

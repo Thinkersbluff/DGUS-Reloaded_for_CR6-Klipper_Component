@@ -22,21 +22,21 @@
     - [x] Required configuration edits matched the documentation
     - [x] All required services started or restarted successfully
     - [x] Display/UI and Klipper component communicated correctly after install
-    - [x] Basic smoke test passed after install
+    - [ ] Basic smoke test passed after install
 
 ## Documentation
 - [x] Installation docs updated for this release
-- [x] Release notes updated
+- [ ] Release notes updated
 - [x] Cross-links and filenames verified
 
 ## Git/PR Hygiene
 - [x] `git status` clean
-- [x] No unresolved conflicts
-- [x] PR base/compare correct
+- [ ] No unresolved conflicts
+- [ ] PR base/compare correct
   - base: `DGUS-ReloadedForCR6`
-  - compare: `New-At-1.4.4`
+  - compare: `New-At-2.0.0`
 
 ## Release
-- [x] Tag created
-- [x] Assets uploaded/verified
+- [ ] Tag created
+- [ ] Assets uploaded/verified
 - [ ] Post-release smoke check complete

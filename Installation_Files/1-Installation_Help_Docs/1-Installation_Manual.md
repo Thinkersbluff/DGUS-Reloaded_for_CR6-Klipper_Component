@@ -112,7 +112,7 @@ You should see the Mainsail or Fluidd interface.
 3. Extract the zip archive.
 
    > **NOTE:** The top-level folder name inside the zip can be very long (e.g.
-   > `DGUS-Reloaded_for_CR6-Klipper_Component-1.4.4`). If your extraction fails due to path length,  shorten the top-level folder name first (e.g. to `DGUS-Reloaded`) before extracting.
+   > `DGUS-Reloaded_for_CR6-Klipper_Component-2.0.0`). If your extraction fails due to path length,  shorten the top-level folder name first (e.g. to `DGUS-Reloaded`) before extracting.
 
 You will refer to the contents of this extracted folder throughout the remaining steps.
 
