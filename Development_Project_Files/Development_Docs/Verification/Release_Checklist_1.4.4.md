@@ -13,16 +13,16 @@
 ## Testing
 - [x] Core functional tests passed
 - [x] Regression tests passed
-- [ ] Installation-path validation passed
+- [x] Installation-path validation passed
   - Pass only if all are true:
-    - [ ] Install or upgrade was performed by following `Installation_Files/README.md` exactly
-    - [ ] Validation was performed on a real target system or representative test environment
-    - [ ] No undocumented manual fixes, extra commands, or guessed steps were required
-    - [ ] Required files were placed in the documented locations
-    - [ ] Required configuration edits matched the documentation
-    - [ ] All required services started or restarted successfully
-    - [ ] Display/UI and Klipper component communicated correctly after install
-    - [ ] Basic smoke test passed after install
+    - [x] Install or upgrade was performed by following `Installation_Files/README.md` exactly
+    - [x] Validation was performed on a real target system or representative test environment
+    - [x] No undocumented manual fixes, extra commands, or guessed steps were required
+    - [x] Required files were placed in the documented locations
+    - [x] Required configuration edits matched the documentation
+    - [x] All required services started or restarted successfully
+    - [x] Display/UI and Klipper component communicated correctly after install
+    - [x] Basic smoke test passed after install
 
 ## Documentation
 - [x] Installation docs updated for this release
@@ -31,10 +31,12 @@
 
 ## Git/PR Hygiene
 - [x] `git status` clean
-- [ ] No unresolved conflicts
-- [ ] PR base/compare correct
+- [x] No unresolved conflicts
+- [x] PR base/compare correct
+  - base: `DGUS-ReloadedForCR6`
+  - compare: `New-At-1.4.4`
 
 ## Release
-- [ ] Tag created
-- [ ] Assets uploaded/verified
+- [x] Tag created
+- [x] Assets uploaded/verified
 - [ ] Post-release smoke check complete
