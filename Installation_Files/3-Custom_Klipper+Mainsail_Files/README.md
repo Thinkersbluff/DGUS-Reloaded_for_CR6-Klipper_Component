@@ -19,16 +19,16 @@ There are only four motherboards specific to the CR6 printers, so I also build a
 
 ## Where do these files go?
 
-Klipper expects to find these files in the folder klipper/printer_data.
+Klipper expects to find these files in the folder klipper/printer_data/config.
 
-## Is this a complete set of the printer_data files?
+## Is this a complete set of the printer_data/config files?
 
 No.  
-Other programs in your Klipper/Mainsail ecosystem (Mainsail, Moonraker, Crowsnest, etc..) may read and write other configuration files to printer_data.
+Other programs in your Klipper/Mainsail ecosystem (Mainsail, Moonraker, Crowsnest, etc..) may read and write other configuration files to printer_data/config.
 
-## Should Overwrite Existing printer_data Files With These Ones?
+## Should Overwrite Existing printer_data/config Files With These Ones?
 No.  
-The set that I distribute with DGUS-Reloaded for CR6 includes files which already exist in printer_data (e.g. printer.cfg), but which needed to be modified to work with t5uid1 and with the display component.
+The set that I distribute with DGUS-Reloaded for CR6 includes files which already exist in printer_data/config (e.g. printer.cfg), but which needed to be modified to work with t5uid1 and with the display component.
 
 Installing the Custom_Klipper+Mainsail_Files into your system requires you to compare the new files with the existing files on your system, to identify the differences and to decide how best to "merge" the two.  I strongly recommend that you use WinMerge to perform this task, if you have a Windows PC.
 
@@ -37,7 +37,7 @@ This is the task where we most strongly experience that tradeoff between "Klippe
 
 ## How do I add/delete/modify these files?
 
-Mainsail allows you to add/delete/modify the files in printer_data, through the MACHINE tab in the Mainsail side menu.
+Mainsail allows you to add/delete/modify the files in printer_data/config, through the MACHINE tab in the Mainsail side menu.
 You can also use an SFTP tool like FileZilla to manage these files on the host.
 
 ## What is AppendToPrinter.cfg.txt For?

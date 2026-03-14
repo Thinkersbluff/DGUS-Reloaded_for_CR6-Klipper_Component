@@ -7,12 +7,5 @@ klippy/.version
 test\*.*
 klippy/extras/t5uid1/Was/*.*
 *.bak
-Latest_Release_Assets/*.*
-Latest_Release_Assets/Related Changes/*.*
-Latest_Release_Assets/Related Changes/BTT SKR CR6 Only/*.*
-Latest_Release_Assets/Related Changes/BTT SKR CR6 Only/Custom Klipper host files/*.*
-Latest_Release_Assets/Related Changes/BTT SKR CR6 Only/Flash Motherboard/*.*
-Latest_Release_Assets/Related Changes/Creality CR6 Mobo/*.*
-Latest_Release_Assets/Related Changes/Creality CR6 Mobo/Custom Klipper host files/*.*
-Latest_Release_Assets/Related Changes/Creality CR6 Mobo/Flash Motherboard/*.*
-Latest_Release_Assets/Related Changes/Test Printer Config Files/*.*
+Future_Project_Ideas\Implement_Installation_by_Script\*.*
+Development_Project_Files/Development_Docs/Verification/Script_Integrity_Findings_*.txt

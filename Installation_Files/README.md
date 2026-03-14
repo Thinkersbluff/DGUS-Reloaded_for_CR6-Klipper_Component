@@ -4,12 +4,13 @@ Last Updated: 7 March 2026
 
 This folder organizes and provides the files that enable you to extend an existing Klipper3D + Mainsail system with the "back-end" of the DGUS-Reloaded for CR6 system.
 
-Once this back-end is installed and operating, the user can flash the [DGUS-Reloaded for CR6 - DWIN_SET Component](https://github.com/Thinkersbluff/DGUS-Reloaded_for_CR6-DWIN-SET_Component) to the CR6 stock touchscreen display, restoring your ability to monitor and control your Klipper-based CR6 printer directly from the stock display.
+The matching DGUS-Reloaded for CR6 – DWIN_SET Component is maintained in a separate repository:
+https://github.com/Thinkersbluff/DGUS-Reloaded_for_CR6-DWIN-SET_Component
 
 ---
 
 ## Overview
-
+Here is a high-level overview of the Installation_Files.  Inside each of these sub-folders is another README.md with additional details about the contents: 
 - [Installation_Help_Docs](1-Installation_Help_Docs/)  
     Guidelines detailing the suggested installation process; either manual or scripted.  
 --
