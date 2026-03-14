@@ -38,7 +38,7 @@ $ClaimsFilePath = if ([System.IO.Path]::IsPathRooted($ClaimsFile)) {
 }
 
 # Release notes
-$ReleaseNotes = Join-Path $RepoRoot "Development_Project_Files\Development_Environment\klippy\extras\Release Notes_v$Version.txt"
+$ReleaseNotes = Join-Path $RepoRoot "Release Notes_v$Version.txt"
 
 # 1) Required files
 @(
