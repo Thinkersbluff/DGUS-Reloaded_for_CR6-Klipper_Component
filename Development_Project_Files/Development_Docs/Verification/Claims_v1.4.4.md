@@ -1,6 +1,6 @@
 # Claims Verification - v1.4.4
 
-Source: `Development_Project_Files/Development_Environment/klippy/extras/Release Notes_v1.4.4.txt`
+Source: `Release Notes_v<version>.txt`
 
 > Replace all placeholders below with actual URLs before release:
 > - `<DWIN_ISSUE_URL_XX>`

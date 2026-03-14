@@ -1,6 +1,6 @@
 # Claims Verification - v<version>
 
-Source: `Development_Project_Files/Development_Environment/klippy/extras/Release Notes_v<version>.txt`
+Source: `Release Notes_v1.4.4.txt`
 
 ---
 
