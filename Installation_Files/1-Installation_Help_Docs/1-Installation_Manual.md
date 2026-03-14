@@ -218,9 +218,9 @@ In the extracted release package, navigate to the subfolder for your motherboard
 
 | Your motherboard | Folder path (relative to extracted root) |
 |---|---|
-| Creality 4.5.2 | `Related Changes/Creality CR6 Mobo/Flash motherboard/For 4.5.2 MB/` |
-| Creality 4.5.3 or ERA 1.1.0.3 | `Related Changes/Creality CR6 Mobo/Flash motherboard/For ERA 1.1.0.3 and 4.5.3 MB/` |
-| BTT SKR CR6 V1.0 | `Related Changes/BTT SKR CR6 Only/Flash motherboard/` |
+| Creality 4.5.2 | `4-klipper.bin_files/Creality CR6 Mobo [all]/` |
+| Creality 4.5.3 or ERA 1.1.0.3 | `4-klipper.bin_files/Creality CR6 Mobo [all]/` |
+| BTT SKR CR6 V1.0 | `4-klipper.bin_files/BTT SKR CR6 Only/` |
 
 Inside that folder you will find a `.bin` file already built and named appropriately for flashing to your motherboard.
 
@@ -270,9 +270,9 @@ In the extracted release package:
 
 | Your motherboard | Source folder |
 |---|---|
-| Creality 4.5.2 | `Related Changes/Creality CR6 Mobo/Custom Klipper host files/For 4.5.2 MB/` |
-| Creality 4.5.3 or ERA 1.1.0.3 | `Related Changes/Creality CR6 Mobo/Custom Klipper host files/For ERA 1.1.0.3 and 4.5.3 MB/` |
-| BTT SKR CR6 V1.0 | `Related Changes/BTT SKR CR6 Only/Custom Klipper host files/` |
+| Creality 4.5.2 | `3-Custom_Klipper+Mainsail_Files\Creality CR6 Mobo\4.5.2 MB/` |
+| Creality 4.5.3 or ERA 1.1.0.3 | `3-Custom_Klipper+Mainsail_Files\Creality CR6 Mobo\ERA 1.1.0.3 or 4.5.3 MB/` |
+| BTT SKR CR6 V1.0 | `3-Custom_Klipper+Mainsail_Files\BTT SKR CR6 Only` |
 
 Read the `README.txt` file inside that folder first — it explains the purpose of each file and notes any changes made in the latest release.
 
@@ -296,11 +296,10 @@ Dev_Macros.cfg
 inputShaper.cfg
 microprobe.cfg   (or stockprobe.cfg, depending on your probe — see notes below)
 printer.cfg
-shell_command.cfg
 ```
 
-> **If you already have a working `printer.cfg`:**  
-> Do **not** overwrite it blindly. Use a comparison tool such as
+> **WARNING: If you already have a working system:**  
+> Do **not** overwrite these printer_data/config files blindly. Use a comparison tool such as
 > [WinMerge](https://winmerge.org/downloads/?lang=en) to compare the new files with your existing ones and selectively transfer only the DGUS-Reloaded-specific additions.
 
 ### 7c. Critical customisations required in `printer.cfg`
@@ -355,7 +354,7 @@ The output will look something like this (your exact ID will differ):
 ```
 Copy the full path string of the printer device.  
 
->TIP: If the ls command returns multiple device IDs, unplug the printer and re-run the command. Then plug it back in and re-run the command.  The string you need to copy is the one that disappears/reappears, when you unplug, replug the printer.
+>**TIP:** If the ls command returns multiple device IDs, unplug the printer and re-run the command. Then plug it back in and re-run the command.  The string you need to copy is the one that disappears/reappears, when you unplug, replug the printer.
 
 ### 8c. Update `printer.cfg`
 

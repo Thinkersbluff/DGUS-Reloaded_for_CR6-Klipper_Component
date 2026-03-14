@@ -12,8 +12,17 @@
 
 ## Testing
 - [x] Core functional tests passed
-- [ ] Regression tests passed
+- [x] Regression tests passed
 - [ ] Installation-path validation passed
+  - Pass only if all are true:
+    - [ ] Install or upgrade was performed by following `Installation_Files/README.md` exactly
+    - [ ] Validation was performed on a real target system or representative test environment
+    - [ ] No undocumented manual fixes, extra commands, or guessed steps were required
+    - [ ] Required files were placed in the documented locations
+    - [ ] Required configuration edits matched the documentation
+    - [ ] All required services started or restarted successfully
+    - [ ] Display/UI and Klipper component communicated correctly after install
+    - [ ] Basic smoke test passed after install
 
 ## Documentation
 - [x] Installation docs updated for this release
@@ -21,8 +30,8 @@
 - [x] Cross-links and filenames verified
 
 ## Git/PR Hygiene
-- [ ] `git status` clean
-- [x] No unresolved conflicts
+- [x] `git status` clean
+- [ ] No unresolved conflicts
 - [ ] PR base/compare correct
 
 ## Release
