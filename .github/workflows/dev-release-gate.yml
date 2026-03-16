@@ -3,10 +3,10 @@ name: Dev Release Gate
 on:
   pull_request:
     branches:
-      - New-At-1.4.4
+      - New-At-2.0.0
   push:
     branches:
-      - New-At-1.4.4
+      - New-At-2.0.0
 
 jobs:
   pre-release-gate:
@@ -20,6 +20,6 @@ jobs:
       - name: Run pre-release checks
         shell: pwsh
         run: |
-          $version = "1.4.4"
-          $claims = "Development_Project_Files/Development_Docs/Verification/Claims_v1.4.4.md"
+          $version = "2.0.0"
+          $claims = "Development_Project_Files/Development_Docs/Verification/Claims_v2.0.0.md"
           ./Development_Project_Files/Development_Docs/Scripts/Invoke-PreReleaseGate.ps1 -Version $version -ClaimsFile $claims -CI

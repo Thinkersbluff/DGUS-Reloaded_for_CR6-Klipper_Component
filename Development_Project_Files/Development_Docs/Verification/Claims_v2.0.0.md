@@ -1,4 +1,4 @@
-# Claims Verification - v1.4.4
+# Claims Verification - v2.0.0
 
 Source: `Release Notes_v<version>.txt`
 

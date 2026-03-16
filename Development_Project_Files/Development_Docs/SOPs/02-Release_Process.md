@@ -18,7 +18,7 @@
    - update dates/versions/links.
 
 5. GitHub Actions gate
-   - The `Dev Release Gate` workflow runs automatically on push and PR to `New-At-1.4.4`.
+   - The `Dev Release Gate` workflow runs automatically on push and PR to `New-At-2.0.0`.
    - It runs `Invoke-PreReleaseGate.ps1 -CI` in the GitHub runner.
    - If it fails, the PR is blocked until the failure is resolved.
    - Check run results at: `https://github.com/Thinkersbluff/DGUS-Reloaded_for_CR6-Klipper_Component/actions`

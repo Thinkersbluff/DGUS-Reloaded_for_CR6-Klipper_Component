@@ -1,5 +1,5 @@
 Last Updated:  13 March 26
-Release 1.4.4
+Release 2.0.0
  - Verified Compatible with Klipper3D/klipper [Master] v0.13.0-572-g88a71c3c (SHA: 88a71c3ce5383085b18d87d76ac42686ec7fad9f)
  - NOT backwards-compatible with versions of Klipper prior to v0.13.0-572-g88a71c3c.
 

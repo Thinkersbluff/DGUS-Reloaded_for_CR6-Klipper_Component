@@ -3,9 +3,9 @@
 ## Current pairing
 | Klipper Component | DWIN Component | Status |
 |-------------------|----------------|--------|
-| 1.4.4             | 0.5.3          | Current |
+| 2.0.0             | 1.0.0          | Current |
+| 1.4.4             | 0.5.3          | Deprecated |
 | 1.4.3             | 0.5.2          | Deprecated |
-| 1.4.2             | 0.5.1          | Deprecated |
 
 ## Rules
 - A MAJOR increment in either component requires a new row in this table.

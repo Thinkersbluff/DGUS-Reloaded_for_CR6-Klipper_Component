@@ -15,7 +15,7 @@
 
 ## Before pushing
 - Run `Invoke-PreReleaseGate.ps1` locally and confirm it passes.
-- Fix any failures before pushing to `New-At-1.4.4`.
+- Fix any failures before pushing to `New-At-2.0.0`.
 
 ## After pushing
 - Confirm the `Dev Release Gate` GitHub Actions workflow passes (green check).

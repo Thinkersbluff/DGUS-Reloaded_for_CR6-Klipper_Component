@@ -39,15 +39,15 @@ Targeted migration checker/fixer for known stale references (old script names an
 ### Run pre-release gate (local)
 ```powershell
 pwsh -NoProfile -ExecutionPolicy Bypass -File ".\Development_Project_Files\Development_Docs\Scripts\Invoke-PreReleaseGate.ps1" `
-  -Version "1.4.4" `
-  -ClaimsFile ".\Development_Project_Files\Development_Docs\Verification\Claims_v1.4.4.md"
+  -Version "2.0.0" `
+  -ClaimsFile ".\Development_Project_Files\Development_Docs\Verification\Claims_v2.0.0.md"
 ```
 
 ### Run pre-release gate (CI mode)
 ```powershell
 pwsh -NoProfile -ExecutionPolicy Bypass -File ".\Development_Project_Files\Development_Docs\Scripts\Invoke-PreReleaseGate.ps1" `
-  -Version "1.4.4" `
-  -ClaimsFile ".\Development_Project_Files\Development_Docs\Verification\Claims_v1.4.4.md" `
+  -Version "2.0.0" `
+  -ClaimsFile ".\Development_Project_Files\Development_Docs\Verification\Claims_v2.0.0.md" `
   -CI
 ```
 
