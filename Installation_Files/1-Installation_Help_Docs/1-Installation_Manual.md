@@ -394,6 +394,8 @@ If you see error messages instead, the most common causes are:
 For a full configuration verification checklist, follow the Klipper documentation here:  
 [https://www.klipper3d.org/Config_checks.html](https://www.klipper3d.org/Config_checks.html)
 
+> **Note — MCU comms lost after printer power-cycle:**  CR6 printers lose USB communications with the MCU each time the printer is switched off and back on. This leaves the DWIN_SET stuck on the boot screen, until you RESET or FIRMWARE_RESET, using Mainsail or KlipperScreen. If you want the DWIN_SET to boot through to the Home menu when you power-up your printer, then see [Appendix E: Automatic MCU Communications Recovery](appendix/E-Pi-Side_Recovery_Setup.md) for a simple three-file fix you can install on your Pi.
+
 ### 9c. Verify the display
 
 With Klipper reporting Ready and your printer powered on, the CR6 touchscreen should now show the DGUS-Reloaded home screen. If the display is still showing the old Creality or a blank/corrupt screen, re-check that the DWIN_SET was flashed correctly (Step 3).
@@ -495,6 +497,7 @@ Consult your slicer's documentation for how to enable these.
 | Klipper error: `Module 'stable_z_home' not found` | stable_z_home symlink missing | Re-do Step 5 |
 | Display shows Ready screen but print crashes immediately | Config values not tailored to your hardware | Review Step 7c |
 | `timelapse.cfg` error on startup | moonraker-timelapse not installed | Comment out `[include timelapse.cfg]` in printer.cfg |
+| Klipper loses MCU connection every time the printer is power-cycled | USB re-enumeration timing issue between Pi and MCU | See [Appendix E: Automatic MCU Communications Recovery](appendix/E-Pi-Side_Recovery_Setup.md) |
 
 ---
 

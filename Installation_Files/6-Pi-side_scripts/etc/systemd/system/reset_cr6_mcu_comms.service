@@ -1,0 +1,7 @@
+[Unit]
+Description=Reset CR6 MCU communications — restart Klipper when MCU USB appears
+After=multi-user.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/reset_cr6_mcu_comms.sh

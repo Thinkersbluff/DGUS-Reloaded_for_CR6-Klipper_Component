@@ -26,10 +26,14 @@ Here is a high-level overview of the Installation_Files.  Inside each of these s
 - [klipper.bin_files](4-klipper.bin_files/)  
     A pre-compiled binary to flash to the BTT or the Creality motherboard in your printer.  This version replaces the Klipper3D klipper.bin file and adds full-stack communications support between Klipper and the stock display.  
  -- 
-- [make_menuconfig_Extensions/klipper](make_menuconfig_Extensions/klipper/)  
+- [make_menuconfig_Extensions/klipper](5-make_menuconfig_Extensions/klipper/)  
     The Klipper3D developers provide [extensive guidance for installation and configuration of their firmware, online](https://www.klipper3d.org/), so I will not try to repeat or paraphrase that guidance here.
     I will mention, though, that the klipper.bin_files I provide should make it unnecessary to follow the Klipper3D instructions for making and flashing your own klipper.bin file.
     The one exception to that will be when the Klipper3D developers make changes to the functionality of their mcu.py module.  In those cases, you will need to install these extensions before performing the make menuconfig step in their build process.
+---
+- [Pi-side_scripts](6-Pi-side_scripts/)
+  - As explained in Appendix E to the Installation_Help_Docs, if you power-cycle your CR6 printer, Klipper will drop the mcu USB channel.  This leaves the DWIN_SET on the boot screen, because it never receives the 'switch to Home Page' command.  Confusingly, their are RESTART and FIRMWARE_RESTART buttons on that screen, but they do not work because the interface is "down".  The scripts in this folder, when installed on your Pi, will automatically restart Klipper in that scenario, to reset those communications.  From then on, DWIN_SET will switch to the Home screen at power-up.
+  _NOTE: These scripts are here to show you what they should contain and where on your Pi they should go. You likely will not be able to SFTP these files to your Pi, but Appendix E shows you how to create them on the Pi._
 ---
 # Full Disclosure:
   I use this firmware as my "daily-driver" on my Kickstarter CR6-SE.  
