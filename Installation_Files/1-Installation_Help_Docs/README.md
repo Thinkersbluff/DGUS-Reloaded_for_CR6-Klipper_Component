@@ -260,7 +260,7 @@ I am always happy to accept similar tips for other slicers from the user communi
 
 | I Need To... | Start Here |
 |---|---|
-| Install for the first time | [1-Manual_Installation.md](1-Manual_Installation.md) |
+| Install for the first time | [1-Installation_Manual.md](1-Installation_Manual.md) |
 | Update to a new DGUS release | [4-Updating_Existing_Installation.md](4-Updating_Existing_Installation.md) |
 | Understand how the system works | [2-Understanding_Your_System.md](2-Understanding_Your_System.md) |
 | Troubleshoot an issue | [0-DGUS_Maintenance_Overview.md](0-DGUS_Maintenance_Overview.md) |
