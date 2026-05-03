@@ -41,8 +41,8 @@ This guide helps you maintain and troubleshoot an existing DGUS-Reloaded install
 |---|---|
 | Check Klipper git status | `git -C ~/klipper status -sb` |
 | Check current commit | `git -C ~/klipper rev-parse --short HEAD` |
-| Clear dirty state (before update) | `cd ~/klipper/scripts/dgus-reloaded && ./manage_t5uid1_patches.sh prepare` |
-| Reapply patches (before MCU build) | `cd ~/klipper/scripts/dgus-reloaded && ./manage_t5uid1_patches.sh reapply` |
+| Clear dirty state (before update) | `~/printer_data/config/scripts/manage_t5uid1_patches.sh prepare` |
+| Reapply patches (before MCU build) | `~/printer_data/config/scripts/manage_t5uid1_patches.sh reapply` |
 | Back up Klipper | `bash ~/klipper/scripts/dgus-reloaded/backup_klipper.sh` |
 | Restore Klipper | `bash ~/klipper/scripts/dgus-reloaded/restore_klipper.sh` |
 | Verify installation health | `bash ~/klipper/scripts/dgus-reloaded/verify_installation.sh` |

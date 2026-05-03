@@ -74,8 +74,7 @@ Tracked files (typically `Kconfig` / `Makefile`) were locally edited for DGUS bu
 ### How
 
 ```bash
-cd ~/klipper/scripts/dgus-reloaded
-./manage_t5uid1_patches.sh prepare
+~/printer_data/config/scripts/manage_t5uid1_patches.sh prepare
 cd ~/klipper
 git status --porcelain
 ```
@@ -105,8 +104,7 @@ The build system needs DGUS-related edits present in tracked files.
 ### How
 
 ```bash
-cd ~/klipper/scripts/dgus-reloaded
-./manage_t5uid1_patches.sh reapply
+~/printer_data/config/scripts/manage_t5uid1_patches.sh reapply
 cd ~/klipper
 git status -sb
 ```
@@ -162,8 +160,7 @@ Detailed procedure:
 ### How (summary)
 
 ```bash
-cd ~/klipper/scripts/dgus-reloaded
-./manage_t5uid1_patches.sh reapply
+~/printer_data/config/scripts/manage_t5uid1_patches.sh reapply
 
 cd ~/klipper
 make clean
@@ -174,8 +171,7 @@ Then flash `~/klipper/out/klipper.bin` to your board with your normal SD-card bo
 
 After successful flash:
 ```bash
-cd ~/klipper/scripts/dgus-reloaded
-./manage_t5uid1_patches.sh prepare
+~/printer_data/config/scripts/manage_t5uid1_patches.sh prepare
 ```
 
 Detailed step-by-step:

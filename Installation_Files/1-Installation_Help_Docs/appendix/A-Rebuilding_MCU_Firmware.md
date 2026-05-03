@@ -38,29 +38,84 @@ Before you can compile a compatible firmware binary, the **`dgus_upstream` MCU p
 package must be applied** to your Klipper source tree. This adds the T5UID1 source
 files and patches the Kconfig and Makefile so the options appear in `make menuconfig`.
 
+### Not Sure Whether Patches Are Applied?
+
+Use this safe quick path:
+
+```bash
+# Find the script wherever it was installed:
+MGMT=$(command -v manage_t5uid1_patches.sh 2>/dev/null \
+  || ls ~/printer_data/config/scripts/manage_t5uid1_patches.sh 2>/dev/null \
+  || ls ~/klipper/scripts/dgus-reloaded/manage_t5uid1_patches.sh 2>/dev/null \
+  || echo "")
+
+if [ -z "$MGMT" ]; then
+  echo "Script not found — locate it and adjust the path in the preflight section."
+else
+  "$MGMT" status
+  "$MGMT" reapply
+fi
+```
+
+Then continue to Step 2. The `reapply` command is idempotent and safe to run even if
+the patch lines are already present.
+
 ---
 
 ## Before You Begin
 
-### Check whether the dgus_upstream patches are already applied
+### Confirm you are working in the right Klipper tree
 
-From an SSH session on the Pi, run:
+If you have more than one Klipper clone on your Pi, make sure `~/klipper` points to
+the one Moonraker is managing:
+
+```bash
+readlink -f ~/klipper      # shows the real path
+ls ~/klipper/.git          # confirms it is a git repo
+```
+
+If `~/klipper` is missing or has no `.git` folder, locate the correct Klipper
+directory before continuing and substitute its path in all commands below.
+
+### Preflight: verify DGUS patch state before rebuilding
+
+Do **all** checks below from an SSH session on the Pi:
 
 ```bash
 ls ~/klipper/src/stm32/t5uid1/
+ls ~/klipper/src/generic/t5uid1/
+
+grep -q 'src/stm32/t5uid1/Kconfig' ~/klipper/src/stm32/Kconfig \
+  && echo 'Kconfig patch: OK' \
+  || echo 'Kconfig patch: MISSING'
+
+grep -q 'src/stm32/t5uid1/Makefile' ~/klipper/src/stm32/Makefile \
+  && echo 'Makefile patch: OK' \
+  || echo 'Makefile patch: MISSING'
 ```
 
-- **If you see** `serial.c`, `Kconfig`, and `Makefile` listed — the patches are
-  already in place. **Skip ahead to [Step 2](#step-2-stop-klipper).**
-- **If you get** `No such file or directory` — the patches have not been applied.
-  Continue with Step 1.
+Decision rule:
 
-> **Why might the patches be missing?**  
-> Moonraker updates Klipper by pulling the latest upstream source. If the
-> `dgus_upstream` patches were applied as direct file copies rather than as a proper
-> git branch merge, a `git pull` by Moonraker will **not** remove them — but if
-> Klipper was reinstalled from scratch (e.g. via KIAUH), they would be lost.
-> Checking first avoids re-applying patches that are already there.
+- Continue to Step 2 **only** if both patch checks report `OK`.
+- If either patch check reports `MISSING`, run:
+
+```bash
+# Adjust this path if you installed the script elsewhere.
+~/printer_data/config/scripts/manage_t5uid1_patches.sh reapply
+```
+
+Then repeat the preflight checks before continuing.
+
+| t5uid1 dirs | Patch lines | Action |
+|---|---|---|
+| Present | Both OK | Proceed to Step 2 |
+| Missing | Missing | Run full Step 1 (copy files + reapply) |
+| Present | One or both MISSING | Run `manage_t5uid1_patches.sh reapply` only |
+| Present | Both OK, but `Enable DGUS T5UID1 screen` absent in menuconfig | Run `make clean`, then retry `make menuconfig` |
+
+Important: seeing `~/klipper/src/stm32/t5uid1/` is **not** enough by itself. The
+`Kconfig` and `Makefile` patch lines must also be present, or `make menuconfig` will
+not show `Enable DGUS T5UID1 screen`.
 
 ---
 
@@ -68,6 +123,19 @@ ls ~/klipper/src/stm32/t5uid1/
 
 You need to copy three folders of MCU source files into your Klipper source tree and
 patch two build-system files.
+
+### Preferred path: use the patch manager script first
+
+If you have the script installed on your Pi, this is the recommended method:
+
+```bash
+# Adjust this path if you installed the script elsewhere.
+~/printer_data/config/scripts/manage_t5uid1_patches.sh status
+~/printer_data/config/scripts/manage_t5uid1_patches.sh reapply
+```
+
+If `status` and the preflight checks are fully `OK`, skip the manual patching
+substeps below and continue to Step 2.
 
 ### 1a. Get the patch files onto the Pi
 
@@ -156,6 +224,22 @@ make menuconfig
 
 This opens an interactive text-based configuration screen. Navigate using the arrow
 keys; press **Space** to toggle checkboxes; press **Q** then **Y** to save and exit.
+
+If `Enable DGUS T5UID1 screen` does **not** appear in `make menuconfig`, stop here:
+
+```bash
+# Exit menuconfig first, then run:
+~/printer_data/config/scripts/manage_t5uid1_patches.sh reapply
+```
+
+Then run `make menuconfig` again. Do not proceed to Step 4 until the DGUS option is
+visible.
+
+If the option is still missing after `reapply`, diagnose with:
+
+- **Makefile patch missing** (check with `grep 'src/stm32/t5uid1/Makefile' ~/klipper/src/stm32/Makefile`): re-run the manual Step 1d patch.
+- **Both patches present but option still absent**: run `make clean`, then retry `make menuconfig` — a stale build cache can mask new Kconfig entries.
+- **Option still missing with a clean tree**: confirm `~/klipper` points to the correct Klipper directory (see "Confirm you are working in the right Klipper tree" in Before You Begin).
 
 Set the options exactly as listed for your motherboard below.
 
@@ -246,14 +330,16 @@ ting them can prevent the MCU USB interface or display serial configuration from
 
 ```bash
 cd ~/klipper
+make clean
 mkdir -p out/src/stm32/t5uid1 out/src/generic/t5uid1
 make
 ```
 
-The `mkdir -p` line creates the output subdirectories for the T5UID1 source files
-before `make` runs. The Klipper build system creates these automatically for
-directories declared in `dirs-y`, but only after the sub-Makefile containing that
-declaration has been read during a clean build. Pre-creating them avoids the error:
+`make clean` removes stale build artefacts, ensuring a fully reproducible binary.
+
+The `mkdir -p` line is a safety fallback: after `make clean` the Klipper build system
+recreates the `out/` tree and should create these subdirectories automatically — but
+on some setups that step is occasionally skipped. Pre-creating them avoids the error:
 
 ```
 fatal error: opening dependency file out/src/stm32/t5uid1/serial.d: No such file or directory
@@ -264,6 +350,21 @@ The build takes approximately 1–2 minutes. On success the final line will read
 ```
 Creating bin file out/klipper.bin
 ```
+
+After a successful build, verify that the T5UID1 MCU command table was compiled in:
+
+```bash
+grep -q "t5uid1_ping oid=%c" ~/klipper/out/klipper.dict \
+  && echo "t5uid1_ping:     OK" \
+  || echo "t5uid1_ping:     MISSING — patches not compiled in"
+
+grep -q "t5uid1_received command=%c data=%\*s" ~/klipper/out/klipper.dict \
+  && echo "t5uid1_received: OK" \
+  || echo "t5uid1_received: MISSING — patches not compiled in"
+```
+
+If either check reports `MISSING`, the T5UID1 sources were not compiled. Return to
+Step 1e, verify all four patch checks pass, then repeat Steps 3 and 4.
 
 If `make` reports errors other than the missing-directory error above, the most
 likely cause is that the Kconfig or Makefile patches from Step 1 were not applied
@@ -344,12 +445,21 @@ Step 6.
 Moonraker updates Klipper by running `git pull` inside `~/klipper`. The T5UID1
 source files copied in Step 1 are **not tracked by git in the upstream Klipper
 repository**, so `git pull` will **not remove them**. The patches will therefore
-survive routine Moonraker updates.
+often survive routine updates.
 
-However, if a future Klipper release moves or restructures `src/stm32/Kconfig` or
-`src/stm32/Makefile`, the patches applied in Steps 1c–1d might need to be re-applied
-or adjusted. If `make menuconfig` ever stops showing the DGUS T5UID1 options, re-run
-the verification check in Step 1e to diagnose the problem.
+However, `src/stm32/Kconfig` and `src/stm32/Makefile` are upstream-tracked files.
+During some updates, one or both of your DGUS patch lines can be dropped even though
+the copied `t5uid1` source directories still exist.
+
+Best practice before every rebuild:
+
+```bash
+# Adjust this path if you installed the script elsewhere.
+~/printer_data/config/scripts/manage_t5uid1_patches.sh status
+```
+
+If either patch is missing, run `manage_t5uid1_patches.sh reapply`, then verify with
+the preflight checks in the "Before You Begin" section.
 
 ---
 

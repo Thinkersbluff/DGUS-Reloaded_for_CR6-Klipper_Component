@@ -154,8 +154,7 @@ git checkout -- src/stm32/Kconfig src/stm32/Makefile
 
 **Option 2: Use our patch management script** (recommended for DGUS-Reloaded)
 ```bash
-cd ~/klipper/scripts/dgus-reloaded
-./manage_t5uid1_patches.sh prepare
+~/printer_data/config/scripts/manage_t5uid1_patches.sh prepare
 ```
 This removes the temporary edits so Moonraker sees a clean repo.
 
@@ -208,14 +207,13 @@ This script toggles the edits on/off:
 **Example workflow:**
 ```bash
 # You want to rebuild MCU firmware
-cd ~/klipper/scripts/dgus-reloaded
-./manage_t5uid1_patches.sh reapply   # Apply edits
+~/printer_data/config/scripts/manage_t5uid1_patches.sh reapply   # Apply edits
 cd ~/klipper
-make menuconfig                       # Configure build (sees T5UID1 options)
-make                                  # Build firmware
+make menuconfig                                                   # Configure build (sees T5UID1 options)
+make                                                              # Build firmware
 # Flash to motherboard...
-./scripts/dgus-reloaded/manage_t5uid1_patches.sh prepare  # Remove edits
-git status                            # Now clean!
+~/printer_data/config/scripts/manage_t5uid1_patches.sh prepare   # Remove edits
+git status                                                        # Now clean!
 ```
 
 **See also:**

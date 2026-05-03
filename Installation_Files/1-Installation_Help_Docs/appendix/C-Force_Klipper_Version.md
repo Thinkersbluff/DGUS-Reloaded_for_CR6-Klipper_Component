@@ -45,8 +45,7 @@ If you also need to build a new klipper.bin file, then proceed with steps 7-11. 
 
 7. copy/paste this script into your SSH window, to reapply the edits to Kconfig and Makefile before running make menuconfig:
 ```bash
-cd ~/klipper/scripts/dgus-reloaded
-./manage_t5uid1_patches.sh reapply
+~/printer_data/config/scripts/manage_t5uid1_patches.sh reapply
 ```
 8. copy/paste this script into your SSH window, to verify the settings that will be used when you run "make":
    
@@ -73,8 +72,7 @@ FIRMWARE_RESET
 14. Run this script on your pi, to remove the changes from Kconfig and Makefile:  
 
 ``` bash
-cd ~/klipper/scripts/dgus-reloaded
-./manage_t5uid1_patches.sh prepare
+~/printer_data/config/scripts/manage_t5uid1_patches.sh prepare
 ```
 15. Select Check for Updates in the Mainsail Update Manager window
 

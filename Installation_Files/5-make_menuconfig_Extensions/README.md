@@ -32,8 +32,7 @@ To work around this issue, I recommend that you use the manage_t5uid1_patches.sh
 ## Revert the two files like this:
 SSH into your Klipper host at copy/paste this instruction:
 ```
-cd ~/klipper/scripts/dgus-reloaded 
-./manage_t5uid1_patches.sh prepare
+~/printer_data/config/scripts/manage_t5uid1_patches.sh prepare
 ```
 This does not remove the "insult" from the System Loads window, but it does cause Moonraker to remove the dirty flag from Klipper in the Update Manager, allowing you to apply the update.  
 ---
@@ -52,8 +51,7 @@ If the update you apply makes the current klipper incompatible with the current 
 1. SSH into your Klipper host 
 2. copy/paste this instruction, to edit KConfig and Makefile:
 ```
-cd ~/klipper/scripts/dgus-reloaded 
-./manage_t5uid1_patches.sh reapply
+~/printer_data/config/scripts/manage_t5uid1_patches.sh reapply
 ```
 3. copy/paste this instruction, to build a new klipper.bin file:
 ```

@@ -31,8 +31,7 @@ If needed later: see `4-Backup_Restore_Klipper.md`.
 ## Step 2 — Make Klipper repo clean before updating
 
 ```bash
-cd ~/klipper/scripts/dgus-reloaded
-./manage_t5uid1_patches.sh prepare
+~/printer_data/config/scripts/manage_t5uid1_patches.sh prepare
 cd ~/klipper
 git status --porcelain
 ```
@@ -80,8 +79,7 @@ If host changed, or if Klipper reports MCU mismatch:
 4. Return repo to clean state
 
 ```bash
-cd ~/klipper/scripts/dgus-reloaded
-./manage_t5uid1_patches.sh reapply
+~/printer_data/config/scripts/manage_t5uid1_patches.sh reapply
 
 cd ~/klipper
 make clean
@@ -90,8 +88,7 @@ make
 
 After flashing:
 ```bash
-cd ~/klipper/scripts/dgus-reloaded
-./manage_t5uid1_patches.sh prepare
+~/printer_data/config/scripts/manage_t5uid1_patches.sh prepare
 ```
 
 Detailed instructions: `3-Rebuilding_MCU_Firmware.md`.

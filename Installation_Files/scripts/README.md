@@ -18,10 +18,9 @@ Purpose
 
 Usage
 ```bash
-cd ~/klipper
-./scripts/dgus-reloaded/manage_t5uid1_patches.sh prepare
-./scripts/dgus-reloaded/manage_t5uid1_patches.sh reapply
-./scripts/dgus-reloaded/manage_t5uid1_patches.sh status
+~/printer_data/config/scripts/manage_t5uid1_patches.sh prepare
+~/printer_data/config/scripts/manage_t5uid1_patches.sh reapply
+~/printer_data/config/scripts/manage_t5uid1_patches.sh status
 ```
 
 Notes
