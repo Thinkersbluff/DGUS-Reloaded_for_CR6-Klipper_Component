@@ -165,13 +165,14 @@ Set the options exactly as listed for your motherboard below.
 
 | Option | Value |
 |---|---|
+| Enable extra low-level configuration options | **[*]** (press Space to enable) |
 | Micro-controller Architecture | STM32 |
 | Processor model | STM32F103 |
 | Bootloader offset | 28KiB bootloader |
-| Enable extra low-level configuration options | **[*]** (press Space to enable) |
 | Communication interface | Serial (on USART1 PA10/PA9) |
 | Enable DGUS T5UID1 screen | **[*]** (press Space to enable) |
 | Screen serial interface | USART3 (on PB11/PB10) |
+| Baud rate for serial port | 115200 |
 | Optimize stepper code for 'step on both edges' | **[*]** (default — leave enabled) |
 
 > The 4.5.3 and ERA 1.1.0.3 boards share identical `make menuconfig` settings.
@@ -185,13 +186,14 @@ Set the options exactly as listed for your motherboard below.
 
 | Option | Value |
 |---|---|
+| Enable extra low-level configuration options | **[*]** (press Space to enable) |
 | Micro-controller Architecture | STM32 |
 | Processor model | STM32F103 |
 | Bootloader offset | 28KiB bootloader |
-| Enable extra low-level configuration options | **[*]** (press Space to enable) |
 | Communication interface | Serial (on USART1 PA10/PA9) |
 | Enable DGUS T5UID1 screen | **[*]** (press Space to enable) |
 | Screen serial interface | USART3 (on PB11/PB10) |
+| Baud rate for serial port | 115200 |
 | Optimize stepper code for 'step on both edges' | **[*]** (default — leave enabled) |
 
 > The 4.5.2 and 4.5.3/ERA boards use the same `make menuconfig` settings.
@@ -207,11 +209,11 @@ Set the options exactly as listed for your motherboard below.
 
 | Option | Value |
 |---|---|
+| Enable extra low-level configuration options | **[*]** (press Space to enable) |
 | Micro-controller Architecture | STM32 |
 | Processor model | STM32F103 |
 | Bootloader offset | 28KiB bootloader |
 | Communication interface | USB (on PA11/PA12) |
-| Enable extra low-level configuration options | **[*]** (press Space to enable) |
 | GPIO pins to set at micro-controller startup | `!PA14` |
 | Enable DGUS T5UID1 screen | **[*]** (press Space to enable) |
 | Screen serial interface | USART2 (on PA3/PA2) |
