@@ -130,7 +130,7 @@ motherboard firmware.
 2. Download the latest release and follow the flashing instructions provided there.
    The general procedure is:
    - Create a Master Boot Record (MBR) partition on a microSD card [Ensure that it is the first active partition on the card, and that it is less than 15Gb in size] 
-   - Format the partition as FAT32, with an allocation unit size of 4069 bytes.
+   - Format the partition as FAT32, with an allocation unit size of 4096 bytes.
    - Copy the `DWIN_SET` folder to the **root** of the SD card in that MBR partition
    - Power off the printer
    - Remove the display bezel on the back of the CR6 screen; insert the microSD into the SD card slot on the display PCB

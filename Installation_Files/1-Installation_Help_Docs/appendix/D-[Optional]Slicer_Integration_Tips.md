@@ -73,6 +73,9 @@ OrcaSlicer sends **M73 P** and **M73 R** messages by default.
 ### Configuring Start and End G-codes
 
 Use these Machine Code settings in your OrcaSlicer printer profile:
+```
+start_print BED_TEMP=[bed_temperature_initial_layer_single] EXTRUDER_TEMP=[nozzle_temperature_initial_layer]
+```
 
 ![OrcaSlicer Start G-code](https://github.com/user-attachments/assets/2e456fd4-1c9b-4baa-93ce-d60575bca2ca)
 
