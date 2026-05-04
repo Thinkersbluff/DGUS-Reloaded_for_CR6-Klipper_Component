@@ -1,6 +1,6 @@
 # Appendix E: Automatic MCU Communications Recovery After Printer Power-Cycle
 
-Last Updated: 17 March 2026
+Last Updated: 4 May 2026
 
 ---
 
@@ -30,25 +30,12 @@ This applies to **all CR6 USB-connected motherboards**:
 
 ---
 
-## Step 0: Find Your MCU Device Values
+## Step 0: Find Your MCU_SERIAL_ID Value
 
-You need two values from your Pi before you can install the files.  Run these commands over SSH.
+You only need one value from your Pi before installing the files: **MCU_SERIAL_ID**.
+Run this command over SSH.
 
-### 0a. Find your MCU serial path
-
-```bash
-ls /dev/serial/by-id/
-```
-
-You will see one or more entries.  Copy the full name of the entry that contains `Klipper`, for example:
-
-```
-usb-Klipper_stm32f103xe_30FFDB054254353915721557-if00
-```
-
-This is your **MCU_DEV value**.  The full path you will use is `/dev/serial/by-id/` followed by that entry name.
-
-### 0b. Find your MCU udev serial ID
+### 0a. Find MCU_SERIAL_ID from udev
 
 ```bash
 for d in /dev/ttyACM*; do [ -e "$d" ] || continue; echo "$d -> $(udevadm info -q property -n "$d" | sed -n 's/^ID_SERIAL=//p')"; done
@@ -61,47 +48,59 @@ You will see output like:
 /dev/ttyACM1 -> Klipper_stm32f103xe_30FFDB054254353915721557
 ```
 
-The value after `->` is your **ID_SERIAL value**.
+The value after `->` is your **MCU_SERIAL_ID**.  Example:
 
-> **Note:** Both commands may show results for multiple USB interfaces from the same board.  Use the same string for both — the part that looks like `Klipper_stm32f103xe_30FFDB054254353915721557` (without the `-if00` suffix).
+```
+Klipper_stm32f103xe_30FFDB054254353915721557
+```
+
+### 0b. Optional sanity check of the by-id path
+
+The recovery script builds this path automatically as:
+
+```
+/dev/serial/by-id/usb-${MCU_SERIAL_ID}-if00
+```
+
+You can verify your Pi exposes that path with:
+
+```bash
+ls /dev/serial/by-id/
+```
+
+You should see an entry like:
+
+```
+usb-Klipper_stm32f103xe_30FFDB054254353915721557-if00
+```
 
 ---
 
-## Step 1: Create the Recovery Script
+## Step 1: Create the Recovery Script (using sudo nano)
 
-This script is run automatically when the MCU USB device appears.  It waits for the device to be ready, then restarts Klipper.
+This script is run automatically when the MCU USB device appears.  It waits for the
+device to be ready, then restarts Klipper.
 
-Copy and paste the entire block below into your SSH window.
-
-**Replace `YOUR-MCU-SERIAL-ID-HERE` with your MCU_DEV value from Step 0a.**
+1. On your PC, open this template from the extracted release:
+   `Installation_Files/6-Pi-side_scripts/usr/local/reset_cr6_mcu_comms.sh`
+2. In your Pi SSH session, run:
 
 ```bash
-sudo bash -c 'cat > /usr/local/reset_cr6_mcu_comms.sh' << 'SCRIPTEOF'
-#!/bin/bash
-set -euo pipefail
-
-LOCK_FILE="/run/lock/reset_cr6_mcu_comms.lock"
-MCU_DEV="/dev/serial/by-id/YOUR-MCU-SERIAL-ID-HERE"
-
-mkdir -p /run/lock
-exec 9>"$LOCK_FILE"
-flock -n 9 || exit 0
-
-logger -t reset_cr6_mcu_comms "MCU add event detected; waiting for $MCU_DEV"
-
-for _ in {1..20}; do
-    if [ -e "$MCU_DEV" ]; then
-        logger -t reset_cr6_mcu_comms "MCU device present; restarting klipper"
-        /bin/systemctl restart klipper.service
-        exit 0
-    fi
-    sleep 0.5
-done
-
-logger -t reset_cr6_mcu_comms "MCU device did not appear in time"
-exit 1
-SCRIPTEOF'
+sudo nano /usr/local/reset_cr6_mcu_comms.sh
 ```
+
+3. Paste the full template content into nano.
+4. Edit this line in the pasted file:
+
+```bash
+MCU_SERIAL_ID="YOUR-MCU-SERIAL-ID-HERE"
+```
+
+Replace `YOUR-MCU-SERIAL-ID-HERE` with your MCU_SERIAL_ID value from Step 0a.
+
+Do not add `usb-` or `-if00` to this value.  The script appends those automatically
+when it builds `MCU_DEV`.
+5. Save and exit nano: `Ctrl+O`, `Enter`, then `Ctrl+X`.
 
 Then make it executable:
 
@@ -122,23 +121,20 @@ Expected output:
 
 ---
 
-## Step 2: Create the systemd Service Unit
+## Step 2: Create the systemd Service Unit (using sudo nano)
 
 This file tells systemd what to run when the udev rule fires.
 
-Copy and paste the entire block below into your SSH window:
+1. On your PC, open this template from the extracted release:
+    `Installation_Files/6-Pi-side_scripts/etc/systemd/system/reset_cr6_mcu_comms.service`
+2. In your Pi SSH session, run:
 
 ```bash
-sudo bash -c 'cat > /etc/systemd/system/reset_cr6_mcu_comms.service' << 'SVCEOF'
-[Unit]
-Description=Reset CR6 MCU communications — restart Klipper when MCU USB appears
-After=multi-user.target
-
-[Service]
-Type=oneshot
-ExecStart=/usr/local/reset_cr6_mcu_comms.sh
-SVCEOF'
+sudo nano /etc/systemd/system/reset_cr6_mcu_comms.service
 ```
+
+3. Paste the full template content into nano.
+4. Save and exit nano: `Ctrl+O`, `Enter`, then `Ctrl+X`.
 
 Verify the file was created:
 
@@ -148,19 +144,21 @@ cat /etc/systemd/system/reset_cr6_mcu_comms.service
 
 ---
 
-## Step 3: Create the udev Rule
+## Step 3: Create the udev Rule (using sudo nano)
 
 This file watches for the MCU USB device to appear and tells systemd to run the service.
 
-Copy and paste the entire block below.
-
-**Replace `YOUR-ID-SERIAL-VALUE-HERE` with your ID_SERIAL value from Step 0b.**
+1. On your PC, open this template from the extracted release:
+    `Installation_Files/6-Pi-side_scripts/etc/udev/rules.d/99-reset_cr6_mcu_comms.rules`
+2. In your Pi SSH session, run:
 
 ```bash
-sudo bash -c 'cat > /etc/udev/rules.d/99-reset_cr6_mcu_comms.rules' << 'UDEVEOF'
-ACTION=="add", SUBSYSTEM=="tty", KERNEL=="ttyACM*", ENV{ID_SERIAL}=="YOUR-ID-SERIAL-VALUE-HERE", TAG+="systemd", ENV{SYSTEMD_WANTS}+="reset_cr6_mcu_comms.service"
-UDEVEOF'
+sudo nano /etc/udev/rules.d/99-reset_cr6_mcu_comms.rules
 ```
+
+3. Paste the full template content into nano.
+4. Replace `YOUR-MCU-SERIAL-ID-HERE` with your MCU_SERIAL_ID value from Step 0a.
+5. Save and exit nano: `Ctrl+O`, `Enter`, then `Ctrl+X`.
 
 Verify the file was created:
 
@@ -168,7 +166,7 @@ Verify the file was created:
 cat /etc/udev/rules.d/99-reset_cr6_mcu_comms.rules
 ```
 
-Confirm the line contains your ID_SERIAL value and `reset_cr6_mcu_comms.service`.
+Confirm the line contains your MCU_SERIAL_ID value and `reset_cr6_mcu_comms.service`.
 
 ---
 
@@ -230,7 +228,7 @@ This is **normal and expected** during the Klipper restart.  The display will re
 
 ### If the recovery script does not fire:
 
-Run this command on the Pi and check whether your ID_SERIAL value appears correctly in the rule:
+Run this command on the Pi and check whether your MCU_SERIAL_ID value appears correctly in the rule:
 
 ```bash
 cat /etc/udev/rules.d/99-reset_cr6_mcu_comms.rules

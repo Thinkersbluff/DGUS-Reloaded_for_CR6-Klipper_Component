@@ -2,10 +2,10 @@
 #
 # When the CR6 MCU USB serial device appears, ask systemd to run the recovery service.
 #
-# BEFORE INSTALLING: replace the ENV{ID_SERIAL} value with the ID from your system.
+# BEFORE INSTALLING: replace the ENV{ID_SERIAL} value with your MCU_SERIAL_ID value.
 # Run this on the Pi to find it:
 #   for d in /dev/ttyACM*; do [ -e "$d" ] || continue; echo "$d -> $(udevadm info -q property -n "$d" | sed -n 's/^ID_SERIAL=//p')"; done
 #
 # See Installation_Files/1-Installation_Help_Docs/appendix/E-Pi-Side_Recovery_Setup.md
 
-ACTION=="add", SUBSYSTEM=="tty", KERNEL=="ttyACM*", ENV{ID_SERIAL}=="YOUR-ID-SERIAL-VALUE-HERE", TAG+="systemd", ENV{SYSTEMD_WANTS}+="reset_cr6_mcu_comms.service"
+ACTION=="add", SUBSYSTEM=="tty", KERNEL=="ttyACM*", ENV{ID_SERIAL}=="YOUR-MCU-SERIAL-ID-HERE", TAG+="systemd", ENV{SYSTEMD_WANTS}+="reset_cr6_mcu_comms.service"

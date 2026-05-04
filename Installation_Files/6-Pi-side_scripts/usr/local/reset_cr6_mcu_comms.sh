@@ -4,16 +4,17 @@
 # Triggered by udev when the CR6 MCU USB device appears on the Pi.
 # Waits for the stable /dev/serial/by-id symlink, then restarts Klipper.
 #
-# BEFORE INSTALLING: replace MCU_DEV with the value from your system.
+# BEFORE INSTALLING: replace MCU_SERIAL_ID with the value from your system.
 # Run this on the Pi to find it:
-#   ls /dev/serial/by-id/
+#   for d in /dev/ttyACM*; do [ -e "$d" ] || continue; echo "$d -> $(udevadm info -q property -n "$d" | sed -n 's/^ID_SERIAL=//p')"; done
 #
 # See Installation_Files/1-Installation_Help_Docs/appendix/E-Pi-Side_Recovery_Setup.md
 
 set -euo pipefail
 
 LOCK_FILE="/run/lock/reset_cr6_mcu_comms.lock"
-MCU_DEV="/dev/serial/by-id/YOUR-MCU-SERIAL-ID-HERE-if00"
+MCU_SERIAL_ID="YOUR-MCU-SERIAL-ID-HERE"
+MCU_DEV="/dev/serial/by-id/usb-${MCU_SERIAL_ID}-if00"
 
 mkdir -p /run/lock
 exec 9>"$LOCK_FILE"
