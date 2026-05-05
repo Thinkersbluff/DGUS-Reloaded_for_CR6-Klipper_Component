@@ -16,7 +16,7 @@ This guide gives task-based maintenance workflows for an **existing** DGUS-Reloa
 
 - SSH access to your Klipper host
 - Existing Klipper install at `~/klipper`
-- DGUS scripts available under `~/klipper/scripts/dgus-reloaded/`
+- DGUS scripts available under `~/printer_data/config/scripts/`
 - Printer connected and powered on (for serial/MCU checks)
 
 ---
@@ -50,7 +50,7 @@ Gives you a rollback point if update/rebuild fails.
 ### How
 
 ```bash
-bash ~/klipper/scripts/dgus-reloaded/backup_klipper.sh
+bash ~/printer_data/config/scripts/backup_klipper.sh
 ```
 
 Expected outcome:
@@ -128,7 +128,7 @@ After build/flash, run Task 2 (`prepare`) again to return to clean update state.
 
 #### Option A (preferred): restore from backup
 ```bash
-bash ~/klipper/scripts/dgus-reloaded/restore_klipper.sh
+bash ~/printer_data/config/scripts/restore_klipper.sh
 ```
 Then restart Klipper and verify status.
 
@@ -200,7 +200,7 @@ Expected:
 
 Optional diagnostic (if script exists in your package):
 ```bash
-bash ~/klipper/scripts/dgus-reloaded/verify_installation.sh
+bash ~/printer_data/config/scripts/verify_installation.sh
 ```
 
 ---

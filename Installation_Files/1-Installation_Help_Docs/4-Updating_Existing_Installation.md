@@ -19,7 +19,7 @@ Use this guide when your printer is already running DGUS-Reloaded and you want t
 ## Step 1 — Back up first (required)
 
 ```bash
-bash ~/klipper/scripts/dgus-reloaded/backup_klipper.sh
+bash ~/printer_data/config/scripts/backup_klipper.sh
 ```
 
 Expected: backup archive created successfully.

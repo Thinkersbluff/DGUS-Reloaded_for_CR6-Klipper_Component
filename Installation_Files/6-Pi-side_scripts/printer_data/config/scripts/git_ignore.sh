@@ -9,7 +9,6 @@ KLIPPER_DIR_DEFAULT="${KLIPPER_DIR_DEFAULT:-$HOME/klipper}"
 EXCLUDE_FILE="$KLIPPER_DIR_DEFAULT/.git/info/exclude"
 
 PATTERNS=(
-  "scripts/dgus-reloaded/"
   "klippy/extras/t5uid1/"
   "klippy/extras/"
   "src/stm32/t5uid1/"

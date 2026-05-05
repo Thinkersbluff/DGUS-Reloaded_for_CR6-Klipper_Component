@@ -71,7 +71,7 @@ Purpose
 Usage
 ```bash
 cd ~/klipper
-./scripts/dgus-reloaded/git_ignore.sh
+bash ~/printer_data/config/scripts/git_ignore.sh
 git status --porcelain
 ```
 
@@ -83,12 +83,12 @@ Notes
 
 ## test_syntax_host.sh
 Purpose
-- Convenience script to run `bash -n` against scripts in `~/klipper/scripts/dgus-reloaded` to catch syntax errors.
+- Convenience script to run `bash -n` against scripts in `~/printer_data/config/scripts` to catch syntax errors.
 
 Usage
 ```bash
-cd ~/klipper/scripts/dgus-reloaded
-./test_syntax_host.sh
+cd ~/printer_data/config/scripts
+bash ./test_syntax_host.sh
 ```
 
 

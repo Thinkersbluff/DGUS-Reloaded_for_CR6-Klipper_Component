@@ -46,7 +46,6 @@ Use this safe quick path:
 # Find the script wherever it was installed:
 MGMT=$(command -v manage_t5uid1_patches.sh 2>/dev/null \
   || ls ~/printer_data/config/scripts/manage_t5uid1_patches.sh 2>/dev/null \
-  || ls ~/klipper/scripts/dgus-reloaded/manage_t5uid1_patches.sh 2>/dev/null \
   || echo "")
 
 if [ -z "$MGMT" ]; then
