@@ -11,11 +11,11 @@ This guide assumes you will run the installer directly on the target Raspberry P
 - A working Klipper host checkout in `~/klipper` (Mainsail/Fluidd installed).
 - SSH access to the Pi and a shell prompt.
 - `git`, `make`, `python3`, `wget` available on the Pi.
-- The installation scripts and supporting files are already present in `~/klipper/scripts/dgus-reloaded/` (e.g. Extracted from the Source.zip file of the latest release and uploaded there on the target Pi via SFTP.).
+- The installation scripts and supporting files are already present in `~/printer_data/config/scripts/` (e.g. Extracted from the Source.zip file of the latest release and uploaded there on the target Pi via SFTP.).
 
 **Files referenced by this guide**
-- Installer: `~/klipper/scripts/dgus-reloaded/install_dgus_minimal.sh`
-- Patch manager: `~/klipper/scripts/dgus-reloaded/manage_t5uid1_patches.sh`
+- Installer: `~/printer_data/config/scripts/install_dgus_minimal.sh`
+- Patch manager: `~/printer_data/config/scripts/manage_t5uid1_patches.sh`
 - Support scripts (may include tests/README) in the same directory.
 
 **Overview (high level)**
@@ -52,7 +52,7 @@ cp -v ~/klipper/src/stm32/Makefile "$HOME/.dgus_backups/Makefile.$(date +%Y%m%d_
 - Navigate to the installer location you placed on the Pi (example path):
 
 ```sh
-cd ~/klipper/scripts/dgus-reloaded
+cd ~/printer_data/config/scripts
 ```
 
 - Optionally force which branch the installer clones from (the script accepts `DGUS_BRANCH`):
@@ -192,7 +192,7 @@ sudo journalctl -u klipper -n 200 --no-pager
 - If you see an MCU protocol error, rebuild/flash the MCU binary and re-run the checks. The host and MCU must be built from compatible sources.
 
 **6) Useful troubleshooting commands**
-- Reapply patches if you re-cloned or reverted: `sudo bash ~/klipper/scripts/dgus-reloaded/manage_t5uid1_patches.sh reapply`
+- Reapply patches if you re-cloned or reverted: `sudo bash ~/printer_data/config/scripts/manage_t5uid1_patches.sh reapply`
 - Inspect Klippy log for tracebacks: `sudo journalctl -u klipper -n 500 --no-pager` (or view the `klippy.log` file used by your front-end).
 - Check that `t5uid1` module imports cleanly by running Python import test:
 

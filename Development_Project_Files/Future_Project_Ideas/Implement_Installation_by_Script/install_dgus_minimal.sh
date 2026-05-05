@@ -89,7 +89,7 @@ else
   echo "Remote branch '$DGUS_BRANCH' found."
 fi
 
-INSTALLER_DIR="$HOME/klipper/scripts/dgus-reloaded"
+INSTALLER_DIR="$HOME/printer_data/config/scripts"
 if [ -d "$INSTALLER_DIR" ]; then
   echo "Installer location verified: $INSTALLER_DIR"
 else

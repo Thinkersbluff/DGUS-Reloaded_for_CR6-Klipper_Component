@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Run this on the Klipper host from anywhere. It checks shell syntax for all
-# scripts placed in ~/klipper/scripts/dgus-reloaded.
+# scripts placed in ~/printer_data/config/scripts.
 
 DIR="$(cd "$(dirname "$0")" && pwd)"
 echo "Running syntax checks for scripts in: $DIR"

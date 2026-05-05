@@ -24,15 +24,16 @@ New/Modified Features at this release:
 Bugs/Issues Resolved at This Release:	
 #91 - Release 2.0.0 shows v1.4.4 on the Info screen??
  - Bumped version# to 2.0.1 in vars_out.cfg
+#92: The RESTART and FIRMWARE_RESTART buttons on the boot screen do not work when printer is first powered-up
+ - Installing the Pi-side scripts solves this problem, by restarting the mcu comms automatically upon printer power-up.
 #93 - Building a new klipper.bin file per the instructions in Appendix A of the Installation Manual, after Moonraker updates the Klipper files, results in an error, "mcu 'mcu': Unknown command :t5uid1_ping"
  - Moved the dgus_reloaded shell scripts from ~/klipper/scripts/dgus_reloaded to ~/printer_data/config/scripts
-      Reason: ~/klipper/ is a git-tracked directory managed by Moonraker. When Moonraker runs git pull to update Klipper, git can overwrite or remove files in that tree. Any scripts stored under ~/klipper/scripts/dgus-reloaded/ are therefore at risk of being deleted or disrupted by a routine Klipper update.
+      Reason: ~/klipper/ is a git-tracked directory managed by Moonraker. When Moonraker runs git pull to update Klipper, git can overwrite or remove files in that tree. Any scripts stored under ~/printer_data/config/scripts/ are therefore at risk of being deleted or disrupted by a routine Klipper update.
               ~/printer_data/config/ is not a git repository and is never touched by Moonraker's update process. It is the standard location for user-managed files (configs, macros, scripts). Files placed there survive every Klipper update unconditionally.
  - Clarified the instructions in the Installation Manual, re: how to ensure the presence of the patches to the stm32 KConfig and Makefile before attempting to make a new klipper.bin
 
 Known Issues at this Release: 
 - #82: PID may cause printer Shutdown, if thermistor is stock and [extruder] sensor_type = Honeywell 100K 135-104LAG-J01
-- #92: The RESTART and FIRMWARE_RESTART buttons on the boot screen do not work when printer is first powered-up
 - No changes since v1.3.6:
   - The displayed slicer-estimated print time remaining value may toggle between two values, if the print is performed faster than the slicer anticipated (e.g. if the feed rate is increased to a value greater than 100%)
   - The filelist, scroll and delete file scripts expect your gcode files to be stored in the default Klipper Virtual SD card directory:  ~/printer_data/gcodes. If your gcodes are stored in a different directory, they may not work for you

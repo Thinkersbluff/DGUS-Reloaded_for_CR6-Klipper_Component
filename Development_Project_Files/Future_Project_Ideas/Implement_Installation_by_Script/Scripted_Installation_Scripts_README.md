@@ -4,6 +4,7 @@ This document describes the scripts intended to support the scripted DGUS-Reload
 
 ## Table of contents
 - [Scripted installation scripts](#scripted-installation-scripts)
+  - [Table of contents](#table-of-contents)
   - [Deploying scripts to the Klipper host (SFTP-first)](#deploying-scripts-to-the-klipper-host-sftp-first)
   - [install\_dgus\_minimal.sh](#install_dgus_minimalsh)
   - [verify\_installation.sh](#verify_installationsh)
@@ -15,15 +16,15 @@ Use your SFTP client to transfer the scripts into the host's Klipper directory a
 1) Create the destination folder on the host:
 
 ```bash
-mkdir -p ~/klipper/scripts/dgus-reloaded
+mkdir -p ~/printer_data/config/scripts
 ```
 
-2) Upload the contents of `Installation_Files/scripts/` into `~/klipper/scripts/dgus-reloaded/`.
+2) Upload the contents of `Installation_Files/scripts/` into `~/printer_data/config/scripts/`.
 
 3) On the host, make the uploaded scripts executable:
 
 ```bash
-cd ~/klipper/scripts/dgus-reloaded
+cd ~/printer_data/config/scripts
 chmod +x *.sh
 ls -la
 ```
@@ -63,9 +64,9 @@ Purpose
 
 Usage
 ```bash
-bash ~/klipper/scripts/dgus-reloaded/verify_installation.sh
+bash ~/printer_data/config/scripts/verify_installation.sh
 # allow destructive apply tests:
-bash ~/klipper/scripts/dgus-reloaded/verify_installation.sh --allow-apply
+bash ~/printer_data/config/scripts/verify_installation.sh --allow-apply
 ```
 
 Notes
