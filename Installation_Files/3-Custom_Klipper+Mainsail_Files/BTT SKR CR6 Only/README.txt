@@ -1,4 +1,4 @@
-Last Updated : 4 March 2026
+Last Updated : 5 May 2026
 
 These files were built by updating the pin numbers in the ERA/4.5.3 files to be those of the BTT SKR CR6 board.
 
