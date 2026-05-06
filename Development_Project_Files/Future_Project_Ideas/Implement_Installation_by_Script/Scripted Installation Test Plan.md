@@ -65,5 +65,5 @@ Tests (ordered)
 - Missing `~/klipper`: script should prompt and abort or guide to install kiauh
 
 Execution notes
-- Use the provided verification script `Installation_Files/scripts/verify_installation.sh` to automate non-destructive checks and to run the interactive `--clean` test when desired.
+- Use the provided verification script `Development_Project_Files/Future_Project_Ideas/Implement_Installation_by_Script/verify_installation.sh` to automate non-destructive checks and to run the interactive `--clean` test when desired.
 - Avoid running destructive apply steps unless you have backups and are prepared to rebuild/flash the MCU if necessary.

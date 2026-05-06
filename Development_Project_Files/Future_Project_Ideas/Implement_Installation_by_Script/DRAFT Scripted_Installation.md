@@ -104,14 +104,14 @@ This makes it easier to find the most recent report and to confirm which branch 
 
 ### Board-specific repository locations
 
-When you choose a board during the interactive prompt, the installer looks for matching board-specific configuration files under the `Installation_Files` tree. The current repository layout uses the `klippy_extras_Extensions/Related Changes/Custom_Klipper+Mainsail_Files/` location for those files. Examples:
+When you choose a board during the interactive prompt, the installer looks for matching board-specific configuration files under the `Installation_Files` tree. The current repository layout uses the `3-Custom_Klipper+Mainsail_Files/` location for those files. Examples:
 
 - BTT SKR CR6 V1.0:
-  `Installation_Files/klippy_extras_Extensions/Related Changes/Custom_Klipper+Mainsail_Files/BTT SKR CR6 Only/`
+  `Installation_Files/3-Custom_Klipper+Mainsail_Files/BTT SKR CR6 Only/`
 - Creality 4.5.2 motherboard files:
-  `Installation_Files/klippy_extras_Extensions/Related Changes/Custom_Klipper+Mainsail_Files/Creality CR6 Mobo/4.5.2 MB/`
+  `Installation_Files/3-Custom_Klipper+Mainsail_Files/Creality CR6 Mobo/4.5.2 MB/`
 - Creality 4.5.3 / ERA 1.1.0.3 motherboard files:
-  `Installation_Files/klippy_extras_Extensions/Related Changes/Custom_Klipper+Mainsail_Files/Creality CR6 Mobo/ERA 1.1.0.3 or 4.5.3 MB/`
+  `Installation_Files/3-Custom_Klipper+Mainsail_Files/Creality CR6 Mobo/ERA 1.1.0.3 or 4.5.3 MB/`
 
 If the branch you request to clone does not contain the selected board directory, the installer will abort to avoid applying partial or missing board configurations.
 
@@ -212,6 +212,6 @@ python3 -c "import importlib, sys; sys.path.insert(0, '$HOME/klipper'); import k
 
 **9) Notes for maintainers**
 - The installer currently sparse-clones the upstream repo; the default branch is used unless `DGUS_BRANCH` is supplied.
-- Keep `INSTALL_SCRIPT_PROPOSAL.md` and `ManualInstallation.md` in sync with this scripted guide; the scripted guide is the concise, runnable form for field use.
+- Keep `Scripted Installation Specification + Proposal.md` and `Installation_Files/1-Installation_Help_Docs/1-Installation_Manual.md` in sync with this scripted guide; the scripted guide is the concise, runnable form for field use.
 
 ---

@@ -34,8 +34,8 @@ DGUS-Reloaded requires. Running `make menuconfig` on a plain Klipper installatio
 will **not** show the DGUS T5UID1 options, and the resulting `klipper.bin` will not
 support your stock CR6 display.
 
-Before you can compile a compatible firmware binary, the **`dgus_upstream` MCU patch
-package must be applied** to your Klipper source tree. This adds the T5UID1 source
+Before you can compile a compatible firmware binary, the **`5-make_menuconfig_Extensions` patch
+set must be applied** to your Klipper source tree. This adds the T5UID1 source
 files and patches the Kconfig and Makefile so the options appear in `make menuconfig`.
 
 ### Not Sure Whether Patches Are Applied?
@@ -118,9 +118,9 @@ not show `Enable DGUS T5UID1 screen`.
 
 ---
 
-## Step 1: Apply the dgus_upstream Patches (if not already present)
+## Step 1: Apply the T5UID1 menuconfig extension patches (if not already present)
 
-You need to copy three folders of MCU source files into your Klipper source tree and
+You need to copy two T5UID1 source directories into your Klipper source tree and
 patch two build-system files.
 
 ### Preferred path: use the patch manager script first
@@ -141,7 +141,7 @@ substeps below and continue to Step 2.
 Download the latest DGUS-Reloaded release from:
 [https://github.com/Thinkersbluff/DGUS-Reloaded_for_CR6-Klipper_Component/releases](https://github.com/Thinkersbluff/DGUS-Reloaded_for_CR6-Klipper_Component/releases)
 
-Extract the zip on your PC, then use SFTP to copy the `dgus_upstream/src/` folder
+Extract the zip on your PC, then use SFTP to copy the `Installation_Files/5-make_menuconfig_Extensions/klipper/src/` folder
 to a temporary location on the Pi, e.g. `~/dgus_patch/src/`.
 
 Alternatively, use `git sparse-checkout` to pull only the source files directly
@@ -153,15 +153,15 @@ git clone --no-checkout --filter=blob:none \
   /tmp/dgus_install
 cd /tmp/dgus_install
 git sparse-checkout init --cone
-git sparse-checkout set dgus_upstream/src
+git sparse-checkout set Installation_Files/5-make_menuconfig_Extensions/klipper/src
 git checkout
 ```
 
 ### 1b. Copy the MCU source files
 
 ```bash
-cp -r /tmp/dgus_install/dgus_upstream/src/stm32/t5uid1  ~/klipper/src/stm32/t5uid1
-cp -r /tmp/dgus_install/dgus_upstream/src/generic/t5uid1 ~/klipper/src/generic/t5uid1
+cp -r /tmp/dgus_install/Installation_Files/5-make_menuconfig_Extensions/klipper/src/stm32/t5uid1  ~/klipper/src/stm32/t5uid1
+cp -r /tmp/dgus_install/Installation_Files/5-make_menuconfig_Extensions/klipper/src/generic/t5uid1 ~/klipper/src/generic/t5uid1
 ```
 
 ### 1c. Patch `src/stm32/Kconfig`

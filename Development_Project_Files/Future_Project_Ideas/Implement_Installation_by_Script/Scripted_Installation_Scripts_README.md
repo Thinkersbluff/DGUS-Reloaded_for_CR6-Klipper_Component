@@ -43,8 +43,8 @@ Purpose
 
 Usage
 ```bash
-cd ~/klipper
-./scripts/dgus-reloaded/install_dgus_minimal.sh [--dry-run|-n] [--keep-temp] [--clean]
+cd ~/printer_data/config/scripts
+./install_dgus_minimal.sh [--dry-run|-n] [--keep-temp] [--clean]
 ```
 
 Key options

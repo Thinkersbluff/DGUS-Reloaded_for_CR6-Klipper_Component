@@ -55,7 +55,7 @@ The user copy-pastes one command to run `install_dgus.sh`. Only after it reports
 The **current repo's README** explicitly states that `make menuconfig` is **not
 supported** with the fork — pre-built `.bin` files are provided instead. However,
 that restriction exists because the forked MCU code was never integrated into
-upstream. The entire *purpose* of the `dgus_upstream` patch package is to fix that.
+upstream. The entire *purpose* of the `5-make_menuconfig_Extensions` patch set is to fix that.
 After `install_dgus.sh` applies the patches to upstream, `make menuconfig` **will**
 work again. `build_firmware.sh` is therefore legitimate — but the README needs
 updating to clarify this.
@@ -88,8 +88,8 @@ git clone --no-checkout --filter=blob:none \
 cd /tmp/dgus_install
 git sparse-checkout init --cone
 git sparse-checkout set \
-  KlipperFiles_ReferenceOnly/klippy/extras/t5uid1 \
-  dgus_upstream/src
+  Installation_Files/2-DGUS-Reloaded_Add-on/t5uid1 \
+  Installation_Files/5-make_menuconfig_Extensions/klipper/src
 git checkout
 ```
 
@@ -100,8 +100,8 @@ git checkout
 ### Step 2 — Copy `t5uid1/` host extras
 
 ```bash
-cp -r KlipperFiles_ReferenceOnly/klippy/extras/t5uid1 \
-      ~/klipper/klippy/extras/t5uid1
+cp -r /tmp/dgus_install/Installation_Files/2-DGUS-Reloaded_Add-on/t5uid1 \
+  ~/klipper/klippy/extras/t5uid1
 ```
 
 Then apply the `variables.cfg` path fix in `t5uid1.py` using `sed`, so it works
@@ -117,8 +117,8 @@ sed -i \
 ### Step 3 — Copy MCU source trees
 
 ```bash
-cp -r dgus_upstream/src/stm32/t5uid1   ~/klipper/src/stm32/t5uid1
-cp -r dgus_upstream/src/generic/t5uid1  ~/klipper/src/generic/t5uid1
+cp -r /tmp/dgus_install/Installation_Files/5-make_menuconfig_Extensions/klipper/src/stm32/t5uid1   ~/klipper/src/stm32/t5uid1
+cp -r /tmp/dgus_install/Installation_Files/5-make_menuconfig_Extensions/klipper/src/generic/t5uid1  ~/klipper/src/generic/t5uid1
 ```
 
 ### Step 4 — Patch `src/stm32/Kconfig`
@@ -265,7 +265,7 @@ In the menuconfig screen, set the following options:
   Enable extra low-level config options  →  [*] (press Space to select)
   GPIO pins to set at micro-ctrl startup →  !PA14
   Enable DGUS T5UID1 screen             →  [*] (press Space to select)
-  Screen serial interface                →  USART1 (on PA10/PA9)
+  Screen serial interface                →  USART2 (on PA3/PA2)
 
 Save and exit (press Q, then Y to confirm).
 ```
@@ -358,9 +358,9 @@ difference between Mainsail and Fluidd.
 
 | Board selection | Source folder (relative to repo root) |
 |---|---|
-| Creality 4.5.3 or ERA 1.1.0.3 | `Development_Project/Related Changes/Creality CR6 Mobo/Custom Klipper host files/For ERA 1.1.0.3 and 4.5.3 MB/` |
-| Creality 4.5.2 | `Development_Project/Related Changes/Creality CR6 Mobo/Custom Klipper host files/For 4.5.2 MB/` |
-| BTT SKR CR6 V1.0 | `Development_Project/Related Changes/BTT SKR CR6 Only/Custom Klipper host files/` |
+| Creality 4.5.3 or ERA 1.1.0.3 | `Installation_Files/3-Custom_Klipper+Mainsail_Files/Creality CR6 Mobo/ERA 1.1.0.3 or 4.5.3 MB/` |
+| Creality 4.5.2 | `Installation_Files/3-Custom_Klipper+Mainsail_Files/Creality CR6 Mobo/4.5.2 MB/` |
+| BTT SKR CR6 V1.0 | `Installation_Files/3-Custom_Klipper+Mainsail_Files/BTT SKR CR6 Only/` |
 
 ### Files copied in all cases
 
@@ -413,7 +413,7 @@ Which web interface are you using?
 
 ```bash
 # Example for Creality ERA/4.5.3 selection:
-SRC_DIR="$REPO_DIR/Development_Project/Related Changes/Creality CR6 Mobo/Custom Klipper host files/For ERA 1.1.0.3 and 4.5.3 MB"
+SRC_DIR="$REPO_DIR/Installation_Files/3-Custom_Klipper+Mainsail_Files/Creality CR6 Mobo/ERA 1.1.0.3 or 4.5.3 MB"
 DEST_DIR="$HOME/printer_data/config"
 t5uid1/
 for f in CR6.cfg Dev_Macros.cfg DGUS-Reloaded.cfg DGUS_Menu_Macros.cfg \
