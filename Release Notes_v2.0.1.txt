@@ -1,6 +1,6 @@
 Last Updated:  4 May 26
 Release 2.0.1
- - Verified Compatible with Klipper3D/klipper [Master] v0.13.0-610-g35ace529
+ - Verified Compatible with Klipper3D/klipper [Master] v0.13.0-641-g2239041d
  - Known to be backwards-compatible with Klipper v0.13.0-572-g88a71c3c SHA:88a71c3ce5383085b18d87d76ac42686ec7fad9f or later.)
 
 WELCOME!
@@ -18,8 +18,13 @@ For the stock touchscreen component, use the matching DWIN_SET release reference
 New/Modified Features at this release:
   - Modified key [extruder] section parameters in printer.cfg for Orbiter/Dragon HF combo. See the embedded comments for the recommended stock extruder/hotend values
   - Tweaked the amount of filament extruded prior to Unloading Filament, from 5mm to 15mm, to better ensure that any blob at the tip gets removed.
+  - Changed mcu restart method from "rpi_usb" to "command" in printer.cfg, to solve a couple of "sudo" errors at Klipper startup.
   - Modified the Pi-Side Scripts and Appendix E to use sudo nano instead of trying to create the files with bash scripts.
     Also simplified the workflow, to only require substituting the MCU Serial ID value into the templates.
+  - Added X_TRAVEL_TEST and Y_TRAVEL_TEST macros, to make it easy to confirm belt tensions are not too loose.
+  - Added more sophisticated macros to take advantage of the TMC UART capabilities of BTT SKR CR6 motherboards.
+  - Extended the documentation for the DGUS_Menu_Macros.cfg and for belt tension calibration procedures.
+  - Updated the klipper.bin files to the current release of Klipper as of 5 May 2026.
 
 Bugs/Issues Resolved at This Release:	
 #91 - Release 2.0.0 shows v1.4.4 on the Info screen??
@@ -47,8 +52,9 @@ RE: KLIPPER COMPATIBILITY [PINNING]
 This release was validated against:
 
 - Klipper repo: `https://github.com/Klipper3d/klipper`
-- Known-compatible commit (full): `373f200ca69adb624675f42e685f61d85d49ba40`
-- Short commit: `373f200c`
+- Known-compatible commit (full): `2239041df6a289acce54c4e88eddfdf76bcba7f0`
+- Short commit: `2239041d`
+
 
 If a future Klipper update renders your system inoperable, you can try rolling the Klipper on your system back by pinning it to this version, as follows:
 
@@ -59,7 +65,7 @@ SSH into your host and run these commands:
 cd ~/klipper
 sudo systemctl stop klipper
 git fetch --all --tags
-git checkout 373f200ca69adb624675f42e685f61d85d49ba40
+git checkout 2239041df6a289acce54c4e88eddfdf76bcba7f0
 git rev-parse --short HEAD
 sudo systemctl start klipper
 sudo systemctl status klipper --no-pager
