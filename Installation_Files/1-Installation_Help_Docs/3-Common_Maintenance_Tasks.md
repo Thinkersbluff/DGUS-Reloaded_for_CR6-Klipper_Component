@@ -1,6 +1,6 @@
 # Common Maintenance Tasks: DGUS-Reloaded for CR6 on Klipper
 
-Last Updated: 9 March 2026
+Last Updated: 5 May 2026
 
 ## Purpose
 

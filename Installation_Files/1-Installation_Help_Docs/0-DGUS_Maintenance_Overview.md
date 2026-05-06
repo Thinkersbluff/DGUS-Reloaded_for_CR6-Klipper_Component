@@ -1,6 +1,6 @@
 # DGUS-Reloaded for CR6: Maintenance Overview
 
-Last Updated: 9 March 2026
+Last Updated: 5 May 2026
 
 ## Purpose
 
@@ -57,7 +57,7 @@ This guide helps you maintain and troubleshoot an existing DGUS-Reloaded install
 ## Document Index
 
 ### Core Guides
-- [1-Manual_Installation.md](1-Manual_Installation.md) — First-time installation
+- [1-Installation_Manual.md](1-Installation_Manual.md) — First-time installation
 - [2-Understanding_Your_System.md](2-Understanding_Your_System.md) — System architecture and concepts
 - [3-Common_Maintenance_Tasks.md](3-Common_Maintenance_Tasks.md) — Task-oriented workflows
 

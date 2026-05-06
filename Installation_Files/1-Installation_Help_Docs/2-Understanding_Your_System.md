@@ -1,6 +1,6 @@
 # Understanding Your DGUS-Reloaded Klipper System
 
-Last Updated: 9 March 2026
+Last Updated: 5 May 2026
 
 ## Purpose
 
