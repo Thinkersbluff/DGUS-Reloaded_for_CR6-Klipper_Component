@@ -205,6 +205,162 @@ bash ~/printer_data/config/scripts/verify_installation.sh
 
 ---
 
+## Task 7: Validate and Adjust Belt Tension Using Travel Tests
+
+### When to use
+- Printer assembled for the first time
+- After manual belt adjustment on X or Y
+- Noticing vibration, noise, or print quality issues
+- Diagnosing potential belt slip or motor load problems
+
+### Why
+
+Travel tests run rapid linear motion cycles to stress the belt and motors. This helps reveal:
+- **Belt tension too loose:** May skip steps, hear grinding/slipping
+- **Belt tension too tight:** Motors work harder, may hear squealing, temperature warnings
+- **Imbalanced tension:** One axis noisier or less smooth than the other
+- **Motor issues:** TMC driver fault flags (BTT boards only)
+
+### Important Limitations
+
+⚠️ **Travel tests reveal symptoms but do NOT directly measure belt tension.** You will still need:
+- A belt tension gauge (recommended: Luthier's gauge or similar)
+- Manual tensioning procedure specific to your CR6 motherboard
+- Multiple test iterations (adjust tension → test → repeat)
+
+### How (Quick Start)
+
+#### Option A: Basic test (all motherboards)
+
+```bash
+# From Mainsail console, or add to [Calibrate Macros] in DGUS_Menu_Macros.cfg:
+X_TRAVEL_TEST
+Y_TRAVEL_TEST
+```
+
+The printer will:
+1. Home all axes
+2. Raise Z slightly for safety
+3. Run 20 rapid cycles on the specified axis (X10 to X230, or Y10 to Y230)
+4. Restore original motion limits
+5. Print results to console
+
+**What to listen for:**
+- Smooth, quiet motion with consistent tone
+- No grinding, clicking, or slipping sounds
+- Motor current draw shown in console should be reasonable
+
+#### Option B: Advanced test with TMC diagnostics (BTT SKR CR6 only)
+
+```bash
+# From Mainsail console, or add to [Calibrate Macros]:
+X_TRAVEL_TEST_WITH_TMC
+Y_TRAVEL_TEST_WITH_TMC
+```
+
+Same motion as above, **plus:**
+1. Captures TMC2209 driver status **before** the test (baseline)
+2. Captures status **after** the test (shows load/stress response)
+3. Prints a result interpretation guide so you know what "OK" looks like
+
+**Key fields to review:**
+- `GSTAT`: Should be `0x00000000` (no driver faults)
+- `DRV_STATUS`: Should have NO error flags (`otpw`, `ot`, `s2ga`, `s2gb`, `ola`, `olb`)
+- `stealth`: Should be `0` (spreadCycle mode active, not stealthChop)
+- `sg_result`: StallGuard load estimate (higher = more headroom, 0 = stall)
+
+### Adding Travel Tests to Your DGUS Menu
+
+To make these tests easily accessible from the display:
+
+1. Open `~/printer_data/config/DGUS_Menu_Macros.cfg` via SFTP
+2. Find the `[Calibrate Macros]` section
+3. Add the macros:
+
+```
+[Calibrate Macros]
+RUN_ABL_COLD
+RUN_ABL_BED_60
+RUN_ABL_BED_80
+RUN_ABL_BED_95
+X_TRAVEL_TEST                    # ← Add these
+Y_TRAVEL_TEST                    # ← Add these
+X_TRAVEL_TEST_WITH_TMC           # ← (BTT boards only)
+Y_TRAVEL_TEST_WITH_TMC           # ← (BTT boards only)
+FIRMWARE_RESTART
+```
+
+4. Restart Klipper or refresh the DGUS display
+5. Tap `[<>]` on the Calibrate screen to see the updated menu
+
+### Interpreting Results
+
+#### Visual / Auditory Clues
+
+| Observation | Likely Cause | Action |
+|---|---|---|
+| Smooth, quiet motion, no grinding | ✅ Belt tension likely OK | Proceed to print |
+| Grinding, clicking, or slipping sounds | Belt too loose | Tighten belt slightly, re-test |
+| Squealing, motor sounds distressed | Belt too tight | Loosen belt slightly, re-test |
+| Vibration visible on print head | Unbalanced tension (X vs Y) | Check both axes, adjust weaker one |
+
+#### Console Output (Basic Test)
+
+Expected output shows:
+- Voltage limits applied before test
+- Test running (20 cycles completed)
+- Limits restored after test
+- No error messages
+
+If you see `ERROR: velocity must be greater than 0.0` or similar, stop and verify macro integrity.
+
+#### Console Output (TMC Test with Interpretation Guide)
+
+After the test, you'll see:
+1. Raw TMC register dumps (pre-test and post-test)
+2. **Result interpretation guide** with pass/warn/fail criteria
+3. Restoration confirmation
+
+**Pass criteria (for BTT boards):**
+- `GSTAT`: `00000000`
+- No `otpw`, `ot`, `s2ga`, `s2gb`, `ola`, `olb` flags in `DRV_STATUS`
+- `stealth`: `0` (spreadCycle running)
+- `sg_result` > 0 (load headroom exists)
+
+### Next Steps: Adjusting Belt Tension
+
+1. **Identify the axis with the problem** (X or Y)
+2. **Adjust the belt tensioner for that axis:**
+   - The CR6-SE has in-frame belt tensioners on both X and Y axes
+   - X-axis: tensioner screws are at the right end of the X-axis gantry
+   - Y-axis: tensioner screws are at the rear of the Y-axis frame
+3. **Adjust incrementally:** Small turns (1/4 turn at a time)
+4. **Re-test:** Run the travel test again after each adjustment
+5. **Iterate:** Repeat until you get a smooth, quiet result
+6. **Confirm with gauge:** Optional but recommended — measure final tension with a belt gauge
+
+### Motherboard-Specific Notes
+
+#### BTT SKR CR6 Board
+- ✅ Full TMC driver diagnostics available via `X_TRAVEL_TEST_WITH_TMC` / `Y_TRAVEL_TEST_WITH_TMC`
+- ✅ Can capture stress response and fault flags in real time
+
+#### Creality 4.5.2 / 4.5.3 / ERA / 1.1.0.3 Boards
+- ⚠️ Standalone TMC drivers (no UART diagnostics)
+- ✅ Basic `X_TRAVEL_TEST` / `Y_TRAVEL_TEST` still available for motion stress testing
+- ❌ No driver fault flags available — rely on visual/auditory feedback
+
+### Troubleshooting Travel Tests
+
+| Issue | Solution |
+|---|---|
+| Macro not found or fails to run | Ensure macro is defined in your `.cfg` files; restart Klipper |
+| "velocity must be greater than 0.0" error | Internal macro bug; verify `.cfg` syntax, or restore from backup |
+| TMC test shows `stealth=1` (wrong mode) | Macro firmware bug; update `.cfg` from latest release |
+| No TMC output despite BTT board | UART connection issue; verify `uart_pin` / `tx_pin` in `printer.cfg` |
+
+---
+
 ## Decision Map (Fast)
 
 | Situation | Run |
@@ -215,7 +371,7 @@ bash ~/printer_data/config/scripts/verify_installation.sh
 | “Update broke system” | Task 4 |
 | “MCU mismatch warning” | Task 5 |
 | “Confirm everything is healthy” | Task 6 |
-
+| "I want to validate or adjust belt tension" | Task 7 |
 ---
 
 ## Related Documents
@@ -225,4 +381,5 @@ bash ~/printer_data/config/scripts/verify_installation.sh
 - [appendix/A-Rebuilding_MCU_Firmware.md](appendix/A-Rebuilding_MCU_Firmware.md)
 - [appendix/B-Backup_Restore_Klipper.md](appendix/B-Backup_Restore_Klipper.md)
 - [appendix/C-Force_Klipper_Version.md](appendix/C-Force_Klipper_Version.md)
+- [appendix/F-Travel_Test_Macros_Reference.md](appendix/F-Travel_Test_Macros_Reference.md)
 - [../scripts/README.md](../scripts/README.md)

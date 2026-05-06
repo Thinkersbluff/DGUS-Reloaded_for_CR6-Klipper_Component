@@ -18,6 +18,8 @@ If you just want to perform a specific task, see [3-Common_Maintenance_Tasks.md]
 - [Why DGUS-Reloaded Requires Patches](#why-dgus-reloaded-requires-patches)
 - [MCU Firmware vs Host Software Versioning](#mcu-firmware-vs-host-software-versioning)
 - [The Role of Configuration Files](#the-role-of-configuration-files)
+- [Custom Macro Menus via DGUS_Menu_Macros.cfg](#custom-macro-menus-via-dgus_menu_macroscfg)
+- [Available System Macros and Utilities](#available-system-macros-and-utilities)
 
 ---
 
@@ -342,6 +344,145 @@ Klippy uses those capabilities to control hardware
 - Editing `Kconfig` or `Makefile` → causes dirty status
 
 **See also:** [Appendix D: Config Files Reference](appendix/D-Config_Files_Reference.md) *(future document)*
+
+---
+
+## Custom Macro Menus via DGUS_Menu_Macros.cfg
+
+### What Is This File?
+
+`DGUS_Menu_Macros.cfg` is a user-editable configuration file that tells DGUS-Reloaded which macros to display in custom menus on the touchscreen.
+
+**Location:** `~/printer_data/config/DGUS_Menu_Macros.cfg`
+
+**Important:** This file should NOT be `[include]`d into `printer.cfg`. DGUS-Reloaded reads it separately.
+
+### How It Works
+
+When you tap the **`[<>]` icon** on a DGUS-Reloaded display screen (e.g., Home, Calibrate, Paused Print):
+
+1. DGUS-Reloaded looks up which section in `DGUS_Menu_Macros.cfg` corresponds to that screen
+2. It displays a menu of macro names listed in that section (max 9 lines per page, unlimited pages)
+3. You tap a macro name to run it
+4. **DGUS-Reloaded performs no sanity checks** — it simply executes what you select
+
+### Example: The `[Calibrate Macros]` Section
+
+From `DGUS_Menu_Macros.cfg`:
+```
+[Calibrate Macros]
+RUN_ABL_COLD
+RUN_ABL_BED_60
+RUN_ABL_BED_80
+RUN_ABL_BED_95
+FIRMWARE_RESTART
+```
+
+When you tap `[<>]` on the Calibrate screen, this list appears. Select one to run it.
+
+### Screen-to-Section Mapping
+
+| Display Screen | Config Section | Accessed From |
+|---|---|---|
+| Home (Screen 001) | `[Home]` | Main menu tap |
+| SetUp (Screen 018) | `[SetUp Macros]` | Setup menu |
+| Calibrate (Screen 009) | `[Calibrate Macros]` | Calibrate menu |
+| Prepare (Screen 006) | `[Prepare Macros]` | Prepare menu |
+| Print (Screen 016) | `[Print Macros]` | Print ready / Print finished |
+| Print Active (Screen 003) | `[Active Print Macros]` | During active print |
+| Print Paused (Screen 007, 011) | `[Paused Print Macros]` | While print is paused |
+
+### How to Customize Your Macros
+
+1. Open `DGUS_Menu_Macros.cfg` in a text editor (via SFTP or SSH)
+2. Find the section that corresponds to the screen where you want to add a macro
+3. Add the macro name on a new line
+4. Save the file
+5. Restart Klipper (or just refresh the DGUS display)
+
+**Example:** To add a belt tension test to the Calibrate menu:
+```
+[Calibrate Macros]
+RUN_ABL_COLD
+RUN_ABL_BED_60
+RUN_ABL_BED_80
+RUN_ABL_BED_95
+X_TRAVEL_TEST_WITH_TMC          # ← New line added
+Y_TRAVEL_TEST_WITH_TMC          # ← New line added
+FIRMWARE_RESTART
+```
+
+### Important: User Responsibility
+
+**⚠️ WARNING:** You are responsible for the consequences of running macros. DGUS-Reloaded does **not** prevent unsafe operations.
+
+**Examples of things that could go wrong:**
+- Running `G28` (home) while the printer is paused mid-print
+- Running `UNLOAD_FILAMENT` with a cold nozzle
+- Running a test macro while another motion is in progress
+
+**Best practice:** Only add macros to sections where they make sense for that context.
+
+### Limitations
+
+- Macro names must be defined in your Klipper config (`printer.cfg` or included files)
+- Display space limits the first 32 characters of a macro name (longer names still work, but are truncated on screen)
+- Menu order follows the order in the config file (edit to reorder)
+
+**See also:** [Appendix F: Travel Test Macros Reference](appendix/F-Travel_Test_Macros_Reference.md)
+
+---
+
+## Available System Macros and Utilities
+
+This section provides a high-level overview of the macros included with DGUS-Reloaded for CR6.
+
+### Calibration & Bed Leveling Macros
+
+| Macro | Purpose | When to Use |
+|---|---|---|
+| `RUN_ABL_COLD` | Auto bed leveling with cold nozzle | Before first print, after any mechanical changes |
+| `RUN_ABL_BED_60` | ABL with bed at 60°C | Before printing PLA (typical) |
+| `RUN_ABL_BED_80` | ABL with bed at 80°C | Before printing PETG |
+| `RUN_ABL_BED_95` | ABL with bed at 95°C | Before printing ABS/ASA/Wood |
+
+**Note:** Saves separate profiles for each temp. Load the appropriate profile in `START_PRINT` based on bed temperature.
+
+### Utility Macros
+
+| Macro | Purpose | When to Use |
+|---|---|---|
+| `LED_ON` | Turn on hotend LED | Visual diagnostics |
+| `LED_OFF` | Turn off hotend LED | — |
+| `LOAD_FILAMENT` | Load filament into nozzle | After unload or cold start |
+| `UNLOAD_FILAMENT` | Retract and unload filament | Filament change, cold storage |
+| `REPORT_FILAMENT_SENSOR_ENABLE_STATUS` | Show runout sensor status | Troubleshooting filament issues |
+| `SAVE_CONFIG` | Save Klipper calibration values | After PID calibration, Z-offset tuning |
+| `FIRMWARE_RESTART` | Restart Klipper host | After config edits, recovering from errors |
+
+**Warnings:**
+- `LOAD_FILAMENT` and `UNLOAD_FILAMENT` require the nozzle to be hot (≥185°C)
+- Don't call these during an active print
+
+### Belt Tension Validation Macros
+
+| Macro | Purpose | Motherboard Support |
+|---|---|---|
+| `X_TRAVEL_TEST` | Rapid X-axis motion to stress belt/motors | All boards |
+| `Y_TRAVEL_TEST` | Rapid Y-axis motion to stress belt/motors | All boards |
+| `X_TRAVEL_TEST_WITH_TMC` | `X_TRAVEL_TEST` + TMC driver diagnostics before/after | BTT SKR CR6 only |
+| `Y_TRAVEL_TEST_WITH_TMC` | `Y_TRAVEL_TEST` + TMC driver diagnostics before/after | BTT SKR CR6 only |
+| `TMC_SNAPSHOT` | Capture current TMC2209 driver status | BTT SKR CR6 only |
+
+**Purpose:** Validate belt tension and detect potential belt slip or motor issues. Runs rapid linear cycles and captures driver diagnostics (if available).
+
+**Limitations:**
+- Cannot directly measure belt tension (that still requires manual tools)
+- Can reveal symptoms: vibration, skipped steps, driver faults
+- Creality motherboards: no TMC diagnostics available
+
+**See also:** [3-Common Maintenance Tasks § Validate and Adjust Belt Tension](3-Common_Maintenance_Tasks.md#task-7-validate-and-adjust-belt-tension-using-travel-tests)  
+**Detailed reference:** [Appendix F: Travel Test Macros Reference](appendix/F-Travel_Test_Macros_Reference.md)
 
 ---
 

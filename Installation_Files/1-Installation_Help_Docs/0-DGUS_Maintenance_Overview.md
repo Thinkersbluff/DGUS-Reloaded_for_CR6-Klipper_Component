@@ -24,6 +24,8 @@ This guide helps you maintain and troubleshoot an existing DGUS-Reloaded install
 | What You're Experiencing | Which Document to Follow |
 |---|---|
 | **"I want to understand why certain maintenance is needed"** | [2-Understanding Your System](2-Understanding_Your_System.md) |
+| **"I want to add macros to my DGUS menu"** | [2-Understanding Your System § Custom Macro Menus](2-Understanding_Your_System.md#custom-macro-menus-via-dgus_menu_macroscfg) |
+| **"I want to validate or adjust my belt tension"** | [3-Common Maintenance Tasks § Validate Belt Tension](3-Common_Maintenance_Tasks.md#task-7-validate-and-adjust-belt-tension-using-travel-tests) |
 | **"Moonraker shows Klipper as 'dirty' and won't update"** | [3-Common Maintenance Tasks § Clearing Dirty State](3-Common_Maintenance_Tasks.md#task-2-clearing-dirty-state-for-updates) |
 | **"Klipper updated and now shows MCU mismatch warning"** | [3-Common Maintenance Tasks § Rebuilding MCU Firmware](3-Common_Maintenance_Tasks.md#task-4-rebuilding-mcu-firmware-after-host-update) |
 | **"Klipper updated and now won't start at all"** | [3-Common Maintenance Tasks § Handling Update Breakage](3-Common_Maintenance_Tasks.md#task-3-handling-update-breakage) |
@@ -46,6 +48,9 @@ This guide helps you maintain and troubleshoot an existing DGUS-Reloaded install
 | Back up Klipper | `bash ~/printer_data/config/scripts/backup_klipper.sh` |
 | Restore Klipper | `bash ~/printer_data/config/scripts/restore_klipper.sh` |
 | Verify installation health | `bash ~/printer_data/config/scripts/verify_installation.sh` |
+| Run X-axis belt tension test | `X_TRAVEL_TEST` (basic) or `X_TRAVEL_TEST_WITH_TMC` (BTT boards) |
+| Run Y-axis belt tension test | `Y_TRAVEL_TEST` (basic) or `Y_TRAVEL_TEST_WITH_TMC` (BTT boards) |
+| Capture TMC driver diagnostics | `TMC_SNAPSHOT` |
 
 ---
 
@@ -61,6 +66,7 @@ This guide helps you maintain and troubleshoot an existing DGUS-Reloaded install
 - [Appendix B: Backup & Restore Klipper](appendix/B-Backup_Restore_Klipper.md)
 - [Appendix C: Force Klipper Version](appendix/C-Force_Klipper_Version.md)
 - [Appendix D: Config Files Reference](appendix/D-Config_Files_Reference.md) *(placeholder)*
+- [Appendix F: Travel Test Macros Reference](appendix/F-Travel_Test_Macros_Reference.md)
 
 ### Technical Reference
 - [scripts/README.md](../scripts/README.md) — Script syntax and usage

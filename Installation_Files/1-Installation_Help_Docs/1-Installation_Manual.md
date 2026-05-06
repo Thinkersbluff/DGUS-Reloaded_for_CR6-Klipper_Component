@@ -447,6 +447,20 @@ Perform these steps in order:
    direction:  
    [https://www.klipper3d.org/Config_checks.html](https://www.klipper3d.org/Config_checks.html)
 
+### Step 10e: (Optional) Explore Available Test Macros
+
+The system includes several test and utility macros to help you validate and maintain your printer. These are particularly useful after initial setup:
+
+- **Travel tests** validate belt tension on X and Y axes by running rapid motion cycles
+  - Available on all motherboards: `X_TRAVEL_TEST` and `Y_TRAVEL_TEST`
+  - With TMC diagnostics (BTT SKR boards only): `X_TRAVEL_TEST_WITH_TMC` and `Y_TRAVEL_TEST_WITH_TMC`
+  - For detailed information: [3-Common Maintenance Tasks § Validate Belt Tension](3-Common_Maintenance_Tasks.md#task-7-validate-and-adjust-belt-tension-using-travel-tests)
+
+- **Calibration and utility macros** are pre-defined for common tasks (ABL at various bed temps, filament load/unload, LED control, etc.)
+
+- You can add any of these macros to your DGUS custom menus via `DGUS_Menu_Macros.cfg`
+  - For guidance: [2-Understanding Your System § Custom Macro Menus](2-Understanding_Your_System.md#custom-macro-menus-via-dgus_menu_macroscfg)
+
 ---
 ## Step 11 (Optional): Configure Your Slicer
 
