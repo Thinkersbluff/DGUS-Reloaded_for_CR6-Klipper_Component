@@ -1236,6 +1236,11 @@ class T5UID1:
         else:
             self._slicer_estimated_print_time = 0
 
+        # Defensive reset: if Klipper pause state is stale from a prior cancelled job,
+        # clear it so print start always enters a non-paused state.
+        if self.pause_resume.is_paused:
+            self.gcode.run_script_from_command("CLEAR_PAUSE")
+
         self._is_printing = True
         self.check_paused()
         if 'print_start' in self._routines:
