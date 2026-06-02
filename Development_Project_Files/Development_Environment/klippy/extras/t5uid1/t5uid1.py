@@ -445,7 +445,7 @@ class T5UID1:
         # Register the serial response with the full expected format so
         # the host and MCU message formats match (new API validates format).
         self.mcu.register_serial_response(self._handle_t5uid1_received,
-                          "t5uid1_received command=%c data=%*s")
+"t5uid1_received command=%c data=%*s"
 
     def _handle_ready(self):
         self.toolhead = self.printer.lookup_object('toolhead')
@@ -665,10 +665,10 @@ class T5UID1:
         while len(self._files) < 5:
             self._files.append(None)
 
-# Sort the files list by modification time, most recent file first
-        self._files = sorted(
+# Sort the files list by modification time, most recent file first 
+        self._files = sorted( 
             [f for f in self._files if f is not None],
-            key=os.path.getmtime,
+            key=lambda x: os.path.getmtime(x),
             reverse=True
             ) + [None] * (5 - len([f for f in self._files if f is not None]))
 
@@ -714,12 +714,11 @@ class T5UID1:
             if file_path is not None and file_path != "None":
                 # Delete the file
                 os.remove(file_path)
-                logging.info("Deleted file: %s", file_path)
-                # Update the _files list
-                self._files[self._scroll_index] = None
-            else:
-                logging.warning("No file to delete at the specified index.")
-        except Exception as e:
+                logging.info(f"Deleted file: {file_path}") 
+                # Update the _files list 
+                self._files[self._scroll_index] = None 
+            else: logging.warning("No file to delete at the specified index.") 
+        except Exception as e: 
             logging.exception("Failed to delete file at index %s: %s", index, str(e))
 
     def check_paused(self):
@@ -1266,6 +1265,11 @@ class T5UID1:
         else:
             self._slicer_estimated_print_time = 0
 
+        # Defensive reset: if Klipper pause state is stale from a prior cancelled job,
+        # clear it so print start always enters a non-paused state.
+        if self.pause_resume.is_paused:
+            self.gcode.run_script_from_command("CLEAR_PAUSE")
+
         self._is_printing = True
         self.check_paused()
         if 'print_start' in self._routines:
@@ -1447,13 +1451,13 @@ class T5UID1:
                         return threshold
 
         except FileNotFoundError:
-            logging.exception("File not found: %s", variables_file)
+            logging.exception(f"File not found: {variables_file}")
         except Exception as e:
-            logging.exception("Error reading %s: %s", variables_file, e)
+            logging.exception(f"Error reading {variables_file}: {e}")
 
         # If the variable isn't found, force the value to 0.1
         if threshold == 0.00:
-            logging.exception("abl_green_threshold value missing or 0.00")
+            logging.exception(f"abl_green_threshold value missing or 0.00")
             threshold = 0.1
         return threshold
 
