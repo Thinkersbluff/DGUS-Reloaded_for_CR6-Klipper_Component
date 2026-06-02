@@ -438,6 +438,12 @@ class T5UID1:
         self._t5uid1_write_cmd = self.mcu.lookup_command(
             "t5uid1_write oid=%c command=%c data=%*s", cq=cmd_queue)
 
+        # NB: c89393c — "mcu: Rework mcu.register_response() to mcu.register_serial_response()" broke this:
+        # self.mcu.register_response(self._handle_t5uid1_received, "t5uid1_received")
+        # ref: https://github.com/Klipper3d/klipper/commit/c89393cdaf1a19c687ba2e28c5f81c8e45d32117
+        # It was not enough to just rename the function to register_serial_response, but also needed to update the registered command format to match the new API's expected format, as follows:
+        # Register the serial response with the full expected format so
+        # the host and MCU message formats match (new API validates format).
         self.mcu.register_serial_response(self._handle_t5uid1_received,
 "t5uid1_received command=%c data=%*s"
 
@@ -545,7 +551,7 @@ class T5UID1:
             self._gui_version = data[0]
             self._os_version = data[1]
             return
-        
+
         handled = False
         for var in self._vars.values():
             if var.address == address and var.type == "input":
@@ -671,24 +677,24 @@ class T5UID1:
     def specific_fpname(self, i, index):
         """Allow for scrolling up and down the Print files list in increments of 1 position"""
         # Manage the value of scroll_index as a variable in a vars_in.cfg script, in response to button-presses
-        try: 
+        try:
             if i + index < len(self._files):
                 if self._files[i + index] is not None:
                     return self._files[i + index].split('/')[-1]
                 else:
                     return None
-            else: raise IndexError("Index out of range") 
+            else: raise IndexError("Index out of range")
         except Exception as e:
             logging.exception("Unhandled exception in specific_fpname: %s, %s, %s", i, index, str(e))
             return None
-        
+
     def specific_mpname(self, visible_start, position_in_list):
         """Retrieve the name of the macro to be displayed at position_in_list"""
         try:
             index = visible_start + position_in_list  # Correctly calculate the index
 
             # Ensure index is within bounds
-            if 0 <= index < len(self._current_macros):  
+            if 0 <= index < len(self._current_macros):
                 result = self._current_macros[index] if self._current_macros[index] is not None else ""
             else:
                 result = ""  # Return an empty string instead of None for out-of-range indices
@@ -703,8 +709,8 @@ class T5UID1:
     def delete_file(self, index):
         '''Delete the file at the specified index in the _files list.'''
         self._scroll_index = index
-        try: # Find the file path in _files based on the index + _scroll_index 
-            file_path = self._files[self._scroll_index] 
+        try: # Find the file path in _files based on the index + _scroll_index
+            file_path = self._files[self._scroll_index]
             if file_path is not None and file_path != "None":
                 # Delete the file
                 os.remove(file_path)
@@ -755,7 +761,7 @@ class T5UID1:
             self._print_pause_time = -1
 
     def get_start_countdown_status(self):
-        """Check whether to start the Splicer-Estimated Print Time Remaining countdown timer""" 
+        """Check whether to start the Splicer-Estimated Print Time Remaining countdown timer"""
         variables_file = '/home/pi/klipper/klippy/extras/t5uid1/dgus_reloaded/variables.cfg'
         start_countdown_timer = None
         try:
@@ -787,24 +793,24 @@ class T5UID1:
         # iff "eventtime"= "current_time"
         else:
             self._print_duration = eventtime - self._print_start_time
- 
+
         start_counting = self.get_start_countdown_status()
         if not start_counting:
             self._print_time_remaining = self._slicer_estimated_print_time
             self._startup_duration = self._print_duration
         else:
-        # If_ slicer_estimated_print_time is too low, revert to using the latest M73 R factor 
+        # If_ slicer_estimated_print_time is too low, revert to using the latest M73 R factor
         # rather than displaying zero or negative times
             if self._print_time_remaining > self._latest_rvalue or self._print_time_remaining <= 0:
                 self._print_time_remaining = self._latest_rvalue
             else:
-            # Since the slicer estimated print time and the M73 R values are in minutes, not seconds, 
-            # compute _print_time_remaining in minutes. 
+            # Since the slicer estimated print time and the M73 R values are in minutes, not seconds,
+            # compute _print_time_remaining in minutes.
             # Add back-in the time spent warming-up before starting the print
                 self._print_time_remaining = (
-                self._slicer_estimated_print_time 
-                - self._print_duration/60 
-                + self._startup_duration/60 
+                self._slicer_estimated_print_time
+                - self._print_duration/60
+                + self._startup_duration/60
                 + 0.6
                 )
         # update() the res dictionary based on the keys and current values declared
@@ -900,7 +906,7 @@ class T5UID1:
             return
 
         self._last_debounced_page_switch[name] = now
-        self.switch_page(name)    
+        self.switch_page(name)
 
     def switch_page(self, name, send=True):
         """Switch to named page. Flag if page name not known.  Remember where we came from, so we can get back."""
@@ -1088,7 +1094,17 @@ class T5UID1:
         # The remaining nine points are stored in the second word (0x3123)
         if self.bed_mesh is None:
             return 0
-        count = len(self.probe.probe_session.results)
+        # Count the number of probe points collected so far in the current ABL session
+        try:
+            count = len(self.probe.probe_session.results)
+        except Exception:
+            return 0
+        
+        FULLY_PROBED_MASK = 0xFFFF01FF  # bits for all 25 probe points
+
+        # Set the variable abl_active to zero ONLY when all 25 probe points have been collected
+        # This prevents the display from switching from the probed_matrix page back to the auto_bed_leveling page before the ABL process is complete.
+
         points_map = [ 0,  1,  2,  3,  4,
                        9,  8,  7,  6,  5,
                       10, 11, 12, 13, 14,
@@ -1103,6 +1119,19 @@ class T5UID1:
                     res |= 1 << (i + 16)
                 else:
                     res |= 1 << (i - 16)
+            # Clear `abl_active` when the displayed matrix is fully populated,
+            # or when we've reached the final probe(s) and the probe/session is no longer active.
+            try:
+                probe_done_mask = (res == FULLY_PROBED_MASK)
+                last_probe_finished = (
+                    count >= 24
+                    and not getattr(self.probe.homing_helper, "multi_probe_pending", False)
+                    and not self.is_busy()
+                )
+                if probe_done_mask or last_probe_finished:
+                    self.set_variable('abl_active', 0)
+            except Exception:
+                pass
         return res
 
     def pid_param(self, heater, param):
@@ -1265,13 +1294,13 @@ class T5UID1:
         if 'print_end' in self._routines:
             self.start_routine('print_end')
 
-    def cmd_M73(self, gcmd): 
-        """Custom M73 function""" 
-        # The message format may be M73 P_ R_ or M73 P_ or M73 R_ 
-        if gcmd.get_int('P', 0): 
-            progress = gcmd.get_int('P', 0) 
-            self._print_progress = min(100, max(0, progress)) 
-        if gcmd.get_int('R', 0): 
+    def cmd_M73(self, gcmd):
+        """Custom M73 function"""
+        # The message format may be M73 P_ R_ or M73 P_ or M73 R_
+        if gcmd.get_int('P', 0):
+            progress = gcmd.get_int('P', 0)
+            self._print_progress = min(100, max(0, progress))
+        if gcmd.get_int('R', 0):
             self._latest_rvalue = gcmd.get_int('R', 0)
         if self._original_M73 is not None:
             self._original_M73(gcmd)
@@ -1305,7 +1334,7 @@ class T5UID1:
             self.play_sound(start, slen, volume)
         except Exception as e:
             raise gcmd.error(str(e))
-   
+
     def get_preset_values(self, parameter_name, default_value=None):
         """Get the material preset value from the [Presets] section of presets.cfg"""
         variables_file = '/home/pi/klipper/klippy/extras/t5uid1/dgus_reloaded/presets.cfg'
@@ -1408,10 +1437,10 @@ class T5UID1:
         return colour
 
     def get_abl_green_threshold(self):
-        """Get the value of abl_green_threshold for get_mesh_point_colour()""" 
+        """Get the value of abl_green_threshold for get_mesh_point_colour()"""
         variables_file = '/home/pi/klipper/klippy/extras/t5uid1/dgus_reloaded/presets.cfg'
         threshold = 0.00
-        try: 
+        try:
             with open(variables_file, 'r', encoding="utf-8") as file:
                 for line in file:
                     if 'abl_green_threshold' in line:
@@ -1516,10 +1545,10 @@ class T5UID1:
     def _load_macro_menus(self):
         '''Read the user-defined macro menus from DGUS_Menu_Macros.cfg into a dictionary'''
         macros_file_path = '/home/pi/printer_data/config/DGUS_Menu_Macros.cfg'
-        
+
         if not os.path.exists(macros_file_path):
             raise self.printer.config_error("Error: DGUS_Menu_Macros.cfg file not found!")
-        
+
         self._macro_cache.clear()
         current_section = None
 
