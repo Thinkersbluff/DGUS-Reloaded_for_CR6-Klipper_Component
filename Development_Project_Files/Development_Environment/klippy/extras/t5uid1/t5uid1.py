@@ -1125,7 +1125,6 @@ class T5UID1:
                 probe_done_mask = (res == FULLY_PROBED_MASK)
                 last_probe_finished = (
                     count >= 24
-                    and not getattr(self.probe.homing_helper, "multi_probe_pending", False)
                     and not self.is_busy()
                 )
                 if probe_done_mask or last_probe_finished:
@@ -1231,7 +1230,17 @@ class T5UID1:
             return True
         # If there is a probe, and if the probe is currently performing multiple probes,
         # return True, else return False
-        return (self.probe is not None and self.probe.homing_helper.multi_probe_pending)
+        if self.probe is None:
+            return False
+        # Klipper <= Apr 2025: multi_probe_pending accessible via probe_session.homing_helper
+        probe_session = getattr(self.probe, 'probe_session', None)
+        if probe_session is not None:
+            homing_helper = getattr(probe_session, 'homing_helper', None)
+            if homing_helper is not None:
+                return getattr(homing_helper, 'multi_probe_pending', False)
+        # Klipper >= May 2026: homing_helper is no longer stored on PrinterProbe;
+        # the gcode mutex check above already covers the probe-busy case.
+        return False
 
     def cmd_DGUS_ABORT_PAGE_SWITCH(self, gcmd):
         """define abort_page_switch as a no-op function"""
