@@ -23,8 +23,12 @@ Improved ABL Session Handling
 Bugs/Issues Resolved at This Release:	
 1. Delete File Button was not working - variable address now reconciled with DWIN_SET.
 2. Total Time Elapsed display may not have been working.  Variable address now reconciled with DWIN_SET.
-3. #94 - If the Filament Sensor is Triggered, subsequent prints may show the Print Paused screen instead of the Print Status screen, while printing.  Patched vars_in.cfg and added a defensive change to the cmd_DGUS_PRINT_START routine in t5uid1.py.  Both changes clear the printer_is_paused state set by M600.
-4. Modified t5uid1.py to make the code sequence in probed_matrix() independent of whether or not homing_helper has a property multi_probe_pending.  (Which was removed by commits c92b1f7 and d92e9a3.)  This repairs the loss of the DGUS_Reloaded Home function, when upgrading to Klipper v0.13.0-689-g2fb3d54e.
+3. #96 - Updating Klipper to v0.13.0-689-g2fb3d54e breaks "Homing".  
+   Modified t5uid1.py to make the code sequence in probed_matrix() independent of whether or not homing_helper has a property multi_probe_pending.  (Which was removed by commits c92b1f7 and d92e9a3.)  This repairs the loss of the DGUS_Reloaded Home function, when upgrading to Klipper v0.13.0-689-g2fb3d54e.
+4. #94 - If the Filament Sensor is Triggered, subsequent prints may show the Print Paused screen instead of the Print Status screen, while printing.  
+    Patched vars_in.cfg and added a defensive change to the cmd_DGUS_PRINT_START routine in t5uid1.py.  Both changes clear the printer_is_paused state set by M600.
+5. #95 - Automatic Bed Leveling mesh screen displays prematurely, while probing.
+   Refactored the logic by which t5uid1 recognizes completion of the final probe.
 
 Known Issues at this Release: 
 - No changes since v1.3.6:
