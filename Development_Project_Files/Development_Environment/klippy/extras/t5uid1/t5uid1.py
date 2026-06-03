@@ -151,6 +151,11 @@ class T5UID1:
         self.stepper_enable = self.printer.load_object(config, 'stepper_enable')
         self.bed_mesh = None
         self.probe = None
+        self._probe_output_handler_registered = False
+        self._probe_at_re = re.compile(
+            r'^// probe: at ([-\d.]+),([-\d.]+) bed will contact at z=([-\d.]+)$'
+        )
+        self._probe_samples = {}
 
         self.extruders = {}
 
@@ -438,7 +443,7 @@ class T5UID1:
         self._t5uid1_write_cmd = self.mcu.lookup_command(
             "t5uid1_write oid=%c command=%c data=%*s", cq=cmd_queue)
 
-        # NB: c89393c — "mcu: Rework mcu.register_response() to mcu.register_serial_response()" broke this:
+        # NB: c89393c - "mcu: Rework mcu.register_response() to mcu.register_serial_response()" broke this:
         # self.mcu.register_response(self._handle_t5uid1_received, "t5uid1_received")
         # ref: https://github.com/Klipper3d/klipper/commit/c89393cdaf1a19c687ba2e28c5f81c8e45d32117
         # It was not enough to just rename the function to register_serial_response, but also needed to update the registered command format to match the new API's expected format, as follows:
@@ -483,6 +488,10 @@ class T5UID1:
             if original_M117 != self.cmd_M117:
                 self._original_M117 = original_M117
             self.gcode.register_command('M117', self.cmd_M117)
+
+        if not self._probe_output_handler_registered:
+            self.gcode.register_output_handler(self._on_gcode_output)
+            self._probe_output_handler_registered = True
 
         self._status_data.update({
             'limits': self.limits(),
@@ -1087,6 +1096,20 @@ class T5UID1:
         """Return minimum extrusion temperature"""
         return self.heaters.lookup_heater(heater).min_extrude_temp
 
+    def _on_gcode_output(self, msg):
+        """Intercept gcode output; echo each probe-at z value to the screen 014 message field."""
+        m = self._probe_at_re.match(msg.strip())
+        if m:
+            key = (float(m.group(1)), float(m.group(2)))
+            z = float(m.group(3))
+            samples = self._probe_samples.setdefault(key, [])
+            samples.append(z)
+            if len(samples) > 1:
+                display = "z=%.6f range=%.6f" % (z, max(samples) - min(samples))
+            else:
+                display = "z=%.6f" % z
+            self.set_message(display)
+
     def probed_matrix(self):
         """ Draw a checkmark at each probed point, as the ABL process executes"""
         # In the DWIN_SET app, the total matrix requires two full words to describe the 25 points
@@ -1151,6 +1174,7 @@ class T5UID1:
                 if probe_done_mask or last_probe_finished:
                     self.set_variable('abl_active', 0)
                     self._abl_peak_count = 0  # Reset latch for next ABL session
+                    self._probe_samples = {}  # Clear per-point sample accumulator
             except Exception:
                 pass
         return res
