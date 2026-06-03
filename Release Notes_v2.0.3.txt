@@ -1,5 +1,5 @@
-Last Updated:  2 June 26
-Release 2.0.2
+Last Updated:  3 June 26
+Release 2.0.3
  - Verified Compatible with Klipper3D/klipper [Master] v0.13.0-689-g2fb3d54e
 
 WELCOME!
@@ -15,20 +15,12 @@ I recommend that you:
 For the stock touchscreen component, use the matching DWIN_SET release referenced by this back-end release and follow the same installation sequence.
 
 New/Modified Features at this release:
-Improved ABL Session Handling
-  - Added logic to automatically clear the abl_active flag once the probe matrix is fully populated or the final probe(s) have completed.
-  - This enhancement ensures the display correctly transitions from the probing matrix to the bed‑leveling page only after the ABL process is complete.
-  - Includes exception handling to prevent errors if probe state data is unavailable.
+1. Added an echo of the probe.py responses, as the printer runs ABL or runs PROBE_ACCURACY.  
+   The message field now displays the latest "z=" probe value and the range between the samples taken to that point.  
+   Allows users to monitor the probing process. Any mechanical problem  with the probe assembly itself should evidence a significant deviation from expectations.  In such cases, the probe will continue to take samples until either the range falls within the configured constraint of 0.02mm or the probe exhausts its permitted max number of attempts.
 
 Bugs/Issues Resolved at This Release:	
-1. Delete File Button was not working - variable address now reconciled with DWIN_SET.
-2. Total Time Elapsed display may not have been working.  Variable address now reconciled with DWIN_SET.
-3. #96 - Updating Klipper to v0.13.0-689-g2fb3d54e breaks "Homing".  
-   Modified t5uid1.py to make the code sequence in probed_matrix() independent of whether or not homing_helper has a property multi_probe_pending.  (Which was removed by commits c92b1f7 and d92e9a3.)  This repairs the loss of the DGUS_Reloaded Home function, when upgrading to Klipper v0.13.0-689-g2fb3d54e.
-4. #94 - If the Filament Sensor is Triggered, subsequent prints may show the Print Paused screen instead of the Print Status screen, while printing.  
-    Patched vars_in.cfg and added a defensive change to the cmd_DGUS_PRINT_START routine in t5uid1.py.  Both changes clear the printer_is_paused state set by M600.
-5. #95 - Automatic Bed Leveling mesh screen displays prematurely, while probing.
-   Refactored the logic by which t5uid1 recognizes completion of the final probe.
+1. 
 
 Known Issues at this Release: 
 - No changes since v1.3.6:
