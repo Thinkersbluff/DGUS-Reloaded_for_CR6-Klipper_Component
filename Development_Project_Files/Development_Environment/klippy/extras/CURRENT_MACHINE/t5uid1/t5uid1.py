@@ -438,14 +438,14 @@ class T5UID1:
         self._t5uid1_write_cmd = self.mcu.lookup_command(
             "t5uid1_write oid=%c command=%c data=%*s", cq=cmd_queue)
 
-        # NB: c89393c � "mcu: Rework mcu.register_response() to mcu.register_serial_response()" broke this:
+        # NB: c89393c — "mcu: Rework mcu.register_response() to mcu.register_serial_response()" broke this:
         # self.mcu.register_response(self._handle_t5uid1_received, "t5uid1_received")
         # ref: https://github.com/Klipper3d/klipper/commit/c89393cdaf1a19c687ba2e28c5f81c8e45d32117
         # It was not enough to just rename the function to register_serial_response, but also needed to update the registered command format to match the new API's expected format, as follows:
         # Register the serial response with the full expected format so
         # the host and MCU message formats match (new API validates format).
         self.mcu.register_serial_response(self._handle_t5uid1_received,
-"t5uid1_received command=%c data=%*s"
+                          "t5uid1_received command=%c data=%*s")
 
     def _handle_ready(self):
         self.toolhead = self.printer.lookup_object('toolhead')
@@ -665,10 +665,10 @@ class T5UID1:
         while len(self._files) < 5:
             self._files.append(None)
 
-# Sort the files list by modification time, most recent file first 
-        self._files = sorted( 
+# Sort the files list by modification time, most recent file first
+        self._files = sorted(
             [f for f in self._files if f is not None],
-            key=lambda x: os.path.getmtime(x),
+            key=os.path.getmtime,
             reverse=True
             ) + [None] * (5 - len([f for f in self._files if f is not None]))
 
@@ -714,11 +714,12 @@ class T5UID1:
             if file_path is not None and file_path != "None":
                 # Delete the file
                 os.remove(file_path)
-                logging.info(f"Deleted file: {file_path}") 
-                # Update the _files list 
-                self._files[self._scroll_index] = None 
-            else: logging.warning("No file to delete at the specified index.") 
-        except Exception as e: 
+                logging.info("Deleted file: %s", file_path)
+                # Update the _files list
+                self._files[self._scroll_index] = None
+            else:
+                logging.warning("No file to delete at the specified index.")
+        except Exception as e:
             logging.exception("Failed to delete file at index %s: %s", index, str(e))
 
     def check_paused(self):
@@ -1482,13 +1483,13 @@ class T5UID1:
                         return threshold
 
         except FileNotFoundError:
-            logging.exception(f"File not found: {variables_file}")
+            logging.exception("File not found: %s", variables_file)
         except Exception as e:
-            logging.exception(f"Error reading {variables_file}: {e}")
+            logging.exception("Error reading %s: %s", variables_file, e)
 
         # If the variable isn't found, force the value to 0.1
         if threshold == 0.00:
-            logging.exception(f"abl_green_threshold value missing or 0.00")
+            logging.exception("abl_green_threshold value missing or 0.00")
             threshold = 0.1
         return threshold
 

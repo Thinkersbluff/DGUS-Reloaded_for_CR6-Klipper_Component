@@ -445,7 +445,7 @@ class T5UID1:
         # Register the serial response with the full expected format so
         # the host and MCU message formats match (new API validates format).
         self.mcu.register_serial_response(self._handle_t5uid1_received,
-                          "t5uid1_received command=%c data=%*s")
+"t5uid1_received command=%c data=%*s"
 
     def _handle_ready(self):
         self.toolhead = self.printer.lookup_object('toolhead')
@@ -665,10 +665,10 @@ class T5UID1:
         while len(self._files) < 5:
             self._files.append(None)
 
-# Sort the files list by modification time, most recent file first
-        self._files = sorted(
+# Sort the files list by modification time, most recent file first 
+        self._files = sorted( 
             [f for f in self._files if f is not None],
-            key=os.path.getmtime,
+            key=lambda x: os.path.getmtime(x),
             reverse=True
             ) + [None] * (5 - len([f for f in self._files if f is not None]))
 
@@ -714,12 +714,11 @@ class T5UID1:
             if file_path is not None and file_path != "None":
                 # Delete the file
                 os.remove(file_path)
-                logging.info("Deleted file: %s", file_path)
-                # Update the _files list
-                self._files[self._scroll_index] = None
-            else:
-                logging.warning("No file to delete at the specified index.")
-        except Exception as e:
+                logging.info(f"Deleted file: {file_path}") 
+                # Update the _files list 
+                self._files[self._scroll_index] = None 
+            else: logging.warning("No file to delete at the specified index.") 
+        except Exception as e: 
             logging.exception("Failed to delete file at index %s: %s", index, str(e))
 
     def check_paused(self):
@@ -1099,8 +1098,29 @@ class T5UID1:
         try:
             count = len(self.probe.probe_session.results)
         except Exception:
+            count = 0
+        # Klipper calls pull_probed_results() immediately after the last probe, clearing
+        # probe_session.results before our 2-second update timer can observe count=25.
+        # Latch the highest count seen so the grid stays fully populated and abl_active
+        # is cleared even after count has already dropped back to zero.
+        peak = getattr(self, '_abl_peak_count', 0)
+        if count > peak:
+            self._abl_peak_count = count
+            peak = count
+        # The Klipper reactor is single-threaded: pull_probed_results() and
+        # end_probe_session() are called immediately after the 25th probe lands,
+        # with no reactor yield in between, so the display timer can never observe
+        # count=25. Instead detect session end via hw_probe_session=None.
+        if peak > 0 and count == 0:
+            hw_session = getattr(
+                self.probe.probe_session, 'hw_probe_session', 'UNKNOWN')
+            if hw_session is None:
+                # Session ended normally; all probes complete and results consumed.
+                self._abl_peak_count = 25
+                peak = 25
+        if peak == 0:
             return 0
-        
+
         FULLY_PROBED_MASK = 0xFFFF01FF  # bits for all 25 probe points
 
         # Set the variable abl_active to zero ONLY when all 25 probe points have been collected
@@ -1115,7 +1135,7 @@ class T5UID1:
         # This process re-draws the probed_matrix map,
         # based on how many points have been probed so far
         for i in range(25):
-            if count > points_map[i]:
+            if peak > points_map[i]:
                 if i < 16:
                     res |= 1 << (i + 16)
                 else:
@@ -1125,12 +1145,12 @@ class T5UID1:
             try:
                 probe_done_mask = (res == FULLY_PROBED_MASK)
                 last_probe_finished = (
-                    count >= 24
-                    and not getattr(self.probe.homing_helper, "multi_probe_pending", False)
+                    peak >= 25
                     and not self.is_busy()
                 )
                 if probe_done_mask or last_probe_finished:
                     self.set_variable('abl_active', 0)
+                    self._abl_peak_count = 0  # Reset latch for next ABL session
             except Exception:
                 pass
         return res
@@ -1232,7 +1252,17 @@ class T5UID1:
             return True
         # If there is a probe, and if the probe is currently performing multiple probes,
         # return True, else return False
-        return (self.probe is not None and self.probe.homing_helper.multi_probe_pending)
+        if self.probe is None:
+            return False
+        # Klipper <= Apr 2025: multi_probe_pending accessible via probe_session.homing_helper
+        probe_session = getattr(self.probe, 'probe_session', None)
+        if probe_session is not None:
+            homing_helper = getattr(probe_session, 'homing_helper', None)
+            if homing_helper is not None:
+                return getattr(homing_helper, 'multi_probe_pending', False)
+        # Klipper >= May 2026: homing_helper is no longer stored on PrinterProbe;
+        # the gcode mutex check above already covers the probe-busy case.
+        return False
 
     def cmd_DGUS_ABORT_PAGE_SWITCH(self, gcmd):
         """define abort_page_switch as a no-op function"""
@@ -1265,6 +1295,11 @@ class T5UID1:
             self._slicer_estimated_print_time = self._latest_rvalue
         else:
             self._slicer_estimated_print_time = 0
+
+        # Defensive reset: if Klipper pause state is stale from a prior cancelled job,
+        # clear it so print start always enters a non-paused state.
+        if self.pause_resume.is_paused:
+            self.gcode.run_script_from_command("CLEAR_PAUSE")
 
         self._is_printing = True
         self.check_paused()
@@ -1447,13 +1482,13 @@ class T5UID1:
                         return threshold
 
         except FileNotFoundError:
-            logging.exception("File not found: %s", variables_file)
+            logging.exception(f"File not found: {variables_file}")
         except Exception as e:
-            logging.exception("Error reading %s: %s", variables_file, e)
+            logging.exception(f"Error reading {variables_file}: {e}")
 
         # If the variable isn't found, force the value to 0.1
         if threshold == 0.00:
-            logging.exception("abl_green_threshold value missing or 0.00")
+            logging.exception(f"abl_green_threshold value missing or 0.00")
             threshold = 0.1
         return threshold
 
