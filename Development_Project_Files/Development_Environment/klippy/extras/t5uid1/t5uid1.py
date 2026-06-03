@@ -1098,8 +1098,29 @@ class T5UID1:
         try:
             count = len(self.probe.probe_session.results)
         except Exception:
+            count = 0
+        # Klipper calls pull_probed_results() immediately after the last probe, clearing
+        # probe_session.results before our 2-second update timer can observe count=25.
+        # Latch the highest count seen so the grid stays fully populated and abl_active
+        # is cleared even after count has already dropped back to zero.
+        peak = getattr(self, '_abl_peak_count', 0)
+        if count > peak:
+            self._abl_peak_count = count
+            peak = count
+        # The Klipper reactor is single-threaded: pull_probed_results() and
+        # end_probe_session() are called immediately after the 25th probe lands,
+        # with no reactor yield in between, so the display timer can never observe
+        # count=25. Instead detect session end via hw_probe_session=None.
+        if peak > 0 and count == 0:
+            hw_session = getattr(
+                self.probe.probe_session, 'hw_probe_session', 'UNKNOWN')
+            if hw_session is None:
+                # Session ended normally; all probes complete and results consumed.
+                self._abl_peak_count = 25
+                peak = 25
+        if peak == 0:
             return 0
-        
+
         FULLY_PROBED_MASK = 0xFFFF01FF  # bits for all 25 probe points
 
         # Set the variable abl_active to zero ONLY when all 25 probe points have been collected
@@ -1114,7 +1135,7 @@ class T5UID1:
         # This process re-draws the probed_matrix map,
         # based on how many points have been probed so far
         for i in range(25):
-            if count > points_map[i]:
+            if peak > points_map[i]:
                 if i < 16:
                     res |= 1 << (i + 16)
                 else:
@@ -1124,11 +1145,12 @@ class T5UID1:
             try:
                 probe_done_mask = (res == FULLY_PROBED_MASK)
                 last_probe_finished = (
-                    count >= 24
+                    peak >= 25
                     and not self.is_busy()
                 )
                 if probe_done_mask or last_probe_finished:
                     self.set_variable('abl_active', 0)
+                    self._abl_peak_count = 0  # Reset latch for next ABL session
             except Exception:
                 pass
         return res
