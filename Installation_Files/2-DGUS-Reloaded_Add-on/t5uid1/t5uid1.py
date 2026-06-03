@@ -450,7 +450,7 @@ class T5UID1:
         # Register the serial response with the full expected format so
         # the host and MCU message formats match (new API validates format).
         self.mcu.register_serial_response(self._handle_t5uid1_received,
-"t5uid1_received command=%c data=%*s"
+                          "t5uid1_received command=%c data=%*s")
 
     def _handle_ready(self):
         self.toolhead = self.printer.lookup_object('toolhead')
