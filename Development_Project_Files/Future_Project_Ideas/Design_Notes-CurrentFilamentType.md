@@ -92,7 +92,7 @@ After the two existing checks, add a per-filament-type minimum check:
   {% set msg = "Target %dC too low for filament type (min %dC)" % (printer[ext_name].target|int, type_min|int) %}
   DGUS_SET_MESSAGE MSG={msg}
   RESPOND TYPE=error MSG="{msg}"
-  M300 S880 P500
+  M300 S880 P255
 {% else %}
   ...move commands...
 {% endif %}
