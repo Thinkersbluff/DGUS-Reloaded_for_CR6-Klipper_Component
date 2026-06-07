@@ -354,6 +354,8 @@ class T5UID1:
         self.gcode.register_command(
             'DGUS_PLAY_SOUND', self.cmd_DGUS_PLAY_SOUND)
         self.gcode.register_command(
+            'DGUS_SET_MESSAGE', self.cmd_DGUS_SET_MESSAGE)
+        self.gcode.register_command(
             'DGUS_PRINT_START', self.cmd_DGUS_PRINT_START)
         self.gcode.register_command(
             'DGUS_PRINT_END', self.cmd_DGUS_PRINT_END)
@@ -1291,6 +1293,11 @@ class T5UID1:
     def cmd_DGUS_ABORT_PAGE_SWITCH(self, gcmd):
         """define abort_page_switch as a no-op function"""
         pass
+
+    def cmd_DGUS_SET_MESSAGE(self, gcmd):
+        """Write a message string to the DGUS display message field"""
+        msg = gcmd.get('MSG', '')
+        self.set_message(msg)
 
     def cmd_DGUS_PLAY_SOUND(self, gcmd):
         """Play Sound gcode handler"""

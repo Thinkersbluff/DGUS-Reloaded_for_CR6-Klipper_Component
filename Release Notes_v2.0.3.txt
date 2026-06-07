@@ -18,6 +18,13 @@ New/Modified Features at this release:
 1. Added an echo of the probe.py responses, as the printer runs ABL or runs PROBE_ACCURACY.  
    The message field now displays the latest "z=" probe value and the range between the samples taken to that point.  
    Allows users to monitor the probing process. Any mechanical problem  with the probe assembly itself should evidence a significant deviation from expectations.  In such cases, the probe will continue to take samples until either the range falls within the configured constraint of 0.02mm or the probe exhausts its permitted max number of attempts.
+2. Added a new macro function, "DGUS_SET_MESSAGE" in t5uid1.py.  
+   This allows macros to send a message to the printer screen, because RESPOND can not.
+3. Added a new macro function "DGUS_FILAMENT_MOVE" to DGUS-Reloaded.cfg
+   This allows t5uid1.py to invoke the change filament LOAD/UNLOAD functionality via a macro, removing a Jinja2 timing vulnerability from the previous implementation.
+   It also makes it a little easier for users to define/modify the functionality, if they wish.
+   Added new logic to that function, to prevent LOAD or UNLOAD if the current extruder temperature is above the min_extrude temperature when the button is pressed, but is actually dropping because the heater itself has been turned off.  This prevents accidental issues with LOAD/UNLOAD in cases where heaters time out and the user has not noticed.
+   This function also lays the groundwork for a future modification that will implement printer awareness of which filament type is currently installed on the printer.  This would allow implementing different min_extrude temperatures for each filament type, for instance.
 
 Bugs/Issues Resolved at This Release:	
 1. 
