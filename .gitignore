@@ -7,5 +7,7 @@ klippy/.version
 test\*.*
 klippy/extras/t5uid1/Was/*.*
 *.bak
+*.bkp
 Future_Project_Ideas\Implement_Installation_by_Script\*.*
-Development_Project_Files/Development_Docs/Verification/Script_Integrity_Findings_*.txt
+Development_Project_Files\Development_Docs\Verification\Script_Integrity_Findings_*.txt
+Development_Project_Files\Development_Environment\klippy\extras\CURRENT_MACHINE\backup_10June\Custom Files\*.*

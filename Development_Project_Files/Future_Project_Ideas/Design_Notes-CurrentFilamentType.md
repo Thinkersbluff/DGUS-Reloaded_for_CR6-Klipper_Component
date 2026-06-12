@@ -53,19 +53,19 @@ A third per-filament-type check is the next logical step (see below).
 
 ### 1. Per-type minimum extrusion temperature
 
-Add a `min_extrude_temp` preset for each filament type to the `[dgus_reloaded]` presets section in `printer.cfg`, alongside the existing nozzle/bed defaults:
+Add a `min_extrude_temp` preset for each filament type to the `[dgus_reloaded]` presets section in `printer.cfg`, alongside the existing nozzle/bed defaults.  Use the recommended values printed on the manufacturer's label for typical spools of each type:
 
 ```ini
-filament_type_1_min_extrude_temp: 185   # PLA
-filament_type_2_min_extrude_temp: 220   # ABS
-filament_type_3_min_extrude_temp: 210   # PETG
+filament_type_1_min_extrude_temp: 190   # PLA
+filament_type_2_min_extrude_temp: 230   # ABS
+filament_type_3_min_extrude_temp: 220   # PETG
 ```
 
 Add default fallback values to `__init__.py` constants:
 ```python
-'temp_pla':  { 'hotend': 210, 'bed': 60, 'min_extrude': 185 }
-'temp_abs':  { 'hotend': 240, 'bed': 90, 'min_extrude': 220 }
-'temp_petg': { 'hotend': 225, 'bed': 80, 'min_extrude': 210 }
+'temp_pla':  { 'hotend': 210, 'bed': 60, 'min_extrude': 190 }
+'temp_abs':  { 'hotend': 240, 'bed': 90, 'min_extrude': 230 }
+'temp_petg': { 'hotend': 225, 'bed': 80, 'min_extrude': 220 }
 ```
 
 Add corresponding output vars (to display on SetUp screen) and input vars (to allow the user to edit the value) in `vars_out.cfg` / `vars_in.cfg`, following the same pattern as `filament_type_N_default_nozzle_temp`.
