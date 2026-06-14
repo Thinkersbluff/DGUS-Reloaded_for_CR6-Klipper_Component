@@ -22,15 +22,18 @@ controls = {
 constants = {
     'temp_pla': {
         'hotend': 210,
-        'bed': 60
+        'bed': 60,
+        'min_extrude': 190
     },
     'temp_abs': {
         'hotend': 240,
-        'bed': 90
+        'bed': 90,
+        'min_extrude': 230
     },
     'temp_petg': {
         'hotend': 225,
-        'bed': 80
+        'bed': 80,
+        'min_extrude': 220
     },
 
     'popup_confirmed':  1,
