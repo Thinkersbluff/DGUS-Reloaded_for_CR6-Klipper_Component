@@ -1585,7 +1585,7 @@ class T5UID1:
             if in_target_section:
                 match = re.match(rf"^\s*{parameter_name}\s*[:=]\s*([\d\.]+)", line)
                 if match:
-                    updated_lines.append(f"{parameter_name} = {new_value}\n")  # Replace current value with new_value
+                    updated_lines.append(f"{parameter_name}: {new_value}\n")  # Replace current value with new_value
                     continue  # Skip writing the old version of the matched line to the updated_lines[] dictionary
 
             # Keep all other lines unchanged
