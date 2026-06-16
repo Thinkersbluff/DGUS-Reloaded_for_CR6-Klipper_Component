@@ -1,4 +1,4 @@
-Last Updated:  3 June 26
+Last Updated:  15 June 26
 Release 2.0.3
  - Verified Compatible with Klipper3D/klipper [Master] v0.13.0-689-g2fb3d54e
 
@@ -23,11 +23,22 @@ New/Modified Features at this release:
 3. Added a new macro function "DGUS_FILAMENT_MOVE" to DGUS-Reloaded.cfg
    This allows t5uid1.py to invoke the change filament LOAD/UNLOAD functionality via a macro, removing a Jinja2 timing vulnerability from the previous implementation.
    It also makes it a little easier for users to define/modify the functionality, if they wish.
-   Added new logic to that function, to prevent LOAD or UNLOAD if the current extruder temperature is above the min_extrude temperature when the button is pressed, but is actually dropping because the heater itself has been turned off.  This prevents accidental issues with LOAD/UNLOAD in cases where heaters time out and the user has not noticed.
-   This function also lays the groundwork for a future modification that will implement printer awareness of which filament type is currently installed on the printer.  This would allow implementing different min_extrude temperatures for each filament type, for instance.
+4. Modified the printer presets to add "min_extrude_temp" as a new filament property.  User modifiable via SetUp menu. Made persistent through variables.cfg and presets.cfg.
+5. "Currently installed filament" is now selectable on the Settings, Change Filament and Manage Heaters screens.  Signified by the filament type name appearing in black font.  The other two defined types are now shown in medium grey.
+6. Began extending existing functions to now be "filament aware" (assuming that the user has correctly highlighted the currently installed filament type.)
+ - Change Filament defaults the nozzle and bed temperatures to those of the currently installed filament.
+ - Load Filament and Unload Filament enforce the min_extrude temperature of the currently installed filament.
+ - Rotation Distance Calibration's Extrude function enforces the min_extrude temperature of the currently installed filament.
+
 
 Bugs/Issues Resolved at This Release:	
-1. 
+1.  #97 Change Filament LOAD/UNLOAD does not consider current Heater Target value
+    - Added new logic to the LOAD and UNLOAD functions, to prevent LOAD or UNLOAD if the current extruder temperature is above the min_extrude temperature of the currently installed filament when the button is pressed, but is actually dropping because the heater itself has been turned off.  This prevents accidental issues with LOAD/UNLOAD in cases where heaters time out and the user has not noticed.
+2. #98 Calibration Extruder Rotation Distance function is not working correctly
+   - Several logic, display and calculation rounding errors collectively were discovered while updating from 2.0.2 to 2.0.3. 
+   - The function has been refactored and some of the display widgets modified.
+   - At release of 2.0.3, the function was confirmed to be working 100%, again.
+   - NOTE: I modified the resolution of the "new measurement" up/down arrows to 0.5mm, as I want the adjustment to be fairly quick to input and I doubt that users can measure the position of a Sharpie mark with any greater resolution than that.
 
 Known Issues at this Release: 
 - No changes since v1.3.6:
