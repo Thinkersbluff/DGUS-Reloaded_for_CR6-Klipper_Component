@@ -1440,64 +1440,97 @@ class T5UID1:
             raise gcmd.error(str(e))
 
     def get_preset_values(self, parameter_name, default_value=None):
-        """Get the material preset value from the [Presets] section of presets.cfg"""
+        """Safely read a preset value from presets.cfg, with graceful fallback."""
         variables_file = '/home/pi/klipper/klippy/extras/t5uid1/dgus_reloaded/presets.cfg'
         parameter_value = default_value
         in_presets_section = False
+
         try:
             with open(variables_file, 'r', encoding="utf-8") as file:
-                for line in file:
-                    line = line.strip()
-                    if line == "[presets]":
+                for raw_line in file:
+                    line = raw_line.strip()
+
+                    # Detect section start/end
+                    if line.lower() == "[presets]":
                         in_presets_section = True
-                    elif line.startswith("[") and line.endswith("]"):
+                        continue
+                    if line.startswith("[") and line.endswith("]"):
                         in_presets_section = False
-                    elif in_presets_section and parameter_name in line:
-                        key, value = line.split(' = ')
+                        continue
+
+                    # Only parse inside [presets]
+                    if in_presets_section and "=" in line:
+                        key, value = [x.strip() for x in line.split("=", 1)]
                         if key == parameter_name:
-                            parameter_value = value.strip().strip("'").strip('"')
-                            return parameter_value
+                            # Strip quotes if present
+                            value = value.strip("'\"")
+                            return value
+
+            # If we reach here, parameter was not found
+            logging.warning("Preset '%s' not found. Using default: %s",
+                            parameter_name, parameter_value)
+
         except FileNotFoundError:
-            logging.exception("File not found: %s", variables_file)
+            logging.warning("presets.cfg not found. Using default for '%s': %s",
+                            parameter_name, parameter_value)
+
         except Exception as e:
-            logging.exception("Error reading %s: %s", variables_file, e)
-        logging.warning("Parameter %s has value: %s", parameter_name, parameter_value)  # Debugging line
+            logging.exception("Error reading presets.cfg: %s", e)
+
         return parameter_value
 
+
     def update_preset_value(self, parameter_name, new_value):
-        """Update the default material settings in presets.cfg"""
+        """Safely update or append a preset value in presets.cfg."""
         variables_file = '/home/pi/klipper/klippy/extras/t5uid1/dgus_reloaded/presets.cfg'
-        lines = []
-        in_presets_section = False
         updated = False
+        in_presets_section = False
 
         try:
+            # Read file
             with open(variables_file, 'r', encoding="utf-8") as file:
                 lines = file.readlines()
 
+            # Rewrite file
             with open(variables_file, 'w', encoding="utf-8") as file:
-                for line in lines:
-                    line_stripped = line.strip()
-                    if line_stripped == "[presets]":
-                        in_presets_section = True
-                    elif line_stripped.startswith("[") and line_stripped.endswith("]"):
-                        in_presets_section = False
+                for raw_line in lines:
+                    line = raw_line.strip()
 
-                    if in_presets_section and parameter_name in line_stripped:
-                        key, value = line_stripped.split(' = ')
+                    # Detect section boundaries
+                    if line.lower() == "[presets]":
+                        in_presets_section = True
+                        file.write(raw_line)
+                        continue
+                    if line.startswith("[") and line.endswith("]"):
+                        # If we leave the section and haven't updated, append now
+                        if in_presets_section and not updated:
+                            file.write(f"{parameter_name} = {new_value}\n")
+                            updated = True
+                        in_presets_section = False
+                        file.write(raw_line)
+                        continue
+
+                    # Update inside [presets]
+                    if in_presets_section and "=" in line:
+                        key, value = [x.strip() for x in line.split("=", 1)]
                         if key == parameter_name:
                             file.write(f"{parameter_name} = {new_value}\n")
                             updated = True
-                        else:
-                            file.write(line)
-                    else:
-                        file.write(line)
+                            continue
 
+                    # Default: write original line
+                    file.write(raw_line)
+
+                # If file ended while still inside [presets] and not updated
                 if in_presets_section and not updated:
-                    # Append the new parameter to the [presets] section if it wasn't updated
                     file.write(f"{parameter_name} = {new_value}\n")
+
+        except FileNotFoundError:
+            logging.error("presets.cfg not found. Cannot update '%s'.", parameter_name)
+
         except Exception as e:
-            logging.exception("Error updating presets: %s", e)
+            logging.exception("Error updating presets.cfg: %s", e)
+
 
     def get_abl_profiles(self, macro_names, profile_names):
         """Get the material preset value from the [Presets] section of presets.cfg"""
