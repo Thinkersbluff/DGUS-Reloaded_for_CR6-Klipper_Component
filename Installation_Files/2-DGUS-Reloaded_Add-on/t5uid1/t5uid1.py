@@ -149,6 +149,9 @@ class T5UID1:
         self.heaters = self.printer.load_object(config, 'heaters')
         self.pause_resume = self.printer.load_object(config, 'pause_resume')
         self.stepper_enable = self.printer.load_object(config, 'stepper_enable')
+        self.virtual_sdcard = self.printer.lookup_object('virtual_sdcard', None)
+        self.print_stats = self.printer.lookup_object('print_stats', None)
+
         self.bed_mesh = None
         self.probe = None
         self._probe_output_handler_registered = False
@@ -316,6 +319,7 @@ class T5UID1:
             'full_update': self.full_update,
             'is_busy': self.is_busy,
             'check_paused': self.check_paused,
+            'get_runout_sensor': self.get_runout_sensor,
             'capture_gcode_files': self.capture_gcode_files,
             'capture_macros_list': self.capture_macros_list,
             'get_preset_values': self.get_preset_values,
@@ -732,43 +736,79 @@ class T5UID1:
         except Exception as e: 
             logging.exception("Failed to delete file at index %s: %s", index, str(e))
 
+    def get_runout_sensor(self):
+        """Return the name of the configured filament sensor, or None."""
+        for name, obj in self.printer.objects.items():
+            # Must be a filament sensor object
+            if not name.startswith("filament_"):
+                continue
+
+            # Must expose filament_detected
+            if not hasattr(obj, "filament_detected"):
+                continue
+
+            # Must expose enabled flag
+            if not hasattr(obj, "enabled"):
+                continue
+
+            return name
+
+        return None
+
     def check_paused(self):
         """Manage the printer if and while paused"""
         # If the printer is not printing a model, exit this process
         if not self._is_printing:
             return
-        # Next two lines are disabled. They prevent processing resume action
-        # if not self.pause_resume.is_paused:
-        #    return
-        # If the printer has resumed printing but the print_paused page is still displayed:
-            # assume the printer has been resumed by a RESUME macro
-            # and restore the displayed page to "print_status"
-        if self._current_page == "print_paused" and not self.pause_resume.is_paused:
-            self.switch_page("print_status")
-            self._current_page = "print_status"
-        # If the printer is paused but the displayed page is still "print_status":
-            # assume the printer has been paused by Klipper (e.g. M600 or PAUSE macros)
-            # and change the display page to "print_paused".
-        if self._current_page == "print_status" and self.pause_resume.is_paused:
+        
+        state = getattr(self.print_stats, "state", None)
+        paused = self.pause_resume.is_paused
+        # If a filament runout sensor is configured, check whether it detects filament, 
+        # and if not then treat the printer as paused for filament runout until the issue is resolved, 
+        # even if the high-level state does not say "paused". (This covers M600 filament change pauses, which do not set the state to "paused".)
+        sensor_name = self.get_runout_sensor()
+        sensor = self.printer.lookup_object(sensor_name, None) if sensor_name else None
+
+        if sensor and getattr(sensor, "enabled", True):
+            try:
+                filament_present = sensor.filament_detected
+            except Exception:
+                filament_present = True
+        else:
+            filament_present = True
+
+
+        # Printer is considered paused if either the high-level state OR the pause flag says paused or if the filament runout sensor is disabled.
+        is_paused = (state == "paused") or paused or (not filament_present)
+
+        if self._current_page == "print_status" and is_paused:
             self.switch_page("print_paused")
             self._current_page = "print_paused"
-        # Keep track of the amount of time spent paused (i.e. "time not printing")
-        # to be able to subtract that from the total at the end of the job, as follows:
-        # Step 1: set the variable curtime to the value of "time now"
+       # Printer is considered printing if both the high-level state AND the pause flag says not paused
+        is_printing = (state == "printing") and not paused and filament_present
+
+        if self._current_page == "print_paused" and is_printing:
+            self.switch_page("print_status")
+            self._current_page = "print_status"
+
+
+    # Keep track of the amount of time spent paused (i.e. "time not printing")
+    # to be able to subtract that from the total at the end of the job, as follows:
+    # Step 1: set the variable curtime to the value of "time now"
         curtime = self.reactor.monotonic()
-        # Step 2: If this is the first iteration of check_paused since the printer was paused,
-        # set the value of self._print_pause_time to "time now"
-        if self._print_pause_time < 0 and self.pause_resume.is_paused:
+    # Step 2: If this is the first iteration of check_paused since the printer was paused,
+    # set the value of self._print_pause_time to "time now"
+        if self._print_pause_time < 0 and paused:
             self._print_pause_time = curtime
         # Step 4: When the printer is resumed add the total amount of time
         # that the printer was paused to the print start time,
         # so that the total time printed (calculated as "end time" - "start time")
         # will not include that time if pause_duration > 0:
-        if self._print_pause_time >= 0 and not self.pause_resume.is_paused:
+        if self._print_pause_time >= 0 and not paused:
             pause_duration = curtime - self._print_pause_time
             self._print_start_time += pause_duration
-            # Now reset the trigger so that if the current print is paused again,
-            # the above process will also  measure the new print paused time.
+        # Now reset the trigger so that if the current print is paused again,
+        # the above process will also  measure the new print paused time.
             self._print_pause_time = -1
 
     def get_start_countdown_status(self):
@@ -1327,10 +1367,12 @@ class T5UID1:
         else:
             self._slicer_estimated_print_time = 0
 
-        # Defensive reset: if Klipper pause state is stale from a prior cancelled job,
-        # clear it so print start always enters a non-paused state.
-        if self.pause_resume.is_paused:
+        # Defensive reset: if Klipper is NOT in a paused state but the pause module
+        # still thinks it is paused, clear the stale pause state.
+        state = getattr(self.print_stats, "state", None)
+        if state != "paused" and self.pause_resume.is_paused:
             self.gcode.run_script_from_command("CLEAR_PAUSE")
+
 
         self._is_printing = True
         self.check_paused()
@@ -1398,64 +1440,97 @@ class T5UID1:
             raise gcmd.error(str(e))
 
     def get_preset_values(self, parameter_name, default_value=None):
-        """Get the material preset value from the [Presets] section of presets.cfg"""
+        """Safely read a preset value from presets.cfg, with graceful fallback."""
         variables_file = '/home/pi/klipper/klippy/extras/t5uid1/dgus_reloaded/presets.cfg'
         parameter_value = default_value
         in_presets_section = False
+
         try:
             with open(variables_file, 'r', encoding="utf-8") as file:
-                for line in file:
-                    line = line.strip()
-                    if line == "[presets]":
+                for raw_line in file:
+                    line = raw_line.strip()
+
+                    # Detect section start/end
+                    if line.lower() == "[presets]":
                         in_presets_section = True
-                    elif line.startswith("[") and line.endswith("]"):
+                        continue
+                    if line.startswith("[") and line.endswith("]"):
                         in_presets_section = False
-                    elif in_presets_section and parameter_name in line:
-                        key, value = line.split(' = ')
+                        continue
+
+                    # Only parse inside [presets]
+                    if in_presets_section and "=" in line:
+                        key, value = [x.strip() for x in line.split("=", 1)]
                         if key == parameter_name:
-                            parameter_value = value.strip().strip("'").strip('"')
-                            return parameter_value
+                            # Strip quotes if present
+                            value = value.strip("'\"")
+                            return value
+
+            # If we reach here, parameter was not found
+            logging.warning("Preset '%s' not found. Using default: %s",
+                            parameter_name, parameter_value)
+
         except FileNotFoundError:
-            logging.exception("File not found: %s", variables_file)
+            logging.warning("presets.cfg not found. Using default for '%s': %s",
+                            parameter_name, parameter_value)
+
         except Exception as e:
-            logging.exception("Error reading %s: %s", variables_file, e)
-        logging.warning("Parameter %s has value: %s", parameter_name, parameter_value)  # Debugging line
+            logging.exception("Error reading presets.cfg: %s", e)
+
         return parameter_value
 
+
     def update_preset_value(self, parameter_name, new_value):
-        """Update the default material settings in presets.cfg"""
+        """Safely update or append a preset value in presets.cfg."""
         variables_file = '/home/pi/klipper/klippy/extras/t5uid1/dgus_reloaded/presets.cfg'
-        lines = []
-        in_presets_section = False
         updated = False
+        in_presets_section = False
 
         try:
+            # Read file
             with open(variables_file, 'r', encoding="utf-8") as file:
                 lines = file.readlines()
 
+            # Rewrite file
             with open(variables_file, 'w', encoding="utf-8") as file:
-                for line in lines:
-                    line_stripped = line.strip()
-                    if line_stripped == "[presets]":
-                        in_presets_section = True
-                    elif line_stripped.startswith("[") and line_stripped.endswith("]"):
-                        in_presets_section = False
+                for raw_line in lines:
+                    line = raw_line.strip()
 
-                    if in_presets_section and parameter_name in line_stripped:
-                        key, value = line_stripped.split(' = ')
+                    # Detect section boundaries
+                    if line.lower() == "[presets]":
+                        in_presets_section = True
+                        file.write(raw_line)
+                        continue
+                    if line.startswith("[") and line.endswith("]"):
+                        # If we leave the section and haven't updated, append now
+                        if in_presets_section and not updated:
+                            file.write(f"{parameter_name} = {new_value}\n")
+                            updated = True
+                        in_presets_section = False
+                        file.write(raw_line)
+                        continue
+
+                    # Update inside [presets]
+                    if in_presets_section and "=" in line:
+                        key, value = [x.strip() for x in line.split("=", 1)]
                         if key == parameter_name:
                             file.write(f"{parameter_name} = {new_value}\n")
                             updated = True
-                        else:
-                            file.write(line)
-                    else:
-                        file.write(line)
+                            continue
 
+                    # Default: write original line
+                    file.write(raw_line)
+
+                # If file ended while still inside [presets] and not updated
                 if in_presets_section and not updated:
-                    # Append the new parameter to the [presets] section if it wasn't updated
                     file.write(f"{parameter_name} = {new_value}\n")
+
+        except FileNotFoundError:
+            logging.error("presets.cfg not found. Cannot update '%s'.", parameter_name)
+
         except Exception as e:
-            logging.exception("Error updating presets: %s", e)
+            logging.exception("Error updating presets.cfg: %s", e)
+
 
     def get_abl_profiles(self, macro_names, profile_names):
         """Get the material preset value from the [Presets] section of presets.cfg"""
