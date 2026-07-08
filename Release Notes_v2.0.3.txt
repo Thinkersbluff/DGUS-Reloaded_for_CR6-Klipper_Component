@@ -63,8 +63,8 @@ RE: KLIPPER COMPATIBILITY [PINNING]
 This release was validated against:
 
 - Klipper repo: `https://github.com/Klipper3d/klipper`
-- Known-compatible commit (full): `2fb3d54e2f8086fb310936c9136dbb05dc753ed5`
-- Short commit: `2fb3d54e`
+- Known-compatible commit (full): `7e64fc84219b7bafd180c4db74db5253af641608`
+- Short commit: `7e64fc84`
 
 
 If a future Klipper update renders your system inoperable, you can try rolling the Klipper on your system back by pinning it to this version, as follows:
@@ -76,7 +76,7 @@ SSH into your host and run these commands:
 cd ~/klipper
 sudo systemctl stop klipper
 git fetch --all --tags
-git checkout 2fb3d54e2f8086fb310936c9136dbb05dc753ed5
+git checkout 7e64fc84219b7bafd180c4db74db5253af641608
 git rev-parse --short HEAD
 sudo systemctl start klipper
 sudo systemctl status klipper --no-pager
