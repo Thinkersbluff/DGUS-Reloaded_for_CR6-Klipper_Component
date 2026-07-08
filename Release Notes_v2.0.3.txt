@@ -50,6 +50,12 @@ Bugs/Issues Resolved at This Release:
 
 
 Known Issues at this Release: 
+- IF you use make menuconfig to build your own klipper.bin file,
+  AND IF you have updated Klipper on your host since you last installed DGUS-Reloaded,
+  AND THEN you receive an error message that includes text like, "t5uid1_ping does not exist" when you restart the firmware,
+  THEN you should install and run the Pi-side script  ~\printer_data\config\scripts\manage_t5uid1_patches.sh - reapply", 
+  THEN rerun make menuconfig.
+
 - No changes since v1.3.6:
   - The displayed slicer-estimated print time remaining value may toggle between two values, if the print is performed faster than the slicer anticipated (e.g. if the feed rate is increased to a value greater than 100%)
   - The filelist, scroll and delete file scripts expect your gcode files to be stored in the default Klipper Virtual SD card directory:  ~/printer_data/gcodes. If your gcodes are stored in a different directory, they may not work for you
