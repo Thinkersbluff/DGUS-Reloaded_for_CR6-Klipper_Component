@@ -1,6 +1,6 @@
-Last Updated:  15 June 26
+Last Updated:  7 July 26
 Release 2.0.3
- - Verified Compatible with Klipper3D/klipper [Master] v0.13.0-689-g2fb3d54e
+ - Verified Compatible with Klipper3D/klipper [Master] v0.13.0-701-g7e64fc84
 
 WELCOME!
 
@@ -39,6 +39,15 @@ Bugs/Issues Resolved at This Release:
    - The function has been refactored and some of the display widgets modified.
    - At release of 2.0.3, the function was confirmed to be working 100%, again.
    - NOTE: I modified the resolution of the "new measurement" up/down arrows to 0.5mm, as I want the adjustment to be fairly quick to input and I doubt that users can measure the position of a Sharpie mark with any greater resolution than that.
+3. #100 The Change FIlament "Homing..." WAIT screen is not persisting until the function is complete
+   The original code relied upon is_busy() to be true until all buffered moves were completed, then to be False.
+   The Klipper3D team removed that functionality from Klipper, causing several DGUS-Reloaded WAIT screen changes to occur prematurely.
+   Release 2.0.3 refactors the logic behind multiple impacted functions, to restore the intended UI behaviour.
+4 #101 Release 2.0.2 is incomplete - the Pull Request intended to push those changes was never merged.
+   Very surprised and disappointed to discover that the Pull Request for release 2.0.2 was never actually merged with the repository.
+   As a result, 2.0.2 behaves like 2.0.1, but is matched with the wrong DWIN_SET.  Issue #93 threw the error "Unknown command :t5uid1_ping", still.
+   Release 2.0.3 is built on top of the intended release 2.0.2 baseline, so this release should bring you fully up to date.
+
 
 Known Issues at this Release: 
 - No changes since v1.3.6:
