@@ -369,6 +369,14 @@ Save the file.
 
 ---
 
+** NB:  If you have a Creality motherboard, you must also specify the serial interface baud rate in the `[mcu]` section: 
+
+[mcu]
+serial: /dev/serial/by-id/usb-1a86_USB_Serial-if00-port0
+baud: 115200   # <--- value MUST MATCH make menuconfig (115200)
+restart_method: command
+
+
 ## Step 9: Restart Klipper and Verify
 
 ### 9a. Restart Klipper
