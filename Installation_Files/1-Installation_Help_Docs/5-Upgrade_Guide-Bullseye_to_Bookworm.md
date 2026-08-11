@@ -27,9 +27,22 @@ This upgrade is mandatory if you want:
  * DGUS‑Reloaded is fully compatible with Python 3.11.  
    No code changes are required.
 
- * The Pi‑side scripts are all Bash scripts and will continue to work.
-
  * All DGUS‑Reloaded Python modules have been audited for Python 3.11 compatibility and confirmed safe.
+
+ * The Pi‑side scripts are all Bash scripts and will continue to work.
+  
+ * Pi-side scripts **MUST** contain Linux carriage returns (CR) and NOT Windows carriage return/line feed (CRLF).  
+   If you receive an error like this when running any of the scripts, it likely means that your script lines end with `CRLF` instead of `CR`:
+```
+... ‘bash\r’: No such file or directory
+```
+
+  To fix all scripts at once:
+   Run:
+
+``` bash
+    sed -i 's/\r$//' ~/printer_data/config/scripts/*.sh
+```
 
 ## 🧱 What Will Be Preserved
 You will keep:
