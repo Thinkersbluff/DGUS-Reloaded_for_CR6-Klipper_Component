@@ -1,4 +1,4 @@
-Last Updated: 9 March 2026
+Last Updated: 12 August 2026
 
 
 # DGUS-reloaded-Klipper, CR6Community Edition!
@@ -14,6 +14,7 @@ Lets you use your stock Creality CR6 display with Klipper firmware, restoring to
 | **Motherboards** | Creality 4.5.2, 4.5.3, ERA 1.1.0.3, BTT SKR CR6 V1.0 |
 | **Klipper Host** | Raspberry Pi 3B+ or newer (or equivalent) |
 | **OS** | Debian-based Linux (MainsailOS, FluiddPi, etc.) |
+| **Mainsail** | Known to work with MainsailOS 1.2.x (Bullseye). Some Pi-Side scripts may require repair to work with MainsailOS 1.3.x+ (Bookworm) |
 ---
 ## How Does It Work?
 
@@ -45,6 +46,58 @@ You install standard Klipper as usual, then integrate DGUS-Reloaded to enable th
 - Documentation includes guidance on rebuilding firmware when needed
 
 See [Maintenance Documentation](Installation_Files/1-Installation_Help_Docs/README.md) for details.
+
+
+## Does this work with the latest Mainsail/Moonraker 
+ **TBD**
+ Up until 12 August 2026, I ran this system successfully on Bullseye, unaware of Bookworm.
+ When I tried to install PushOver and activate notifications, I hit a brick wall with Moonraker.
+ Activating PushOver alerts (e.g. when M600 is fired) requires upgrading to BookWorm, which in turn requires reflashing Mainsail and reinstalling DGUS-Reloaded.
+ I am presently reviewing the impacts to this project of upgrading my own development system to Bookworm.
+
+ ### Backgrounder
+
+ ⚠️ DGUS‑Reloaded works on any Klipper/Moonraker system, but Moonraker’s feature set depends on the installed OS.
+
+**MainsailOS 1.2.x (Bullseye)**
+
+ * Python 3.9
+
+ * Older Moonraker build
+
+ ❌ No notifications system
+
+ ❌ No PushOver / Telegram / Discord / Email alerts
+
+ ❌ No install-moonraker-notifications.sh script
+
+ ✔ DGUS‑Reloaded firmware works normally
+
+ ⚠️ Pi‑side scripts written for Python 3.9 may break when upgrading
+
+**MainsailOS 1.3.x+ (Bookworm)**
+
+ * Python 3.11
+
+ * New Moonraker components
+
+ ✔ Full notifications support
+
+ ✔ PushOver alerts (e.g., when M600 triggers)
+
+ ✔ Webhooks for Apple Shortcuts
+
+ ✔ DGUS‑Reloaded firmware works normally
+
+
+⚠️ CAUTION: Pi‑side scripts may require updates after upgrading to Python 3.11
+
+If you need Moonraker notifications (PushOver, etc.), you must run MainsailOS Bookworm.
+Bullseye cannot load Moonraker’s notifications plugin.
+
+Upgrading from Bullseye → Bookworm requires reflashing the SD card with a fresh MainsailOS Bookworm image.  This is a full OS upgrade; MainsailOS does not support in‑place upgrades between Debian major versions.
+
+After reflashing, restore your /home/pi/printer_data/ folder and reinstall DGUS‑Reloaded.
 
 ---
 
