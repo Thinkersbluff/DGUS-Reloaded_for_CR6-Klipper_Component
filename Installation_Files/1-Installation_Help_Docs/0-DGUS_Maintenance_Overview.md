@@ -10,7 +10,8 @@ This guide helps you maintain and troubleshoot an existing DGUS-Reloaded install
 - For first-time installation instructions → see [1-Installation_Manual.md](1-Installation_Manual.md)
 - To better understand how the installed system works → see [2-Understanding_Your_System.md](2-Understanding_Your_System.md)
 - To understand what common maintenance tasks to perform, when and how → see [3-Common_Maintenance_Tasks.md](3-Common_Maintenance_Tasks.md)
-- For instructions on how to update your existing system to the latest release → see [4-Updating_Existing_Installation.md](4-Updating_Existing_Installation.md)
+- For instructions on how to update your existing DGUS-Reloaded system to the latest release → see [4-Updating_Existing_Installation.md](4-Updating_Existing_Installation.md)
+- For instructions on how to update Mainsail 1.2.x (Bullseye) to Mainsail 1.3.x (Bookworm) → see [5-Upgrade_Guide-Bullseye_to_Bookworm.md](5-Upgrade_Guide-Bullseye_to_Bookworm.md)
 
 1. **Find your scenario** in the table below
 2. **Follow the linked document** for detailed steps
@@ -34,6 +35,7 @@ This guide helps you maintain and troubleshoot an existing DGUS-Reloaded install
 | **"I need detailed MCU firmware rebuild steps"** | [Appendix A: Rebuilding MCU Firmware](appendix/A-Rebuilding_MCU_Firmware.md) |
 | **"I need to restore a previous backup"** | [Appendix B: Backup & Restore](appendix/B-Backup_Restore_Klipper.md) |
 | **"I want script syntax and usage details"** | [scripts/README.md](../scripts/README.md) |
+| **"I need to upgrade from Bullseye to Bookworm (required to implement PushOver/notifications)"** | [5-Upgrade_Guide-Bullseye_to_Bookworm.md](5-Upgrade_Guide-Bullseye_to_Bookworm.md)|
 
 ---
 
