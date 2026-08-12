@@ -49,7 +49,6 @@ This guide helps you maintain and troubleshoot an existing DGUS-Reloaded install
 | Reapply patches (before MCU build) | `bash ~/printer_data/config/scripts/manage_t5uid1_patches.sh reapply` |
 | Back up Klipper | `bash ~/printer_data/config/scripts/backup_klipper.sh` |
 | Restore Klipper | `bash ~/printer_data/config/scripts/restore_klipper.sh` |
-| Verify installation health | `bash ~/printer_data/config/scripts/verify_installation.sh` |
 | Run X-axis belt tension test | `X_TRAVEL_TEST` (basic) or `X_TRAVEL_TEST_WITH_TMC` (BTT boards) |
 | Run Y-axis belt tension test | `Y_TRAVEL_TEST` (basic) or `Y_TRAVEL_TEST_WITH_TMC` (BTT boards) |
 | Capture TMC driver diagnostics | `TMC_SNAPSHOT` |
@@ -90,5 +89,4 @@ If scripts are missing, see [scripts/README.md § Deploying scripts](../scripts/
 
 If you encounter issues not covered in this guide:
 1. Check logs: `~/printer_data/logs/klippy.log`
-2. Verify installation health: `bash ~/printer_data/config/scripts/verify_installation.sh`
-3. Consult the DGUS-Reloaded GitHub Issues page
+2. Consult the DGUS-Reloaded GitHub Issues page

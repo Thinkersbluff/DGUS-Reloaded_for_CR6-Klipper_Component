@@ -198,11 +198,6 @@ git status --porcelain
 Expected:
 - Empty output (clean tracked state)
 
-Optional diagnostic (if script exists in your package):
-```bash
-bash ~/printer_data/config/scripts/verify_installation.sh
-```
-
 ---
 
 ## Task 7: Validate and Adjust Belt Tension Using Travel Tests
