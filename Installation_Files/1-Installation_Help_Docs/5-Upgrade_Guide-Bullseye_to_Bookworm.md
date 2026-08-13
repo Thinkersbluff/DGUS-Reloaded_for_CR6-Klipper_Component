@@ -214,7 +214,7 @@ When the Pi boots from the newly‑flashed SD card, MainsailOS Bookworm performs
 
 Before restoring your backups, complete the following verification steps:
 
-3.1 Verify network connectivity
+#### 3.1 Verify network connectivity
 
 Check that the Pi has a valid IP:
 
@@ -236,7 +236,7 @@ If the Pi did not connect:
    * Re‑enter the local Wi‑Fi SSID and password into Raspberry Pi Imager
    * Ensure Wi‑Fi country is set (e.g., CA for Canada)
 
-3.2 Verify SSH access
+#### 3.2 Verify SSH access
 From your laptop (substitute <new-ip> with the ip of the Bookworm pi before running the command):
 
 ```bash
@@ -251,7 +251,7 @@ If SSH fails:
  * Reflash and reconfigure
  * Try Ethernet temporarily
 
-3.3 Confirm the filesystem expanded correctly
+#### 3.3 Confirm the filesystem expanded correctly
 
 If you are no longer connected via SSH from step 3.2, then reconnect now.
 
@@ -280,42 +280,112 @@ df -h /
 
 
 
-    If the response still shows something quite small, reboot once:
+  If instead the response still shows Size to be quite small compared to the SD card rating, and Use% to be quite high, reboot once:
 
 ```bash
 sudo reboot
 ```
 
-The expansion will complete.
+This time, the expansion should complete.
 
-3.4 Verify that Moonraker is running
+#### 3.4 Verify that Moonraker is running
 On the Pi:
 
 ```bash
 systemctl status moonraker
 ```
-You should see:
+**🛰️ How to Interpret Moonraker Status**
+
+When you run:
+
+```bash
+systemctl status moonraker
+```
+you are checking whether Moonraker is healthy on the new Bookworm system.
+You do not need to understand every line — only the key indicators.
+
+✔ What you want to see
+1. Service is running
 
 ```Code
 Active: active (running)
 ```
+This is the single most important line.
+It means Moonraker started correctly, its Python environment is valid, and Bookworm’s systemd configuration is working.
 
-If not:
+2. The correct Python environment is in use
+
+```Code
+/home/pi/moonraker-env/bin/python -m moonraker
+```
+This confirms Moonraker is running inside its dedicated virtual environment, not the system Python.
+
+3. No errors or warnings appear
+
+If the status output shows only informational lines (Git repo checks, version info, etc.), the service is healthy.
+
+✔ What may look strange but is normal
+1. The “Active since…” timestamp may show an old date
+
+Example:
+
+```Code
+Active: active (running) since Mon 2026-04-20 ...
+```
+This does not mean that Moonraker has been running for months.
+It simply reflects preserved state from your restored printer_data directory.
+It will update after your full restore.
+
+2. Git diagnostic lines are informational
+
+Lines such as:
+
+```Code
+Is Dirty: False
+Commits Behind Count: 0
+Diverged: False
+Pinned Commit: None
+```
+mean the local Moonraker Git repository is clean and up‑to‑date.
+These are not errors.
+
+3. Optional components (e.g., Sonar) may report their own status
+
+Example:
+
+```Code
+Git Repo sonar: Validity check for git repo passed
+```
+This is normal and indicates the component is installed and healthy.
+
+✔ When to proceed
+If you see:
+
+ 
+ * Active: active (running)
+ * No red error messages
+ * A valid Python path
+ * Normal Git repo diagnostics
+
+…then Moonraker is fully operational and you can safely continue to the next step of the upgrade.
+
+
+If you do not see the above signs of a healthy Moonraker, try running these commands:
 
 ```bash
 sudo systemctl restart moonraker
 sudo systemctl enable moonraker
 ```
 
-Then review recent logs:
+Then review the recent Moonraker logs:
 ```bash
 journalctl -u moonraker -n 50 --no-pager
 ```
-Review the output to look for any startup issues.
+Look for any startup issues.
 If you find errors, stop and troubleshoot/resolve them.
 
-3.5 Verify that Mainsail is running
-From your laptop, open:
+#### 3.5 Verify that Mainsail is running
+In your laptop browser, open:
 
 ```Code
 http://<new-ip>
@@ -323,7 +393,16 @@ http://<new-ip>
 ```
 You should see the Mainsail interface.
 
-If not:
+In the bottom left-hand corner of the Mainsail DASHBOARD is a question mark inside a circle.
+Clicking on that question mark will expose two version numbers, explained in the following table.
+
+| Component | Example Version                 | Meaning                                                   |
+|-----------|---------------------------------|-----------------------------------------------------------|
+| Mainsail  | `v2.17.0`                       | Confirms the updated Mainsail front‑end is installed      |
+| Klipper   | `v0.10.0‑19‑g1ed102e`           | Shows Klipper is running and communicating with Moonraker |
+
+
+If you cannot open mainsailos.local, try running these commands on the pi:
 
 ```bash
 sudo systemctl restart mainsail
@@ -334,7 +413,7 @@ Then:
 sudo systemctl status mainsail
 ```
 
-3.6 Verify the Pi’s clock and timezone
+#### 3.6 Verify the Pi’s clock and timezone
 Incorrect time causes:
 
  * SSL certificate failures
@@ -351,12 +430,27 @@ timedatectl status
 ```
 This shows NTP sync state.
 
-If timezone is wrong:
+Example:
+
+```Code
+pi@mainsailOS:~ $ timedatectl
+               Local time: Wed 2026-08-12 21:35:51 EDT
+           Universal time: Thu 2026-08-13 01:35:51 UTC
+                 RTC time: n/a
+                Time zone: America/Toronto (EDT, -0400)
+System clock synchronized: yes
+              NTP service: active
+          RTC in local TZ: no
+```
+
+If the reported timezone is wrong:
 ```bash
-# List all available timezones
-timedatectl list-timezones
+# List all available installed timezones
+find /usr/share/zoneinfo -type f | sed 's|/usr/share/zoneinfo/||' | sort
+```
 
 # Set your timezone (replace <your-timezone> with one from the list)
+```bash
 sudo timedatectl set-timezone <your-timezone>
 ```
 Examples:
@@ -373,23 +467,59 @@ Run:
 ```bash
 sudo dmesg | grep mmc
 ```
-Look for:
+🧩 How to Interpret SD Card dmesg Output
+When you run:
 
- * no I/O errors
- * no CRC errors
- * no “timeout waiting for hardware interrupt”
-
-If errors appear, replace the SD card and restart this process at Step 2.
-
-3.8 Verify that the Pi has enough free space
 ```bash
-df -h
+sudo dmesg | grep mmc
 ```
-You should see plenty of free space on /.
+you are checking whether the Raspberry Pi successfully detected your SD card, initialized it in high‑speed mode, and expanded the filesystem to use the full capacity of the card.
 
-If not, replace the SD card with a larger one and restart the process at step 2.
+Only a few lines matter, and they are easy to recognize.
 
-3.9 Optional: Update system packages
+✔ What you want to see
+The following table explains the key messages you should look for:
+
+
+| Message Example                                           | Meaning                                                     |
+|-----------------------------------------------------------|-------------------------------------------------------------|
+| `mmc0: new ultra high speed DDR50 SDXC card`              | SD card detected and running in a high‑speed mode          |
+| `mmcblk0: mmc0:aaaa SN64G 59.5 GiB`                       | Card capacity correctly identified (e.g., 64 GB SDXC)      |
+| `mmcblk0: p1 p2`                                          | Boot (`p1`) and root (`p2`) partitions found               |
+| `EXT4-fs (mmcblk0p2): mounted filesystem ...`             | Root filesystem mounted successfully                        |
+| `EXT4-fs (mmcblk0p2): resizing filesystem ...`            | Filesystem expansion has started                            |
+| `EXT4-fs (mmcblk0p2): resized filesystem to ...`          | Filesystem expansion completed successfully                 |
+
+✔ What may look unusual but is normal:  
+ * Multiple mount/remount lines  
+EXT4 often mounts read‑only first, then switches to read‑write.
+This is normal during first boot.
+
+ * “orphan cleanup” messages  
+EXT4 performs routine housekeeping.
+Not an error.
+
+ * SDIO device detection (mmc1)  
+This is the onboard WiFi chip, not your SD card.
+
+✔ When to proceed
+
+If you see:
+
+ * The SD card detected in high‑speed mode
+
+ * Partitions p1 and p2 listed
+
+ * EXT4 mounting without errors
+
+ * A successful filesystem resize
+
+…then your SD card is fully initialized and ready, and you can safely continue to the next step of the upgrade.
+
+If instead errors appear, replace the SD card and restart this process at Step 2.
+
+
+#### 3.8 Optional: Update system packages
 
 **NB: This step may take several minutes depending on your Pi model and SD card speed.**
 
