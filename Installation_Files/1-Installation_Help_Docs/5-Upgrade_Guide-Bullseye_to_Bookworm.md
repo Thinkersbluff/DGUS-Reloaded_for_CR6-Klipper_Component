@@ -6,11 +6,9 @@ Last Updated: 12 August 2026
 Existing DGUS‑Reloaded installations running on MainsailOS 1.2.x (Bullseye).
 
 ## Purpose
-Bullseye cannot load Moonraker’s notifications plugin and cannot support sending notifications from your printer (e.g. through PushOver, when M600 fires).
+This guide explains how to safely transfer your existing DGUS-Reloaded Klipper installation from MainsailOS Bullseye to MainsailOS Bookworm while preserving your settings, macros, configuration, and Pi-Side scripts.
 
-This guide explains how to safely upgrade your Klipper host from MainsailOS Bullseye to MainsailOS Bookworm while preserving your DGUS‑Reloaded installation, macros, configuration, and Pi-Side scripts.
-
-This upgrade is mandatory if you want:
+This OS upgrade is mandatory if you want:
  * Moonraker notifications (PushOver, Telegram, Discord, Email, Webhooks)
  * Moonraker PushOver alerts for M600
  * Modern Moonraker components
@@ -21,11 +19,12 @@ This upgrade is mandatory if you want:
  * This is a full operating system upgrade.  
    Debian does not support in‑place upgrades from 3.9 to 3.11 on MainsailOS.
 
- * You must flash Bookworm to the SD card.
-   KIAUH cannot perform this upgrade. 
+ * KIAUH is not an operating‑system migration tool.
+    It cannot replace Bullseye with Bookworm, migrate Python 3.9 → 3.11, update systemd service definitions, or rebuild the underlying OS image.
+    For this reason, upgrading to Bookworm requires flashing a new MainsailOS Bookworm SD card.
    
  * Flashing will completely erase the Bullseye system, if you flash to the current SD card.
-   If you have a second SD card, seriously consider flashing Bookworm to that instead of overwriting the Bullseye SD card.  That way, you can always restore your system by reinserting the Bullseye SD card, if anything goes seriously wrong with this update.
+     If you have a second SD card, seriously consider flashing Bookworm to that instead of overwriting the Bullseye SD card.  That way, you can always restore your system by reinserting the Bullseye SD card, if anything goes seriously wrong with this update.
   
  * Pi-side scripts **MUST** contain Linux carriage returns (CR) and NOT Windows carriage return/line feed (CRLF).  
    If you receive an error like this when running any of the scripts, it likely means that your script lines end with `CRLF` instead of `CR`:
@@ -147,9 +146,9 @@ This is the simplest and safest method.
  * Remove the SD card from your Raspberry Pi and insert it into your laptop.
 (Or insert a brand‑new SD card if you want to preserve your Bullseye installation.)
 
- * Install or open Raspberry Pi Imager on your laptop.
+ * Install latest Raspberry Pi Imager on your laptop and Open it.
 
- * Click Choose OS → MainsailOS → MainsailOS (64‑bit).
+ * Click Choose OS → 3D Printing → MainsailOS → MainsailOS (64‑bit). (Precise route through the menus may vary with Imager version)
    (This installs the same Bookworm image you would download manually in Option B.)
 
  * Click Choose Storage, then select your SD card.
@@ -157,7 +156,12 @@ This is the simplest and safest method.
  * Click the gear icon (⚙️) to open Advanced Options, and configure:
 
     Hostname:  
-    mainsailos.local (or your preferred name)
+    mainsailos (or your preferred name)
+
+    Locale options:  
+    ✔ Capital of Wi‑Fi country (e.g., Ottawa/Canada)
+    ✔ Time zone (e.g. Toronto)
+    ✔ Keyboard layout (e.g. US)
 
     Enable SSH:  
     ✔ Enable SSH
@@ -170,13 +174,6 @@ This is the simplest and safest method.
     Configure Wi‑Fi (if using wireless):  
     ✔ SSID
     ✔ Password
-    ✔ Wi‑Fi country (e.g., CA for Canada)
-
-    Locale options:  
-    ✔ Time zone
-    ✔ Keyboard layout
-
-    Save settings to this SD card (optional but recommended)
 
     Click Write.
     Raspberry Pi Imager will erase the old Bullseye installation (if reusing the card) and write Bookworm.
@@ -218,7 +215,10 @@ When the Pi boots from the newly‑flashed SD card, MainsailOS Bookworm performs
 Before restoring your backups, complete the following verification steps:
 
 3.1 Verify network connectivity
+
 Check that the Pi has a valid IP:
+
+**Tip:** On first boot, If you have a display screen connected to the pi, and if the pi has connected to the local network, MainsailOS displays the Pi’s IP address at the top of the console screen (e.g., My IP address is 192.168.0.xxx).
 
 ```bash
 hostname -I
@@ -233,8 +233,8 @@ ping -c 3 google.com
 
 If the Pi did not connect:
  * Reflash the SD card
- * Re‑enter Wi‑Fi credentials in Raspberry Pi Imager
- * Ensure Wi‑Fi country is set (e.g., CA for Canada)
+   * Re‑enter the local Wi‑Fi SSID and password into Raspberry Pi Imager
+   * Ensure Wi‑Fi country is set (e.g., CA for Canada)
 
 3.2 Verify SSH access
 From your laptop (substitute <new-ip> with the ip of the Bookworm pi before running the command):
@@ -261,8 +261,24 @@ Then run:
 df -h /
 ```
 
- * You should see the SD card’s full capacity (e.g., 32G, 64G, etc.).
-    If it still shows ~2GB, reboot once:
+ * You should see the SD card’s full capacity (e.g., 32G, 64G, etc.), less what is allocated for system use.
+
+   Example:
+   ```Code
+   pi@mainsailOS:~ $ df -h /
+   Filesystem      Size  Used Avail Use% Mounted on
+   /dev/mmcblk0p2   58G  8.0G   48G  15% /
+   ```
+
+|Field	| Meaning	|What it tells you|
+|Filesystem /dev/mmcblk0p2	|The main partition on your SD card	|This is the root filesystem that was expanded|
+|Size 58 G	|Total usable space after expansion	|A 64 GB card typically formats to ~58–59 GB once partitioning and filesystem overhead are applied — normal|
+|Used 8.0 G	|Space already occupied by the OS and preinstalled packages	|Typical for MainsailOS Bookworm|
+|Avail 48 G	|Free space available for your data	|Confirms expansion succeeded|
+|Use% 15 %	|Percentage of space used	|Healthy and expected|
+
+
+    If the response still shows something quite small, reboot once:
 
 ```bash
 sudo reboot
