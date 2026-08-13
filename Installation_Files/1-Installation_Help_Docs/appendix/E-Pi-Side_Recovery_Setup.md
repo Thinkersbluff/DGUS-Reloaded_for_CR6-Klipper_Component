@@ -1,6 +1,6 @@
 # Appendix E: Automatic MCU Communications Recovery After Printer Power-Cycle
 
-Last Updated: 4 May 2026
+Last Updated: 13 August 2026
 
 ---
 
@@ -148,8 +148,12 @@ cat /etc/systemd/system/reset_cr6_mcu_comms.service
 
 This file watches for the MCU USB device to appear and tells systemd to run the service.
 
+**NB:** The BTT SKR CR6 board uses a Native USB serial interface (which is mounted as ttyACM*). However, Creality stock boards use a CH340 USB-to-Serial bridge chip via UART (Serial (on USART1 PA10/PA9)), which mounts as ttyUSB*.
+For this reason, there are two versions of the udev Rule template in 6-Pi-side_scripts/etc/udev/rules.d.
+**Take care to open the template that corresponds to the motherboard in your printer!**
+
 1. On your PC, open this template from the extracted release:
-    `Installation_Files/6-Pi-side_scripts/etc/udev/rules.d/99-reset_cr6_mcu_comms.rules`
+    `Installation_Files/6-Pi-side_scripts/etc/udev/rules.d/<your motherboard>/99-reset_cr6_mcu_comms.rules`
 2. In your Pi SSH session, run:
 
 ```bash
@@ -185,19 +189,20 @@ sudo udevadm control --reload-rules
 
 Open **two SSH windows** on the Pi at the same time.
 
-### Window 1 — watch the recovery script activity:
+Now **power-cycle the printer** (switch it off, wait 5 seconds, switch back on).
+
+
+### Window 1 — review the recovery script activity:
 
 ```bash
 journalctl -f -t reset_cr6_mcu_comms
 ```
 
-### Window 2 — watch Klipper:
+### Window 2 — review Klipper's recovery activity:
 
 ```bash
 journalctl -f -u klipper
 ```
-
-Now **power-cycle the printer** (switch it off, wait 5 seconds, switch back on).
 
 ### Expected results in Window 1:
 
