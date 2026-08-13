@@ -40,7 +40,7 @@ Tests (ordered)
   printf '4\nn\nn\n' | DGUS_BRANCH=Implement_scripted_download_install ./install_dgus_minimal.sh --keep-temp
 - Verify:
   - Files copied into `~/klipper` (extras and src)
-  - `src/stm32/Kconfig` and `Makefile` patched idempotently
+  - `src/stm32/Kconfig` and `Makefile` patched idempotently ((i.e. it puts the `include` lines back, but only once — even if you run it multiple times.).)
   - Backups created in `$HOME/.dgus_patch_backups` (or similar)
 
 5) Apply immediate (interactive choice 1) — optional / destructive

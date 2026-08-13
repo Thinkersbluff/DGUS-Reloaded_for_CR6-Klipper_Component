@@ -25,7 +25,7 @@ Usage
 
 Notes
 - `prepare` saves timestamped backups under `~/.dgus_patch_backups/prepare_<ts>/` and removes the DGUS include lines.
-- `reapply` adds the include lines back idempotently.
+- `reapply` adds the include lines back idempotently (i.e. it puts the `include` lines back, but only once — even if you run it multiple times.)..
 
 ---
 

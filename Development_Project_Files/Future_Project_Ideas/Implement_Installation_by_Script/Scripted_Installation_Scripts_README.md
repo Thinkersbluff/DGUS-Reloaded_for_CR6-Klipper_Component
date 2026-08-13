@@ -39,7 +39,7 @@ Notes:
 
 ## install_dgus_minimal.sh
 Purpose
-- Sparse-clone the repository's `Installation_Files` tree, stage or apply DGUS extras and MCU source files into an existing `~/klipper` checkout, and idempotently patch `src/stm32/Kconfig` and `Makefile` when needed.
+- Sparse-clone the repository's `Installation_Files` tree, stage or apply DGUS extras and MCU source files into an existing `~/klipper` checkout, and idempotently* patch `src/stm32/Kconfig` and `Makefile` when needed.  (*i.e. patch only once, even if the script is run multiple times.)
 
 Usage
 ```bash
