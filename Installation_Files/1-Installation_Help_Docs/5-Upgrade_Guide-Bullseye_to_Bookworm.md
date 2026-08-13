@@ -270,12 +270,14 @@ df -h /
    /dev/mmcblk0p2   58G  8.0G   48G  15% /
    ```
 
-|Field	| Meaning	|What it tells you|
-|Filesystem /dev/mmcblk0p2	|The main partition on your SD card	|This is the root filesystem that was expanded|
-|Size 58 G	|Total usable space after expansion	|A 64 GB card typically formats to ~58–59 GB once partitioning and filesystem overhead are applied — normal|
-|Used 8.0 G	|Space already occupied by the OS and preinstalled packages	|Typical for MainsailOS Bookworm|
-|Avail 48 G	|Free space available for your data	|Confirms expansion succeeded|
-|Use% 15 %	|Percentage of space used	|Healthy and expected|
+| Field        | Meaning                                   | Interpretation                                      |
+|--------------|--------------------------------------------|-----------------------------------------------------|
+| Filesystem   | The device containing the root filesystem  | `/dev/mmcblk0p2` is the main SD‑card partition      |
+| Size         | Total usable space after expansion         | ~58 GB is normal for a 64 GB SD card                |
+| Used         | Space consumed by OS + installed packages  | 8 GB is typical for MainsailOS Bookworm             |
+| Avail        | Free space available to the user           | 48 GB confirms the filesystem expanded correctly    |
+| Use%         | Percentage of space used                   | 15% indicates plenty of free space                  |
+
 
 
     If the response still shows something quite small, reboot once:
