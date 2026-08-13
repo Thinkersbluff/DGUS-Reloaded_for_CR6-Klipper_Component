@@ -74,7 +74,7 @@ Download the appropriate version for your PC from:
 In the Raspberry Pi Imager's **settings gear** (bottom-right corner, v1.7.1 and later)
 you can pre-configure:
 
-- Hostname (e.g. `mainsailpi`)
+- Hostname (e.g. `mainsailos`)
 - SSH enabled
 - Username and password (default is `pi` / `raspberry` — **change the password**)
 - Wi-Fi SSID and password
@@ -161,7 +161,7 @@ Upload that 't5uid1' folder into
 
 ### 4b. Verify the copy
 
-From an SSH session on the Pi, confirm the transferred files are present, by copy/pasting this script into your SSH window:
+From an SSH session on the Pi, confirm the transferred files are present, by copy/pasting this command into your SSH window:
 
 ```bash
 ls ~/klipper/klippy/extras/t5uid1/
@@ -372,8 +372,8 @@ Save the file.
 ** NB:  If you have a Creality motherboard, you must also specify the serial interface baud rate in the `[mcu]` section: 
 
 [mcu]
-serial: /dev/serial/by-id/usb-1a86_USB_Serial-if00-port0
-baud: 115200   # <--- value MUST MATCH make menuconfig (115200)
+serial: /dev/serial/by-id/usb-1a86_USB_Serial-if00-port0  
+baud: 115200   # <--- value MUST MATCH make menuconfig (115200)  
 restart_method: command
 
 

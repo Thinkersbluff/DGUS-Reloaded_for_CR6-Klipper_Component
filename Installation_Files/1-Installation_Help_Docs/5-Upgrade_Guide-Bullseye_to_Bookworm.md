@@ -530,7 +530,7 @@ sudo apt autoremove -y
 ```
 This ensures Bookworm is fully up to date before restoring your Klipper/Moonraker environment.
 
-3.10 Only proceed to Step 4 (Restore Backups) once all checks pass
+#### 3.10 Only proceed to Step 4 (Restore Backups) once all checks pass
 This ensures the restore process runs on a stable, fully‑initialized Bookworm system.
 
 The above checks prevent:
@@ -555,14 +555,14 @@ You have two restore options depending on how much you want to bring back:
 #### ⭐ Option A — Full Restore (Recommended)
 Restore all backed‑up directories:
 
-bash
+```bash
 scp -r ./backup_printer_data pi@<new-ip>:/home/pi/printer_data
 scp -r ./backup_klipper pi@<new-ip>:/home/pi/klipper
 scp -r ./backup_moonraker pi@<new-ip>:/home/pi/moonraker
 scp -r ./backup_mainsail pi@<new-ip>:/home/pi/mainsail
 scp -r ./backup_scripts pi@<new-ip>:/home/pi/printer_data/config/scripts
 scp -r ./backup_klipper_backups pi@<new-ip>:/home/pi/klipper_backups
-
+```
 This restores:
  * Klipper source
  * Klipper configs
@@ -600,11 +600,10 @@ After restoring files, SSH into the Pi:
 ssh pi@<new-ip>
 ```
 
-Restart all relevant services:
+Restart these two services:
 
 ```bash
 sudo systemctl restart moonraker
-sudo systemctl restart mainsail
 sudo systemctl restart klipper
 ```
 
@@ -612,7 +611,6 @@ Enable services to ensure they start automatically:
 
 ```bash
 sudo systemctl enable moonraker
-sudo systemctl enable mainsail
 sudo systemctl enable klipper
 ```
 #### ⭐ Verify the restore
@@ -621,7 +619,7 @@ From your laptop:
  * Open Mainsail:
     http://<new-ip>
     or
-    http://mainsail.local
+    http://mainsailos.local
 
  * Confirm Klipper loads your printer configuration
  * Confirm Moonraker API is responding
