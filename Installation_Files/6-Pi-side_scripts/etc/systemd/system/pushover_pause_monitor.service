@@ -1,0 +1,15 @@
+[Unit]
+Description=Pushover repeating alert monitor for Klipper pause state
+After=network.target moonraker.service
+Requires=moonraker.service
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/printer_data/scripts
+ExecStart=/usr/bin/python3 /home/pi/printer_data/scripts/pushover_pause_monitor.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
