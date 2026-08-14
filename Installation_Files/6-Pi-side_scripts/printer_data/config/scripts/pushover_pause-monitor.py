@@ -26,6 +26,17 @@ def is_paused():
     except Exception:
         return False
 
+def m600_pause_flag():
+    try:
+        r = requests.post(
+            f"{MOONRAKER_URL}/printer/objects/query",
+            json={"objects": {"gcode_macro SET_M600_PAUSE_FLAG": ["m600_pause"]}},
+            timeout=3
+        )
+        return r.json()["result"]["status"]["gcode_macro SET_M600_PAUSE_FLAG"]["m600_pause"]
+    except Exception:
+        return False
+
 # --- Helper: send emergency Pushover alert ---
 def send_emergency_pushover(msg):
     requests.post(
@@ -57,19 +68,18 @@ was_paused = False
 
 while True:
     paused = is_paused()
+    m600_flag = m600_pause_flag()
 
-    if paused:
+    if paused and m600_flag:
         if not was_paused:
-            # First detection of pause
+            # First detection of M600 pause
             send_emergency_pushover("Printer paused — filament change required")
             was_paused = True
-        else:
-            # Repeating alert
-            send_emergency_pushover("Printer still paused — attention required")
+        # Do NOT send repeating alerts here
     else:
         if was_paused:
             # Pause ended — stop beeping
             stop_beeping()
             was_paused = False
 
-    time.sleep(60)
+    time.sleep(10)
