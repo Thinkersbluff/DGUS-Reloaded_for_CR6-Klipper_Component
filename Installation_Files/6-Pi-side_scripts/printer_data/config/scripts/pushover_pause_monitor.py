@@ -3,16 +3,18 @@ import json
 import os
 import time
 import requests
+import configparser
+
 
 SECRETS_PATH = os.path.expanduser("~/printer_data/moonraker.secrets")
 MOONRAKER_URL = "http://localhost:7125"
 
 # --- Load Pushover credentials from moonraker.secrets ---
-with open(SECRETS_PATH, "r") as f:
-    secrets = json.load(f)
+config = configparser.ConfigParser()
+config.read(SECRETS_PATH)
 
-pushover_token = secrets["pushover"]["token"]
-pushover_user_key = secrets["pushover"]["user_key"]
+pushover_token = config["pushover_creds"]["token"]
+pushover_user_key = config["pushover_creds"]["user_key"]
 
 # --- Helper: query Moonraker pause state ---
 def is_paused():
@@ -30,10 +32,10 @@ def m600_pause_flag():
     try:
         r = requests.post(
             f"{MOONRAKER_URL}/printer/objects/query",
-            json={"objects": {"gcode_macro SET_M600_PAUSE_FLAG": ["m600_pause"]}},
+            json={"objects": {"gcode_macro SET_FLAG_M600": ["m600_pause"]}},
             timeout=3
         )
-        return r.json()["result"]["status"]["gcode_macro SET_M600_PAUSE_FLAG"]["m600_pause"]
+        return r.json()["result"]["status"]["gcode_macro SET_FLAG_M600"]["m600_pause"]
     except Exception:
         return False
 
@@ -73,7 +75,7 @@ while True:
     if paused and m600_flag:
         if not was_paused:
             # First detection of M600 pause
-            send_emergency_pushover("Printer paused — filament change required")
+            send_emergency_pushover("M600 Event — Print Paused. Check filament!")
             was_paused = True
         # Do NOT send repeating alerts here
     else:
