@@ -1,7 +1,20 @@
 #  Upgrading: Migrating an Existing DGUS‑Reloaded Installation to a New MainsailOS
 ** CAUTION: THIS GUIDE IS A WORK-IN_PROCESS. DO NOT RELY ON THIS GUIDE UNTIL THIS NOTICE IS REMOVED!!**
 
-Last Updated: 14 August 2026
+Last Updated: 16 August 2026
+
+## Table of Contents
+- [Purpose](#purpose)
+- [Important Notes Before You Begin](#️-important-notes-before-you-begin)
+- [Step 1 — Back Up Your System](#-step-1--back-up-your-system)
+- [Step 2 — Flash the Newest-MainsailOS](#-step-2--flash-the-newest-mainsailos)
+- [Step 3 — Verify the Fresh System Before Restoring Backups](#-step-3--verify-the-fresh-system-before-restoring-backups)
+- [Step 4 — Restore Your Backups](#-step-4--restore-your-backups)
+- [Step 5 — Confirm Everything Works Before Printing](#-step-5--confirm-everything-works-before-printing)
+- [Step 6 — Activate External Notifications)](#-step-6--activate-external-notifications)
+- [Step 7 — Verify Some DGUS-Reloaded Functionality](#-step-7--verify-some-dgus-reloaded-functionality)
+- [Step 8 — Validate Moonraker](#-step-8--validate-moonraker)
+- [Troubleshooting Appendix](#-troubleshooting-appendix)
 
 ## Applies To: 
 Existing DGUS‑Reloaded installations running on an outdated version of MainsailOS.
@@ -66,7 +79,7 @@ Run:
 ``` bash
 bash ~/printer_data/config/scripts/backup_klipper.sh
 ```
-NOTE: If you receive a "no such file" error when running the above script, see the note under "Important Notes Before You Begin" about the need to convert CRLF to CR in all script files and the need to make them executable.
+NOTE: If you receive a "no such file" error when running the above script, see 4 — DGUS‑Reloaded Pi-side Scripts Fail to Run in the Troubleshooting Appendix to this guide.
 
 
 Then manually back up (copy):
@@ -442,7 +455,7 @@ sudo timedatectl set-timezone Australia/Sydney
 ```
 
 
-3.7 Verify that the SD card is healthy
+## 3.7 Verify that the SD card is healthy
 Run:
 
 ```bash
@@ -685,7 +698,7 @@ From your laptop:
 
 ---
 
-### 🧩 Step 5 — Post‑Restore Validation (Confirm Everything Works Before Printing)
+### 🧩 Step 5 — Confirm Everything Works Before Printing
 NB: Perform these checks immediately after completing Step 4.  
 Your system now contains your restored Klipper, Moonraker, Mainsail, scripts, and configuration files.
 Before attempting any prints, verify that all components are functioning correctly.
@@ -870,51 +883,19 @@ This ensures:
 
 ---
 
-## 🧩 Step 6 — (Optionally) Install Moonraker Notifications (with PushOver Support)
-Now that you are on Bookworm, the moonraker_notifidations.sh script exists:
+## 🧩 Step 6 — Activate External Notifications
+**Optional**
 
-``` bash
-cd ~/moonraker
-./scripts/install-moonraker-notifications.sh
-Restart Moonraker:
-```
-```bash
-sudo systemctl restart moonraker
-```
+If your new MainsailOS is running Python 3.11 or higher, you can now configure Moonraker to send notifications.
+DGUS-Reloaded for CR6 is now distributed with sample notifiers and with a PushOver-specific integration solution to exploit this feature.
 
-Add to moonraker.conf:
-
-``` ini
-[notifications]
-enable: True
-
-[push_over]
-token = <your-token>
-user_key = <your-user-key>
-```
-
-Test:
-
-```bash
-RESPOND PREFIX="notify" MSG="DGUS-Reloaded Bookworm upgrade successful"
-```
+**Motivation:** My printer now pings my Apple Watch, whenever M600 pauses the printer for a `Filament Change`. Hoping this means I don't lose any more prints because I did not hear the printer beeping for attention before Klipper's 10-minute timeout disabled the motors and "forgot" the toolhead's current position!
 
 ---
 
-### 🧩 Step 7 — Validate DGUS‑Reloaded
+### 🧩 Step 7 — Validate Moonraker
 
-Check:
-
- * Display responds to inputs and button presses
- * Display Page switching works
- * Variables update on display
- * M600 triggers PushOver, if this line is added to the M600 macro: 
- * No errors in klippy.log
-
----
-
-### 🧩 Step 8 — Validate Moonraker
-Check:
+Check via SSH to the Host:
 
 ```bash
 systemctl status moonraker
@@ -922,25 +903,70 @@ journalctl -u moonraker -n 200 --no-pager
 ```
 Ensure:
 
- * Notifications component loads
- * PushOver loads
  * No “unparsed config section” warnings in Moonraker.log or Mainsail Notifications
  * No Python errors
+
+---
+
+### 🧩 Step 8 — Verify Some DGUS-Reloaded Functionality
+
+DGUS-Reloaded is now a complex system, with a wide variety of dependencies on macros, variables, 3rd-party scripts, Klipper routines, etc..  If the previous steps have all worked, you should now be able to page through a few menus on the stock display and to run any of the functions.  
+
+Check:
+
+ * Klipper does not report any problems when you perform a Firmware Restart in Mainsail
+ * Stock display boots to the Main Menu (Home) screen when you power-cycle the printer
+ * Stock display responds to inputs and button presses
+ * Display Information page confirms that the installed klipper component version matches the display version.
+ * `Prepare-> Move -> Home All` works correctly
+ * `Calibrate->Auto Bed Leveling->Load Profile` cycles through your most recent set of bed meshes
+ * On the `Setup` screen:
+   * you see your settings for all three filament types. 
+   * If you edit any value, that change persists when you power-cycle the printer. 
+   * If you use Calibrate->PID, that function uses the new value that you edited.
+ * The displayed temperature settings follow the PID cycling and closely match the values displayed in the Mainsail Temperature window.
+ * Try to print a model with no filament inserted into the printer and with the Filament Runout Sensor Enabled.
+   * Verify that the printer pauses and parks the toolhead, when it starts to draw the purge line (The runout sensor is disabled before that point...)
+     * If you have implemented external notifications, verify that you receive an `M600 event` alert.
+     * If you have activated the Moonraker notifier, verify that you receive an alert that the print has been paused.
+     * Verify that the printer starts beeping continuously. - the Console should echo that information.
+     * Verify that selecting the Tune menu switches to the Tune page and stops the continous beeping - the Console should again echo that information..
+     * Verify that you can not now resume the *print unless/until you insert some filament. (Check using Mainsail as well as the UI, to command the resume)
+   * Use the Tune menu Change Filament function to insert some filament.
+   * Return to the Print Paused menu and verify that Resume now restarts the print.
+   * Pause the print
+     * Confirm that the printer parks the head but you do not get continuous beeping
+     * If you have implemented notifications, confirm that you do not get an M600 event alert, but you do get a `printer paused` alert. 
+     * Confirm that the displayed timers are working correctly, while paused.
+   * Resume the print 
+     * Confirm that the printer resumes printing.
+     * Confirm that the displayed timers are working correctly.
+   * Either Stop the print or allow it to complete, as you wish.
+     * Verify that the display switches to the Print Finished screen.
+     * Verify that the displayed timer information has correctly reported the actual total time and that the printing time value is less than the total time, because that timer stopped counting while the printer was paused.
+
+ * Verify that no errors appear in the klippy.log for this test session.
+
+Complete success with the above test sequence confirms that the DGUS-Reloaded system was successfully restored at step 4.
+
+If you do encounter any problems during the above testing, check the Klippy.log for clues as to what might be missing from your restored system. Review the tasks in the above steps, to determine whether you may have missed a step or made an error (e.g. a typo). Review the Troubleshooting Appendix in this guide for clues.
+
+It should be rare, but worst-case you may need to re-install DGUS-Reloaded from scratch.
 
 ---
 
 ## 🎉 Upgrade Is Complete!
 Your DGUS‑Reloaded installation is now running on:
 
- * Python 3.11
- * Modern Moonraker
- * Modern MainsailOS
+ * Python 3.11 (or higher)
+ * The latest Moonraker
+ * The latest MainsailOS
 
-Moonraker Now Has:
+Optionally:
+ * Moonraker now supports external notifications.
+ * DGUS-Reloaded specifically supports directly sending full PushOver API-compliant notifications to PushOver.
 
- * Full notifications support
- * Full PushOver support
-
+---
 ---
 
 # 🛠️ Troubleshooting Appendix — Common Issues and Solutions
