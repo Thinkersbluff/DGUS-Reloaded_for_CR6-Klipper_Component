@@ -1,4 +1,4 @@
-Last Updated: 12 August 2026
+Last Updated: 14 August 2026
 
 
 # DGUS-reloaded-Klipper, CR6Community Edition!
@@ -14,33 +14,31 @@ Lets you use your stock Creality CR6 display with Klipper firmware, restoring to
 | **Motherboards** | Creality 4.5.2, 4.5.3, ERA 1.1.0.3, BTT SKR CR6 V1.0 |
 | **Klipper Host** | Raspberry Pi 3B+ or newer (or equivalent) |
 | **OS** | Debian-based Linux (MainsailOS, FluiddPi, etc.) |
-| **Mainsail** | Known to work with MainsailOS 1.2.x (Bullseye). Some Pi-Side scripts may require repair to work with MainsailOS 1.3.x+ (Bookworm) |
+| **Mainsail** | Known to work with MainsailOS 1.2.x (Bullseye) and with MainssailOS 2.18.x (Trixie). May also work with other versions.|
 ---
 ## How Does It Work?
 
 ### Project Structure
 
-DGUS-Reloaded for CR6 consists of two synchronized components:
+DGUS-Reloaded for CR6 consists primarily of two synchronized subsystems:
 
-| Component | Repository | What It Does |
+| Subsystem | Repository | What It Does |
 |---|---|---|
-| **Klipper Backend** | [This repo](https://github.com/Thinkersbluff/DGUS-Reloaded_for_CR6-Klipper_Component) | t5uid1 Python modules, firmware binaries, config files |
+| **Klipper Backend** | [This repo](https://github.com/Thinkersbluff/DGUS-Reloaded_for_CR6-Klipper_Component) | t5uid1 Python modules, firmware binaries, config files, scripts, external Pi-Side utilities |
 | **Display Firmware** | [DWIN_SET repo](https://github.com/Thinkersbluff/DGUS-reloadedForKlipper_CR6) | Touchscreen UI application |
 
-Both components must be installed and the two must be compatible with each other (see release notes).  
+Both subsystems must be installed and the two must be compatible with each other. Both subsystems are now each released under the same version number, to help users ensure that they have installed the correct versions with each other.  
 
-You install standard Klipper as usual, then integrate DGUS-Reloaded to enable the display:
-   1. Flash the DWIN_SET firmware to your display*
-   2. Install the t5uid1 extras and stable_z_home add-on to Klipper
-   3. Flash the Klipper firmware binary to your motherboard
-   4. Copy and configure the printer.cfg and companion configuration files
-   5. (Optional) Configure your slicer for progress display integration
+TIPS: 
+ * Users with little or no prior knowledge or experience of Linux systems may find the learning curve a bit steep at first.  I find that AI bots can ease that burden a little.  Be aware, though, that chatbots often make mistakes and it takes new users a little while to discover when we are being led astray...
+ * I have included [a complete and detailed set of instructions](Installation_Files/1-Installation_Help_Docs) in this repository, bundled with the files to be installed and configured.
+ * These help documents have been structured for ease of use by both novice and advanced users of Linux and Klipper.
 
 
 ## Can I Install This with the Latest Klipper from Klipper3D?
- **Yes!** This project is designed to work with current Klipper releases. I run the latest Klipper and allow Moonraker to update automatically.
+ **Yes!** This project is designed to work with current Klipper releases. I run the latest Klipper with Mainsail 2.18.x and allow Moonraker to update the system automatically.
 
-**Exception:** If Klipper developers refactor in a way that breaks DGUS-Reloaded compatibility, you may need to temporarily pin Klipper to a known-good version until I publish an update. To support this:
+**Exception:** If Klipper developers refactor in a way that breaks DGUS-Reloaded compatibility, you may need to temporarily pin Klipper to a known-good version until I publish a compatible update. To support this:
 - Release notes include the **Git commit hash** of the Klipper version I've tested
 - Installation files include scripts for pinning Klipper to specific commits
 - Documentation includes guidance on rebuilding firmware when needed
@@ -49,57 +47,14 @@ See [Maintenance Documentation](Installation_Files/1-Installation_Help_Docs/READ
 
 
 ## Does this work with the latest Mainsail/Moonraker 
- **TBD**
- Up until 12 August 2026, I ran this system successfully on Bullseye, unaware of Bookworm.
- When I tried to install PushOver and activate notifications, I hit a brick wall with Moonraker.
- Activating PushOver alerts (e.g. when M600 is fired) requires upgrading to BookWorm, which in turn requires reflashing Mainsail and reinstalling DGUS-Reloaded.
- I am presently reviewing the impacts to this project of upgrading my own development system to Bookworm.
+As of 14 August 2026, I am running Mainsail 2.18.3 on my system and DGUS-Reloaded 2.0.3 is running fine.
+I chose to upgrade from Mainsail 1.2.x to 2.18.3, because:
+ * Python 3.9 on which Mainsail 2.1.x was based has gone End of Life
+ * I wanted to experiment with using PushOver to transmit alerts to my Apple Watch when the Filament Runout Sensor paused my printer.  That required upgrading to at least Python 3.11, to enable Moonraker to send alerts via Aspire.
 
- ### Backgrounder
+The next release of DGUS-Reloaded will include scripts, an  external python module and instructions to enable other users to implement their own notification solution.
+I also plan to release a new Migration Guide to outline the workflow by which to preserve your existing customizations and to minimize the efforts required to re-install DGUS-Reloaded after flashing the new MainsailOS to your host.
 
- ⚠️ DGUS‑Reloaded works on any Klipper/Moonraker system, but Moonraker’s feature set depends on the installed OS.
-
-**MainsailOS 1.2.x (Bullseye)**
-
- * Python 3.9
-
- * Older Moonraker build
-
- ❌ No notifications system
-
- ❌ No PushOver / Telegram / Discord / Email alerts
-
- ❌ No install-moonraker-notifications.sh script
-
- ✔ DGUS‑Reloaded firmware works normally
-
- ⚠️ Pi‑side scripts written for Python 3.9 may break when upgrading
-
-**MainsailOS 1.3.x+ (Bookworm)**
-
- * Python 3.11
-
- * New Moonraker components
-
- ✔ Full notifications support
-
- ✔ PushOver alerts (e.g., when M600 triggers)
-
- ✔ Webhooks for Apple Shortcuts
-
- ✔ DGUS‑Reloaded firmware works normally
-
-
-⚠️ CAUTION: Pi‑side scripts may require updates after upgrading to Python 3.11
-
-If you need Moonraker notifications (PushOver, etc.), you must run MainsailOS Bookworm.
-Bullseye cannot load Moonraker’s notifications plugin.
-
-Upgrading from Bullseye → Bookworm requires reflashing the SD card with a fresh MainsailOS Bookworm image.  This is a full OS upgrade; MainsailOS does not support in‑place upgrades between Debian major versions.
-
-After reflashing, restore your /home/pi/printer_data/ folder and reinstall DGUS‑Reloaded.
-
----
 
 # Ready to Install?
 
