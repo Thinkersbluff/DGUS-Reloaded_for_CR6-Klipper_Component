@@ -1,67 +1,59 @@
-#  Upgrade Guide: Migrating DGUS‑Reloaded from Bullseye to Bookworm
+#  Upgrading: Migrating an Existing DGUS‑Reloaded Installation to a New MainsailOS
+** CAUTION: THIS GUIDE IS A WORK-IN_PROCESS. DO NOT RELY ON THIS GUIDE UNTIL THIS NOTICE IS REMOVED!!**
 
-Last Updated: 12 August 2026
+Last Updated: 14 August 2026
 
 ## Applies To: 
-Existing DGUS‑Reloaded installations running on MainsailOS 1.2.x (Bullseye).
+Existing DGUS‑Reloaded installations running on an outdated version of MainsailOS.
 
 ## Purpose
-This guide explains how to safely transfer your existing DGUS-Reloaded Klipper installation from MainsailOS Bullseye to MainsailOS Bookworm while preserving your settings, macros, configuration, and Pi-Side scripts.
+This guide explains how to safely transfer your existing DGUS-Reloaded Klipper installation while preserving what you can of any customisations you have made in ~printer_data and in ~klipper/klippy/extras.  You will still need to reinstall some things, but it should help you get back up and running on the new OS with the minimum risk and effort.
 
-This OS upgrade is mandatory if you want:
- * Moonraker notifications (PushOver, Telegram, Discord, Email, Webhooks)
- * Moonraker PushOver alerts for M600
- * Modern Moonraker components
- * Python 3.11 compatibility
- * Long‑term support from MainsailOS
+## Backgrounder
+A MainsailOS upgrade is mandatory if you want to take advantage of the latest features and those features rely on an updated version of Python.  (e.g. Mainsail 1.2.x (BUllseye) relies on Python 3.9, which is now at end of life and  no longer supported.)
+
+The only way to upgrade MainsailOS is to re-flash the Host with the latest version, which will in-turn erase the SD card (or will require a new SD card), removing all of the customizations you may have made to printer.cfg, etc..
+
+You do have that option, and can certainly follow the instructions in 1-Installation_Manual.md, to make a fresh installation of MainsailOS and DGUS-Reloaded for CR6.
+
+This guide is intended for users who prefer to backup their current system and then to restore what they can of that backup to the newly flashed upgraded system, rather than recreate it. 
+
+The workflow is only slightly more complicated, to make and restore the applicable backups rather than to make a fresh install.  The "pay-off" is that you can avoid having to repeat a lot of the customisation work that you already completed to create your current DGUS-Reloaded installation.  Your call...
+
 
 ## ⚠️ Important Notes Before You Begin:
  * This is a full operating system upgrade.  
-   Debian does not support in‑place upgrades from 3.9 to 3.11 on MainsailOS.
+   Debian does not support in‑place upgrades from Python 3.9 to 3.11 or higher on MainsailOS.
 
  * KIAUH is not an operating‑system migration tool.
-    It cannot replace Bullseye with Bookworm, migrate Python 3.9 → 3.11, update systemd service definitions, or rebuild the underlying OS image.
-    For this reason, upgrading to Bookworm requires flashing a new MainsailOS Bookworm SD card.
+    You cannot avoid reflashing the SD card by piecemeal upgrading the individual elements with KIAUH. 
+    For this reason, upgrading MainsailOS requires flashing MainsailOS onto a new SD card (recommended) or overwriting the current SD card.
    
- * Flashing will completely erase the Bullseye system, if you flash to the current SD card.
+ * Flashing will completely erase the existing system, if you flash to the current SD card.
      If you have a second SD card, seriously consider flashing Bookworm to that instead of overwriting the Bullseye SD card.  That way, you can always restore your system by reinserting the Bullseye SD card, if anything goes seriously wrong with this update.
+
+ * You will need to recreate some of the Pi-Side files (like .service and .rules files) on your upgraded system and will need to reinstall 3rd party helper apps like Stable_Z_Home.py and gcode_shell_command.py, but these processes are quick and easy to complete, following the instructions in the Installation_Manual.
   
- * Pi-side scripts **MUST** contain Linux carriage returns (CR) and NOT Windows carriage return/line feed (CRLF).  
-   If you receive an error like this when running any of the scripts, it likely means that your script lines end with `CRLF` instead of `CR`:
+ * All of the Pi-side scripts copied to ~printer_data/config/scripts **MUST** contain Linux carriage returns (CR) and NOT Windows carriage return/line feed (CRLF).  They also must be made executable on the Linux system.  This guide includes simple commands that you can use to ensure that both of these conditions have been met. 
 
-``` bash
-... ‘bash\r’: No such file or directory
-```
-
-  To fix all Pi-Side scripts at once:
-   Run:
-
-``` bash
-    sed -i 's/\r$//' ~/printer_data/config/scripts/*.sh
-```
 
 ## 🧱 What Will Be Preserved With This Procedure
 You will keep:
 
- * All DGUS‑Reloaded configuration
- * All DGUS‑Reloaded Python modules
- * All DGUS‑Reloaded scripts
- * All macros
- * All Klipper configuration
- * All Moonraker configuration
- * All timelapse settings
- * All history and job logs
- * All gcode files
- * All custom scripts in ~/printer_data/config/scripts/
+ * All of the DGUS‑Reloaded files: 
+   * ~klipper/klippy/extras/t5uid1 and its subfolders
+   * ~/printer_data/config/scripts/
+ * All of the Mainsail Klipper Machine files in ~/printer_data/config, where most of your customizations and macros reside
+ * The local Klipper git repository (as a tar.gz backup file and Commit reference)
 
 ❌ What Will NOT Be Preserved Automatically
  * The OS itself
  * System‑level packages
  * Python virtual environments
  * Systemd service overrides
- * Any custom software installed outside ~/printer_data or ~/klipper
+ * Any custom software installed outside ~/printer_data or ~/klipper (e.g. KlipperScreen)
 
-**If you installed anything manually under /usr/local, back it up separately.**
+**If you installed anything manually under /usr/local, you must back it up yourself or re-install it on the new (upgraded) Host.**
 
 ---
 
@@ -71,33 +63,28 @@ Run:
 ``` bash
 bash ~/printer_data/config/scripts/backup_klipper.sh
 ```
-NOTE: If you receive a "no such file" error when running the above script, see the note under "Important Notes Before You Begin" about converting CRLF to CR in all script files.
+NOTE: If you receive a "no such file" error when running the above script, see the note under "Important Notes Before You Begin" about the need to convert CRLF to CR in all script files and the need to make them executable.
 
 
-Then manually back up:
+Then manually back up (copy):
 ```
 Code
 ~/printer_data/
-~/klipper/
-~/moonraker/
-~/mainsail/
-~/printer_data/config/scripts/
 ~/klipper_backups/
+~/klipper/klippy/t5uid1
 ```
 
 **Recommended backup method:**
 
 From a second processor on the same network, running a Linux terminal, back up these folders from your Bullseye host to the second processor. 
  * Navigate to the target directory on the second processor
- * Replace <old-ip> with the actual ip address of the Bullseye host, before running them
+ * Replace <old-ip> with the actual ip address of the host being backed-up, before running them
  * Run each of these scripts in-turn:
 ``` bash
 scp -r pi@<old-ip>:/home/pi/printer_data ./backup_printer_data
-scp -r pi@<old-ip>:/home/pi/klipper ./backup_klipper
-scp -r pi@<old-ip>:/home/pi/moonraker ./backup_moonraker
-scp -r pi@<old-ip>:/home/pi/mainsail ./backup_mainsail
-scp -r pi@<old-ip>:/home/pi/printer_data/config/scripts ./backup_scripts
 scp -r pi@<old-ip>:/home/pi/klipper_backups ./backup_klipper_backups
+scp -r pi@<old-ip>:/home/pi/klipper/klippy/extras/t5uid1 ./backup_dgus-reloaded
+scp -r pi@<new-ip>:/usr/local/*.sh ./backup_usr_local
 
 ```
 
@@ -110,46 +97,36 @@ If using an MS Windows machine and not comfortable with Linux terminal programs,
 
 The above set of backups preserves:
 
- * Klipper configuration
- * Moonraker configuration
- * Mainsail UI configuration
- * DGUS‑Reloaded scripts
- * DGUS‑Reloaded Python modules and configuration files
- * All macros
- * All gcode files
- * All logs
- * All timelapse settings
- * All history
  * All klipper_backups
+ * The DGUS-Reloaded Klipper COmponent as you have tailored it for your printer
+ * The Mainsail|Klipper|Moonraker|etc. configuration files as you have tailored them for your printer
 
-#### Why the Pi-Side scripts are backed up separately
-This "redundant" backup is optional but recommended.
+You will be able to restore your tailored files to the new upgraded host, from these backups.
+You will need to reinstall other elements of the system, which can not simply be copied. 
 
-Although printer_data/config/scripts is included inside the main printer_data backup, it is backed up separately as well. This allows:
+Don't worry, we will guide you through all of that restoration activity at step 4. 
 
- * restoring scripts independently
- * comparing script versions
- * keeping scripts in a dedicated backup folder
- * recovering scripts even if printer_data is partially restored
+If it helps relieve your mind, I recommend that you keep the current SD card aside, and flash the new MainsailOS to a new SD card.  That way, you can always fall-back to reinserting the original card back into the Host and deferring this upgrade altogether.
 
 ---
 
-### 🧩 Step 2 — Flash MainsailOS Bookworm
+### 🧩 Step 2 — Flash the Newest MainsailOS
 NB: Perform this step on your Windows or macOS laptop, not on the Pi.  
-Tip: Using a new SD card is recommended. This preserves your Bullseye system and allows easy rollback or dual‑boot simply by swapping SD cards.
+Tip: Using a new SD card is recommended. This preserves your current system and allows easy rollback or dual‑boot simply by swapping SD cards.
 
 
 #### Option A — Use Raspberry Pi Imager’s built‑in MainsailOS (recommended)
-Raspberry Pi Imager includes the latest official MainsailOS 3.x Bookworm (64‑bit) image.
+
 This is the simplest and safest method.
+Raspberry Pi Imager includes the latest official MainsailOS (64‑bit) image.
 
  * Remove the SD card from your Raspberry Pi and insert it into your laptop.
-(Or insert a brand‑new SD card if you want to preserve your Bullseye installation.)
+(Or insert a brand‑new SD card if you want to preserve your current installation.)
 
- * Install latest Raspberry Pi Imager on your laptop and Open it.
+ * Download and install the latest Raspberry Pi Imager on your laptop and Open it.
 
- * Click Choose OS → 3D Printing → MainsailOS → MainsailOS (64‑bit). (Precise route through the menus may vary with Imager version)
-   (This installs the same Bookworm image you would download manually in Option B.)
+ * Click Device → Choose Other specific-purpose OS → 3D Printing → MainsailOS → MainsailOS (64‑bit). (Precise route through the menus may vary with Imager version)
+   (This installs MainsailOS from the same image you would otherwise download manually in Option B.)
 
  * Click Choose Storage, then select your SD card.
 
@@ -200,10 +177,10 @@ If you prefer to download the image yourself:
 
 ---
 
-### 🧩 Step 3 — Verify the Fresh Bookworm System Before Restoring Backups
-**NB: Perform these checks immediately after the Pi boots Bookworm for the first time.**
+### 🧩 Step 3 — Verify the Fresh System Before Restoring Backups
+**NB: Perform these checks immediately after the Pi boots MainsailOS for the first time.**
 
-When the Pi boots from the newly‑flashed SD card, MainsailOS Bookworm performs several automatic first‑boot tasks:
+When the Pi boots from the newly‑flashed SD card, MainsailOS performs several automatic first‑boot tasks:
 
  * Expands the filesystem to use the full SD card
  * Initializes Moonraker
@@ -212,7 +189,7 @@ When the Pi boots from the newly‑flashed SD card, MainsailOS Bookworm performs
  * Starts SSH
  * Connects to Wi‑Fi (if configured in Raspberry Pi Imager)
 
-Before restoring your backups, complete the following verification steps:
+Before restoring your backups (at step 4), complete the following verifications:
 
 #### 3.1 Verify network connectivity
 
@@ -220,11 +197,13 @@ Check that the Pi has a valid IP:
 
 **Tip:** On first boot, If you have a display screen connected to the pi, and if the pi has connected to the local network, MainsailOS displays the Pi’s IP address at the top of the console screen (e.g., My IP address is 192.168.0.xxx).
 
+If you must SSH into the host to interact with it, this next step assumes you have correctly enabled SSH and that you remember your password.  If you can not SSH into the Pi, you will need to repeat step 2.
+
 ```bash
 hostname -I
 ```
 If using Ethernet, skip Wi‑Fi checks
-If using Wi‑Fi, confirm it connected:
+If using Wi‑Fi, confirm the Pi has Internet access:
 
 ```bash
 iwconfig
@@ -234,10 +213,10 @@ ping -c 3 google.com
 If the Pi did not connect:
  * Reflash the SD card
    * Re‑enter the local Wi‑Fi SSID and password into Raspberry Pi Imager
-   * Ensure Wi‑Fi country is set (e.g., CA for Canada)
+   * Ensure correct Wi‑Fi country capital is set (e.g., Ottawa for Canada)
 
 #### 3.2 Verify SSH access
-From your laptop (substitute <new-ip> with the ip of the Bookworm pi before running the command):
+From your laptop (substitute <new-ip> with the ip of the new Host before running the command):
 
 ```bash
 ssh pi@<new-ip>
@@ -253,9 +232,7 @@ If SSH fails:
 
 #### 3.3 Confirm the filesystem expanded correctly
 
-If you are no longer connected via SSH from step 3.2, then reconnect now.
-
-Then run:
+Via SSH, run this command on the host:
 
 ``` bash
 df -h /
@@ -287,6 +264,7 @@ sudo reboot
 ```
 
 This time, the expansion should complete.
+
 
 #### 3.4 Verify that Moonraker is running
 On the Pi:
@@ -389,9 +367,9 @@ In your laptop browser, open:
 
 ```Code
 http://<new-ip>
-(or http://mainsail.local, if that is the name you entered during the Mainsail pre-configuration)
+(or http://mainsailos.local, if mainsailos is the name you entered during the Mainsail pre-configuration)
 ```
-You should see the Mainsail interface.
+You should see the Mainsail interface in your browser.
 
 In the bottom left-hand corner of the Mainsail DASHBOARD is a question mark inside a circle.
 Clicking on that question mark will expose two version numbers, explained in the following table.
@@ -412,6 +390,7 @@ Then:
 ```bash
 sudo systemctl status mainsail
 ```
+
 
 #### 3.6 Verify the Pi’s clock and timezone
 Incorrect time causes:
@@ -460,6 +439,7 @@ sudo timedatectl set-timezone America/Los_Angeles
 sudo timedatectl set-timezone Asia/Singapore
 sudo timedatectl set-timezone Australia/Sydney
 ```
+
 
 3.7 Verify that the SD card is healthy
 Run:
@@ -530,7 +510,10 @@ sudo apt autoremove -y
 ```
 This ensures Bookworm is fully up to date before restoring your Klipper/Moonraker environment.
 
-#### 3.10 Only proceed to Step 4 (Restore Backups) once all checks pass
+
+
+#### 3.9 Only proceed to Step 4 (Restore Backups) once all checks pass
+
 This ensures the restore process runs on a stable, fully‑initialized Bookworm system.
 
 The above checks prevent:
@@ -545,60 +528,114 @@ The above checks prevent:
 ---
 
 ### 🧩 Step 4 — Restore Your Backups
+
+#### Copy the Backed-up Files to the Upgraded Host
 NB: Perform these restores from your Windows/macOS laptop, using the backups you created in Step 1.  
 Replace <new-ip> with the IP address of your Bookworm Pi.
 
 **NB: scp -r  overwrites existing directories, replacing their previous contents.**
 
-You have two restore options depending on how much you want to bring back:
-
-#### ⭐ Option A — Full Restore (Recommended)
-Restore all backed‑up directories:
-
 ```bash
+scp -r ./backup_dgus-reloaded pi@<new-ip>:/home/pi/klipper/klippy/extras/t5uid1 
 scp -r ./backup_printer_data pi@<new-ip>:/home/pi/printer_data
-scp -r ./backup_klipper pi@<new-ip>:/home/pi/klipper
-scp -r ./backup_moonraker pi@<new-ip>:/home/pi/moonraker
-scp -r ./backup_mainsail pi@<new-ip>:/home/pi/mainsail
-scp -r ./backup_scripts pi@<new-ip>:/home/pi/printer_data/config/scripts
 scp -r ./backup_klipper_backups pi@<new-ip>:/home/pi/klipper_backups
+scp -r ./backup_usr_local pi@<new-ip>:/usr/local
 ```
 This restores:
- * Klipper source
- * Klipper configs
- * Moonraker configs^
- * Mainsail configs*
- * DGUS‑Reloaded Pi-Side scripts
- * Klipper backup archives
- * All macros, logs, history, timelapse settings, etc.
+* All of the DGUS‑Reloaded files: 
+   * ~klipper/klippy/extras/t5uid1 and its subfolders
+   * ~/printer_data/config/scripts/
+ * All of the Mainsail Klipper Machine files in ~/printer_data/config, where most of your customizations and macros reside
+ * The local klipper_backup directory and files
+ * The script `reset_cr6_mcu_comms.sh`, which restarts klipper when the printer is powered-on
 
-^NOTE: Restoring moonraker/ will overwrite Bookworm’s default update‑manager configuration. This is expected, but advanced users may wish to review update_manager settings after restore.
-*NOTE: Restoring mainsail/ will overwrite any default Bookworm UI settings with your Bullseye UI configuration.
+#### Ensure That All Script Files are Executable
 
-#### ⭐ Option B — Minimal Restore (Advanced Users Only)
+Use SSH to issue the following two commands to the upgraded Host:
 
-Restore only the essential configuration directories:
-
-``` bash
-scp -r ./backup_printer_data pi@<new-ip>:/home/pi/printer_data
-scp -r ./backup_klipper pi@<new-ip>:/home/pi/klipper
-scp -r ./backup_moonraker pi@<new-ip>:/home/pi/moonraker
-```
-
-Use this only if:
-
- * you want a clean Mainsail install
- * you want to manually reinstall Pi-Side scripts
- * you want to keep Bookworm’s default UI configuration
-
-Most users should choose Option A.
-
-#### ⭐ Restart Required Services
-After restoring files, SSH into the Pi:
+1. Ensure that the line endings in the .sh files are all CR and not CRLF.
 
 ```bash
-ssh pi@<new-ip>
+sed -i 's/\r$//' ~/printer_data/config/scripts/*.sh
+sed -i 's/\r$//' /usr/local/*.sh
 ```
+This strips the Windows carriage return (\r) at the end of every line in every .sh file in each of the two directories.
+
+2. Ensure that all of the .sh files are executable on this Linux host
+
+```bash
+chmod +x ~/printer_data/config/scripts/*.sh
+chmod +x  /usr/local/*.sh
+```
+This sets the executable bit on every script in the two directories.
+
+#### Use the restore_klipper.sh Script to Restore the local Klipper repo
+
+```bash
+bash ~/printer_data/config/scripts/restore_klipper.sh
+```
+Choose the most recent archive, which you made at step 1. 
+   TIP: Only copy the most recent tar.gz and commit file to the new host at this step, based on timestamps in the file manager, to avoid any ambiguity as to which archive you want restored.
+
+This should completely restore the local klipper git repository to your system.
+Later, we will use Moonraker and Mainsail to confirm that Klipper has been fully restored (or to repair any issues with that repository that Moonraker flags.)
+
+#### Re-install Stable_Z_Home
+Follow step 5 in the 1-Installation_Manual.md.
+
+#### Re-Install KIAUH and gcode_shell_command
+Some of the macros in DGUS-Reloaded rely on the gcode_shell_command.py.  You can either comment-out those macros or perform this installation.
+KIAUH is a useful utility to be aware of, and is the easiest way to install gcode_shell_command.py, so this is a good time to install/restore it to your Klipper host.
+
+To install KIAUH, first install git on your Linux device with 
+```bash
+sudo apt-get update && sudo apt-get install git -y
+```
+Then clone the script with 
+```bash
+cd ~ && git clone https://github.com/dw-0/kiauh.git
+```
+After that, start KIAUH by running 
+```bash
+cd ~
+./kiauh/kiauh.sh
+```
+, which opens an interactive menu to install and manage Klipper and related tools.
+
+Navigate to (E)xtensions and select 1) G-Code Shell Command.
+
+   TIP: Make note of the other things that KIAUH allows you to install.  Add anything else that you would like, either now or later.
+
+#### Re-Create the .service and .rules files
+
+The .service and .rules files cannot just be copied from 6-Pi-side_scripts, they must be created.
+The process in each case is the same:
+ * SSH into the host
+ * Open the file in 6-Pi-side_scripts and copy the contents
+ * Use nano to create the new file with the same name and path on the host.
+ * Copy the contents of the file in 6-Pi-side_scripts.
+ * Paste those contents into the nano editor.
+ * Ctrl-O in nano and press return, to write the file to the host.
+ * Ctrl-X in nano, to close the editor
+
+Example:
+1. Open 6-Pi-side_scripts/etc/systemd/system/pushover_pause_monitor.service
+2. Create the file on the host
+```bash
+nano /etc/systemd/system/pushover_pause_monitor.service
+```
+3. Copy the contents of 6-Pi-side_scripts/etc/systemd/system/pushover_pause_monitor.service
+4. Paste those contents into the nano editor
+5. Ctrl-O in nano and press return, to write the file to the host.
+6. Ctrl-X in nano, to close the editor
+
+Repeat steps 1-6 for each of:
+ * 6-Pi-side_scripts/etc/systemd/system/reset_cr6_mcu_comms.service
+ * 6-Pi-side_scripts/etc/udev/rules.d/99-reset_cr6_mcu_comms.rules  (NB: Be sure to use the version of the rules that correspond to your printer's motherboard.)
+
+
+#### ⭐ Restart Required Services
+After restoring the above files, via SSH on the new host:
 
 Restart these two services:
 
@@ -613,6 +650,7 @@ Enable services to ensure they start automatically:
 sudo systemctl enable moonraker
 sudo systemctl enable klipper
 ```
+
 #### ⭐ Verify the restore
 From your laptop:
 
@@ -620,17 +658,24 @@ From your laptop:
     http://<new-ip>
     or
     http://mainsailos.local
-
- * Confirm Klipper loads your printer configuration
- * Confirm Moonraker API is responding
- * Confirm macros, scripts, and UI settings are present
- * Confirm your printer connects normally
+ * Navigate to the MACHINE tab
+   * In the Update Manager window: 
+     * Confirm that all of the managed components are reported to be "Up to Date"
+     * Select the small blue circular arrow icon to refresh Moonraker's assessment
+     * If Moonraker shows any of those components to be Incomplete, select that button and perform a Hard Reset.  Confirm that Moonraker then shows the component to be Up to Date.
+     * If Moonraker shows that any of the components is Out of Date, select those buttons to update those components.
+   * In the System Loads window:
+     * Confirm that no problems are being reported.
+       * Troubleshoot and resolve any problems shown.
+       * TIP: The `mcu` box refers to the motherboard and the `Host` box refers to the Klipper host.  
+   * Confirm that there are no notifications being reported (bell icon at top right of page)
+      * Troubleshoot and resolve any problems shown.
 
 ---
 
 ### 🧩 Step 5 — Post‑Restore Validation (Confirm Everything Works Before Printing)
 NB: Perform these checks immediately after completing Step 4.  
-Your Bookworm system now contains your restored Klipper, Moonraker, Mainsail, scripts, and configuration files.
+Your system now contains your restored Klipper, Moonraker, Mainsail, scripts, and configuration files.
 Before attempting any prints, verify that all components are functioning correctly.
 
 #### 5.1 Verify Moonraker is fully operational
