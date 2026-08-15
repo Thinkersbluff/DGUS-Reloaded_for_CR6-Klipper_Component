@@ -1,4 +1,4 @@
-Last Updated: 12 August 2026
+Last Updated: 14 August 2026
 
 
 # DGUS-reloaded-Klipper, CR6Community Edition!
