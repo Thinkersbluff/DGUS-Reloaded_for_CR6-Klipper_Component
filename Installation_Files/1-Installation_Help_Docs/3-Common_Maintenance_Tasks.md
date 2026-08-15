@@ -37,6 +37,20 @@ Expected:
 
 ---
 
+Example:
+After installing the DGUS-Reloaded extensions to Klipper, the above command may return something like this.
+```Code
+pi@mainsailOS:~ $ cd ~/klipper
+git status -sb
+git rev-parse --short HEAD
+## master...origin/master
+?? klippy/extras/gcode_shell_command.py
+?? klippy/extras/stable_z_home.py
+?? klippy/extras/t5uid1/
+0499b303
+
+```
+
 ## Task 1: Back Up Klipper Before Any Risky Change
 
 ### When to use
