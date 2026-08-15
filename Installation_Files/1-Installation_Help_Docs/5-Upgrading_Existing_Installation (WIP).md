@@ -10,7 +10,7 @@ Existing DGUS‑Reloaded installations running on an outdated version of Mainsai
 This guide explains how to safely transfer your existing DGUS-Reloaded Klipper installation while preserving what you can of any customisations you have made in ~printer_data and in ~klipper/klippy/extras.  You will still need to reinstall some things, but it should help you get back up and running on the new OS with the minimum risk and effort.
 
 ## Backgrounder
-A MainsailOS upgrade is mandatory if you want to take advantage of the latest features and those features rely on an updated version of Python.  (e.g. Mainsail 1.2.x (BUllseye) relies on Python 3.9, which is now at end of life and  no longer supported.)
+A MainsailOS upgrade is mandatory if you want to take advantage of the latest features and those features rely on an updated version of Python.  (e.g. Mainsail 1.2.x (Bullseye) relies on Python 3.9, which is now at end of life and  no longer supported.)
 
 The only way to upgrade MainsailOS is to re-flash the Host with the latest version, which will in-turn erase the SD card (or will require a new SD card), removing all of the customizations you may have made to printer.cfg, etc..
 
@@ -58,6 +58,9 @@ You will keep:
 ---
 
 ### 🧩 Step 1 — Back Up Your System
+
+Klipper contains symlinks, venv paths, and git metadata that scp cannot preserve. Only backup_klipper.sh can safely capture these.
+
 Run:
 
 ``` bash
@@ -67,8 +70,8 @@ NOTE: If you receive a "no such file" error when running the above script, see t
 
 
 Then manually back up (copy):
-```
-Code
+
+```Code
 ~/printer_data/
 ~/klipper_backups/
 ~/klipper/klippy/t5uid1
@@ -84,7 +87,7 @@ From a second processor on the same network, running a Linux terminal, back up t
 scp -r pi@<old-ip>:/home/pi/printer_data ./backup_printer_data
 scp -r pi@<old-ip>:/home/pi/klipper_backups ./backup_klipper_backups
 scp -r pi@<old-ip>:/home/pi/klipper/klippy/extras/t5uid1 ./backup_dgus-reloaded
-scp -r pi@<new-ip>:/usr/local/*.sh ./backup_usr_local
+scp -r pi@<old-ip>:/usr/local/*.sh ./backup_usr_local
 
 ```
 
@@ -98,7 +101,7 @@ If using an MS Windows machine and not comfortable with Linux terminal programs,
 The above set of backups preserves:
 
  * All klipper_backups
- * The DGUS-Reloaded Klipper COmponent as you have tailored it for your printer
+ * The DGUS-Reloaded Klipper Component as you have tailored it for your printer
  * The Mainsail|Klipper|Moonraker|etc. configuration files as you have tailored them for your printer
 
 You will be able to restore your tailored files to the new upgraded host, from these backups.
@@ -310,9 +313,7 @@ Example:
 ```Code
 Active: active (running) since Mon 2026-04-20 ...
 ```
-This does not mean that Moonraker has been running for months.
-It simply reflects preserved state from your restored printer_data directory.
-It will update after your full restore.
+This timestamp reflects when the restored Moonraker unit last started on the old system. It will update after the first restart on the new host.
 
 2. Git diagnostic lines are informational
 
@@ -539,8 +540,10 @@ Replace <new-ip> with the IP address of your Bookworm Pi.
 scp -r ./backup_dgus-reloaded pi@<new-ip>:/home/pi/klipper/klippy/extras/t5uid1 
 scp -r ./backup_printer_data pi@<new-ip>:/home/pi/printer_data
 scp -r ./backup_klipper_backups pi@<new-ip>:/home/pi/klipper_backups
-scp -r ./backup_usr_local pi@<new-ip>:/usr/local
+scp -r ./backup_usr_local/*.sh pi@<new-ip>:/usr/local
 ```
+   **WARNING: Do NOT restore arbitrary directories under /usr/local. Only restore the .sh helper scripts you previously installed.**
+
 This restores:
 * All of the DGUS‑Reloaded files: 
    * ~klipper/klippy/extras/t5uid1 and its subfolders
@@ -548,6 +551,9 @@ This restores:
  * All of the Mainsail Klipper Machine files in ~/printer_data/config, where most of your customizations and macros reside
  * The local klipper_backup directory and files
  * The script `reset_cr6_mcu_comms.sh`, which restarts klipper when the printer is powered-on
+
+NOTE: Moonraker may temporarily report Klipper as ‘Incomplete’ or ‘Out of Date’ immediately after restoring printer_data. This should resolve automatically once restore_klipper.sh completes.
+
 
 #### Ensure That All Script Files are Executable
 
@@ -575,7 +581,7 @@ This sets the executable bit on every script in the two directories.
 bash ~/printer_data/config/scripts/restore_klipper.sh
 ```
 Choose the most recent archive, which you made at step 1. 
-   TIP: Only copy the most recent tar.gz and commit file to the new host at this step, based on timestamps in the file manager, to avoid any ambiguity as to which archive you want restored.
+   TIP: Only copy the most recent tar.gz and commit file to the new host at this step, to avoid ambiguity as to which archive you want restored.
 
 This should completely restore the local klipper git repository to your system.
 Later, we will use Moonraker and Mainsail to confirm that Klipper has been fully restored (or to repair any issues with that repository that Moonraker flags.)
@@ -637,14 +643,20 @@ Repeat steps 1-6 for each of:
 #### ⭐ Restart Required Services
 After restoring the above files, via SSH on the new host:
 
-Restart these two services:
+Restart systemd:
+
+```bash
+sudo systemctl daemon-reload
+```
+
+Then restart these two services:
 
 ```bash
 sudo systemctl restart moonraker
 sudo systemctl restart klipper
 ```
 
-Enable services to ensure they start automatically:
+Enable the services to ensure they start automatically:
 
 ```bash
 sudo systemctl enable moonraker
@@ -928,3 +940,192 @@ Moonraker Now Has:
 
  * Full notifications support
  * Full PushOver support
+
+---
+
+# 🛠️ Troubleshooting Appendix — Common Issues and Solutions
+This appendix lists the most frequent problems encountered during migration and how to resolve them quickly.
+
+## 1 — SSH Fails After Flashing the New OS
+
+Symptoms:
+ * Connection refused
+ * Timeout
+ * “Host unreachable”
+
+Causes & Fixes:
+ * SSH was not enabled in Raspberry Pi Imager
+   → Reflash and enable SSH
+
+ * Wrong or missing Wi‑Fi SSID/password
+   → Reflash with correct credentials
+
+ * Wrong Wi‑Fi regulatory domain
+   → Set correct country (e.g., Canada → Ottawa)
+
+ * Try connecting to the Pi via an Ethernet cable, temporarily
+  → Run raspi config to program the Network Wi-Fi settings, rather than having to reflash
+
+## 2 — Filesystem Did Not Expand
+
+Symptoms:  
+df -h / shows only 3–4 GB available on a large SD card.
+
+Fix:
+
+```bash
+sudo reboot
+```
+If still incorrect:
+ * Replace SD card
+ * Reflash MainsailOS
+
+## 3 — Moonraker Shows “Incomplete”, “Out of Date”, or “Pinned Commit Mismatch”
+
+Cause:  
+Moonraker scans printer_data before the Klipper repo is restored.
+
+Fix:
+
+1) Refresh the Update Manager in the Mainsail MACHINE tab
+or
+2) Run:
+```bash
+bash ~/printer_data/config/scripts/restore_klipper.sh
+sudo systemctl restart moonraker
+```
+Then refresh the Update Manager in Mainsail.
+
+## 4 — DGUS‑Reloaded Pi-side Scripts Fail to Run
+
+Symptoms:
+ * Klipper flags gcode_shell_command macros as undefined or not valid
+ * Pi reports “Script not executable”
+   or “Command not found”
+ * Silent failures (i.e. "nothing happens" when script is run)
+
+Fixes:
+
+Ensure gcode_shell_command.py is installed in ~klipper/klippy/extras, using KIAUH.
+
+Ensure that all line endings in the script files are CR, not CRLF:
+
+```bash
+sed -i 's/\r$//' ~/printer_data/config/scripts/*.sh
+```
+
+Set the "file executable" bit in the script file properties:
+
+```bash
+chmod +x ~/printer_data/config/scripts/*.sh
+```
+
+Check the Moonraker log for error messages:
+
+```bash
+journalctl -u moonraker -n 50 --no-pager
+```
+Troubleshoot and resolve any reported issues.
+
+## 5 — Klipper Fails to Start After Restore
+
+Symptoms:
+ * “Klipper not ready”
+ * “MCU offline”
+ * Config errors in Mainsail
+ * Moonraker Update Manager flags klipper as Incomplete
+
+Fixes:
+
+1) Restart Klipper
+
+```bash
+sudo systemctl restart klipper
+```
+
+2) Use Moonraker Update Manager to Soft Reset or Hard Reset the repo
+
+Check logs:
+```bash
+journalctl -u klipper -n 50 --no-pager
+```
+Troubleshoot and resolved any remaining reported issues.
+
+Common causes:
+ * Old Python 3.9 paths in configs
+ * Restored from an incomplete backup
+ * Missing MCU firmware
+ * USB cable issues
+ * Incorrect printer.cfg merge
+
+## 6 — Mainsail Loads but Shows “Moonraker Offline”
+
+Fixes:
+
+```bash
+sudo systemctl restart moonraker
+sudo systemctl enable moonraker
+```
+
+Check Moonraker logs for missing Python modules.
+
+If necessary:
+
+```bash
+sudo apt update
+sudo apt upgrade -y
+```
+
+## 7 — MCU Offline After Restore
+
+Symptoms:
+ * Klipper reports unable to communicate with mcu
+ * No temperature readings
+ * No fans/heaters
+ * Homing fails
+
+Fixes:
+ * Check/replace USB cable (e.g. data cable vs charging-only cable)
+ * Reflash MCU .bin file
+ * Ensure correct serial path in printer.cfg
+ * Power‑cycle printer and Pi
+
+
+## 8 — Systemd Services Not Detected
+
+Symptoms:
+ * Custom services do not start
+ * systemctl status shows “Unit not found”
+
+Fix:
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl restart <service-name>
+sudo systemctl enable <service-name>
+```
+
+## 9 — Wrong Timezone or Clock Causes SSL/Moonraker Errors
+
+Fix:
+
+```bash
+sudo timedatectl set-timezone <your-timezone>
+```
+Confirm NTP sync:
+
+```bash
+timedatectl
+```
+
+## 10 — SD Card Errors in dmesg
+
+Symptoms:
+ * Read/write failures
+ * “mmc0: timeout”
+ * “I/O error”
+
+Fixes:
+ * Replace SD card
+ * Reflash MainsailOS
+ * Avoid low‑quality cards
