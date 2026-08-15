@@ -29,12 +29,10 @@ DGUS-Reloaded for CR6 consists primarily of two synchronized subsystems:
 
 Both subsystems must be installed and the two must be compatible with each other. Both subsystems are now each released under the same version number, to help users ensure that they have installed the correct versions with each other.  
 
-You install standard Klipper as usual, then integrate DGUS-Reloaded to enable the display:
-   1. Flash the DWIN_SET firmware to your display*
-   2. Install the t5uid1 extras, stable_z_home add-on, gcode_shell_command.py and Pi-Side scripts to Klipper
-   3. Flash the pre-compiled Klipper firmware binary to your motherboard
-   4. Copy and configure the printer.cfg and companion configuration files
-   5. (Optional) Configure your slicer for progress display integration
+TIPS: 
+ * Users with little or no prior knowledge or experience of Linux systems may find the learning curve a bit steep at first.  I find that AI bots can ease that burden a little.  Be aware, though, that chatbots often make mistakes and it takes us users a little while to discover when we are being led astray...
+ * I have included [a complete and detailed set of instructions](Installation_Files/1-Installation_Help_Docs) in this repository, bundled with the files to be installed and configured.
+ * These help documents have been structured for ease of use by both novice and advanced users of Linux and Klipper.
 
 
 ## Can I Install This with the Latest Klipper from Klipper3D?
