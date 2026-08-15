@@ -1,9 +1,12 @@
 # 99-reset_cr6_mcu_comms.rules
 #
-# When the CR6 MCU USB serial device appears, ask systemd to run the recovery service.
+# RULE: When the CR6 MCU USB serial device appears, ask systemd to run the recovery service.
 #
-# BEFORE INSTALLING: replace the ENV{ID_SERIAL} value with your MCU_SERIAL_ID value.
-# Run this on the Pi to find it:
+# IMPORTANT NOTE: the ENV{ID_SERIAL} value must be the MCU_SERIAL_ID value for your motherboard.
+# Creality stock motherboards for the CR6 historically ALL use the same value of 1a86_USB_Serial, so
+# I have pre-filled that value for you. 
+
+# If you still wish to confirm the ENV(ID_SERIAL) value below, run this command on the Pi:
 #   for d in /dev/ttyUSB*; do [ -e "$d" ] || continue; echo "$d -> $(udevadm info -q property -n "$d" | sed -n 's/^ID_SERIAL=//p')"; done
 #
-ACTION=="add", SUBSYSTEM=="tty", KERNEL=="ttyUSB*", ENV{ID_SERIAL}=="YOUR-MCU-SERIAL-ID-HERE", TAG+="systemd", ENV{SYSTEMD_WANTS}+="reset_cr6_mcu_comms.service"
+ACTION=="add", SUBSYSTEM=="tty", KERNEL=="ttyUSB*", ENV{ID_SERIAL}=="1a86_USB_Serial", TAG+="systemd", ENV{SYSTEMD_WANTS}+="reset_cr6_mcu_comms.service"
