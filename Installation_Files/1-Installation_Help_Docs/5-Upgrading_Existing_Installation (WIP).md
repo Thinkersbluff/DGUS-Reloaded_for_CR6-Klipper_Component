@@ -12,8 +12,8 @@ Last Updated: 16 August 2026
 - [Step 4 — Restore Your Backups](#-step-4--restore-your-backups)
 - [Step 5 — Confirm Everything Works Before Printing](#-step-5--confirm-everything-works-before-printing)
 - [Step 6 — Activate External Notifications)](#-step-6--activate-external-notifications)
-- [Step 7 — Verify Some DGUS-Reloaded Functionality](#-step-7--verify-some-dgus-reloaded-functionality)
-- [Step 8 — Validate Moonraker](#-step-8--validate-moonraker)
+- [Step 7 — Validate Moonraker](#-step-7--validate-moonraker)
+- [Step 8 — Verify Some DGUS-Reloaded Functionality](#-step-8--verify-some-dgus-reloaded-functionality)
 - [Troubleshooting Appendix](#-troubleshooting-appendix)
 
 ## Applies To: 
@@ -57,6 +57,7 @@ You will keep:
    * ~klipper/klippy/extras/t5uid1 and its subfolders
    * ~/printer_data/config/scripts/
  * All of the Mainsail Klipper Machine files in ~/printer_data/config, where most of your customizations and macros reside
+ * The full contents of your Virtual SD Card (i.e. all of the gcode files currently loaded onto the printer)
  * The local Klipper git repository (as a tar.gz backup file and Commit reference)
 
 ❌ What Will NOT Be Preserved Automatically
@@ -94,13 +95,13 @@ Then manually back up (copy):
 
 From a second processor on the same network, running a Linux terminal, back up these folders from your Bullseye host to the second processor. 
  * Navigate to the target directory on the second processor
- * Replace <old-ip> with the actual ip address of the host being backed-up, before running them
+ * IF your system cannot resolve mainsailos.local, replace that with the actual ip address of the host being backed-up, before running each script
  * Run each of these scripts in-turn:
 ``` bash
-scp -r pi@<old-ip>:/home/pi/printer_data ./backup_printer_data
-scp -r pi@<old-ip>:/home/pi/klipper_backups ./backup_klipper_backups
-scp -r pi@<old-ip>:/home/pi/klipper/klippy/extras/t5uid1 ./backup_dgus-reloaded
-scp -r pi@<old-ip>:/usr/local/*.sh ./backup_usr_local
+scp -r pi@mainsailos.local:/home/pi/printer_data ./backup_printer_data
+scp -r pi@mainsailos.local:/home/pi/klipper_backups ./backup_klipper_backups
+scp -r pi@mainsailos.local:/home/pi/klipper/klippy/extras/t5uid1 ./backup_dgus-reloaded
+scp -r pi@mainsailos.local:/usr/local/*.sh ./backup_usr_local
 
 ```
 
@@ -115,23 +116,32 @@ The above set of backups preserves:
 
  * All klipper_backups
  * The DGUS-Reloaded Klipper Component as you have tailored it for your printer
+ * The klipper restart script that automatically restores the DGUS-Reloaded home screen when the printer is power-cycled
  * The Mainsail|Klipper|Moonraker|etc. configuration files as you have tailored them for your printer
 
 You will be able to restore your tailored files to the new upgraded host, from these backups.
 You will need to reinstall other elements of the system, which can not simply be copied. 
 
-Don't worry, we will guide you through all of that restoration activity at step 4. 
+Don't worry:
+ * We guide you through all of the necessary restoration activity in step 4 of this guide
+ * We guide you through a thorough validation of the restored system in steps 5 through 8.
+ * We have validated this complete process by performing it ourselves, step-by-step as written.
 
-If it helps relieve your mind, I recommend that you keep the current SD card aside, and flash the new MainsailOS to a new SD card.  That way, you can always fall-back to reinserting the original card back into the Host and deferring this upgrade altogether.
+If it helps relieve your mind:
+ * We recommend that you keep the current SD card aside, and flash the new MainsailOS to a new SD card.  That way, you can always fall-back to reinserting the original card back into the Host and deferring this upgrade altogether.
 
 ---
 
 ### 🧩 Step 2 — Flash the Newest MainsailOS
+
 NB: Perform this step on your Windows or macOS laptop, not on the Pi.  
-Tip: Using a new SD card is recommended. This preserves your current system and allows easy rollback or dual‑boot simply by swapping SD cards.
+Tips: 
+ * Using a new SD card is recommended. This preserves your current system and allows easy rollback or dual‑boot simply by swapping SD cards.
+ * Format the card on your computer, before beginning the Mainsail flashing process.  If there are any problems on the card, you want to find those before you spend the time to flash and boot.  Booting MainsailOS will NOT succeed if there are errors on the card.
+ * SD cards can and do wear out, with use.  It is very frustrating to suddenly have to rebuild your system because the card has failed.  It is worth your money to buy a High Endurance Card (like the ones meant for use in security cameras.)
 
 
-#### Option A — Use Raspberry Pi Imager’s built‑in MainsailOS (recommended)
+#### Option A — Use Raspberry Pi Imager’s built‑in MainsailOS (recommended for flashing Pi Hosts)
 
 This is the simplest and safest method.
 Raspberry Pi Imager includes the latest official MainsailOS (64‑bit) image.
@@ -141,55 +151,55 @@ Raspberry Pi Imager includes the latest official MainsailOS (64‑bit) image.
 
  * Download and install the latest Raspberry Pi Imager on your laptop and Open it.
 
- * Click Device → Choose Other specific-purpose OS → 3D Printing → MainsailOS → MainsailOS (64‑bit). (Precise route through the menus may vary with Imager version)
+ * Click the type of Pi host that you will be using (e.g. Rasp Pi 4)
+
+ * Click NEXT → choose Other specific-purpose OS → 3D Printing → MainsailOS → MainsailOS (64‑bit). (Precise route through the menus may vary with Imager version)
    (This installs MainsailOS from the same image you would otherwise download manually in Option B.)
 
- * Click Choose Storage, then select your SD card.
+ * Click NEXT → select the SD card you want to flash for the Pi.
+  
+ * Click NEXT → enter `mainsailos` as the host name
+  
+ * Click NEXT → Select the Capital City of the country where the Host will use WiFi
+              → Select the timezone where this Host will run
+              → Select the style of keyboard with which you will interact with the host
+              NOTE: The above settings will likely already be correctly set by Imager.
 
- * Click the gear icon (⚙️) to open Advanced Options, and configure:
+ * Click NEXT → Enter `pi` as the username (assumed by Mainsail and DGUS-Reloaded. Embedded in scripts. PIA to change...)
+              → Enter a password of your choosing - this is the sudo password on the host DO NOT LOSE OR FORGET IT!
 
-    Hostname:  
-    mainsailos (or your preferred name)
+ * Click NEXT → Enter the SSID of the WiFi network
+              → Enter the password for your WiFI network 
 
-    Locale options:  
-    ✔ Capital of Wi‑Fi country (e.g., Ottawa/Canada)
-    ✔ Time zone (e.g. Toronto)
-    ✔ Keyboard layout (e.g. US)
+ * Click NEXT → Select Enable SSH
+              → Select Use Password Authentication (You will use the Sudo password to login via SSH)
 
-    Enable SSH:  
-    ✔ Enable SSH
-    ✔ Use password authentication
+ * Click NEXT → Click WRITE to flash MainsailOS and the above configuration choices to the SD card
 
-    Set username and password:  
-    Username: pi  
-    Password: (your chosen password)
+ * Imager warns you that WRITE will erase everything on the SD card
+   * Click ACCEPT, if you are confident this is the card to use
+    Raspberry Pi Imager will erase SD card and write MainsailOS.
 
-    Configure Wi‑Fi (if using wireless):  
-    ✔ SSID
-    ✔ Password
-
-    Click Write.
-    Raspberry Pi Imager will erase the old Bullseye installation (if reusing the card) and write Bookworm.
-
-    When finished, reinsert the SD card into your Pi and boot the Pi.
+ * When Imager has finished:
+    * Click FINISHED 
+    * Eject and remove the SD card from your computer.
+    * Verify that power is OFF on your Pi.
+    * Insert the SD card into your Pi.
+    * Boot the Pi by powering it up.
+    * Wait for the boot to complete.
+    * Proceed to step 3.
 
 #### Option B — Use a manually downloaded image (alternate method)
 If you prefer to download the image yourself:
 
- * Download the latest MainsailOS Bookworm image from
+ * Download the latest MainsailOS image from
     https://mainsail.xyz
 
  * Remove the SD card from your Raspberry Pi and insert it into your laptop.
-
+    (Or insert a brand‑new SD card if you want to preserve your current installation.)
  * Install or open Raspberry Pi Imager.
-
  * Click Choose OS → Use custom, then select the .img.xz file you downloaded.
-
- * Configure Advanced Options as described in Option A.
-
- * Click Write.
-
- * Reinsert the SD card into your Pi and boot the Pi.
+ * Follow the remaining steps in Option A.
 
 ---
 
@@ -198,12 +208,16 @@ If you prefer to download the image yourself:
 
 When the Pi boots from the newly‑flashed SD card, MainsailOS performs several automatic first‑boot tasks:
 
- * Expands the filesystem to use the full SD card
+ * Connects to Wi‑Fi (if configured in Raspberry Pi Imager)E
+ * xpands the filesystem to use the full SD card
  * Initializes Moonraker
  * Initializes Mainsail
  * Sets up the default user environment
  * Starts SSH
- * Connects to Wi‑Fi (if configured in Raspberry Pi Imager)
+
+  **NB: This first boot process can take 5-10 minutes (maybe longer) to complete.**
+  It helps a lot to have a screen attached to the Pi, to monitor the process!
+  **You will not be able to SSH into the host until the process is completed.**
 
 Before restoring your backups (at step 4), complete the following verifications:
 
@@ -211,7 +225,9 @@ Before restoring your backups (at step 4), complete the following verifications:
 
 Check that the Pi has a valid IP:
 
-**Tip:** On first boot, If you have a display screen connected to the pi, and if the pi has connected to the local network, MainsailOS displays the Pi’s IP address at the top of the console screen (e.g., My IP address is 192.168.0.xxx).
+**Tips:** 
+ * On first boot, If you have a display screen connected to the pi, and if the pi has connected to the local network, MainsailOS displays the Pi’s IP address at the top of the console screen (e.g., My IP address is 192.168.0.xxx).
+ * If you have no screen attached to the Pi, but you did enter mainsailos as the host name, then you may be able to SSH into the host using `SSH pi@mainsailos.local` if you do not yet know the actual ip address.
 
 If you must SSH into the host to interact with it, this next step assumes you have correctly enabled SSH and that you remember your password.  If you can not SSH into the Pi, you will need to repeat step 2.
 
@@ -298,27 +314,38 @@ systemctl status moonraker
 you are checking whether Moonraker is healthy on the new Bookworm system.
 You do not need to understand every line — only the key indicators.
 
-✔ What you want to see
-1. Service is running
+✔ What to check:
 
+1. If the Moonraker Service is running, you will see:
 ```Code
 Active: active (running)
 ```
-This is the single most important line.
-It means Moonraker started correctly, its Python environment is valid, and Bookworm’s systemd configuration is working.
+This is the single most important line in the output.
+It means Moonraker started correctly, its Python environment is valid, and the systemd configuration is working.
 
 2. The correct Python environment is in use
+
+If you see this line in the output, it confirms that moonraker is up, running and using the Python virtual environment (venv) as it should, and not on the system python:
 
 ```Code
 /home/pi/moonraker-env/bin/python -m moonraker
 ```
-This confirms Moonraker is running inside its dedicated virtual environment, not the system Python.
 
-3. No errors or warnings appear
+✔ Expect warnings at this stage:
 
-If the status output shows only informational lines (Git repo checks, version info, etc.), the service is healthy.
+Because we have not yet restored your printer_data/config directory, Moonraker will show warnings such as:
 
-✔ What may look strange but is normal
+```Code
+Unable to open config file /home/pi/printer_data/config/printer.cfg
+Printer is halted
+```
+
+These messages are normal at Step 3.4.
+Moonraker is healthy — it is simply reporting that Klipper has no configuration files yet.
+We will resolve this automatically in Step 4 when we restore your backups.
+
+✔ BTW: This may look strange but it is normal:
+
 1. The “Active since…” timestamp may show an old date
 
 Example:
@@ -376,6 +403,7 @@ journalctl -u moonraker -n 50 --no-pager
 Look for any startup issues.
 If you find errors, stop and troubleshoot/resolve them.
 
+
 #### 3.5 Verify that Mainsail is running
 In your laptop browser, open:
 
@@ -393,8 +421,12 @@ Clicking on that question mark will expose two version numbers, explained in the
 | Mainsail  | `v2.17.0`                       | Confirms the updated Mainsail front‑end is installed      |
 | Klipper   | `v0.10.0‑19‑g1ed102e`           | Shows Klipper is running and communicating with Moonraker |
 
+On the MACHINE tab, the Moonraker Update Manager should show you which components are presently installed and whether there are pending updates for any of them. (Imager will have installed whatever was the latest when the MainsailOS package was last uploaded to Imager, but the developers may have updated their firmware since then.)
 
-If you cannot open mainsailos.local, try running these commands on the pi:
+If Moonraker has flagged any of those components with a Yellow/Orange label (e.g. `Incomplete`), there is a problem with the installation.  Green `Up to Date` and Blue `Update` labels are ok and normal at this stage.
+
+
+**Troubleshooting:** If you cannot open mainsailos.local, try running these commands on the pi:
 
 ```bash
 sudo systemctl restart mainsail
@@ -407,23 +439,17 @@ sudo systemctl status mainsail
 
 
 #### 3.6 Verify the Pi’s clock and timezone
-Incorrect time causes:
 
- * SSL certificate failures
- * Moonraker API errors
- * Klipper refusing to start
-
-Check:
+Run this command on the pi:
 
 ```bash
 timedatectl
 ```
-```bash
-timedatectl status
-```
-This shows NTP sync state.
 
-Example:
+This shows NTP sync state on the pi to confirm that the Pi’s clock, timezone, and NTP synchronization are correct.
+(Note: timedatectl and timedatectl status produce identical output on Bookworm, so only one command is needed.)
+
+Example output:
 
 ```Code
 pi@mainsailOS:~ $ timedatectl
@@ -435,8 +461,7 @@ System clock synchronized: yes
               NTP service: active
           RTC in local TZ: no
 ```
-
-If the reported timezone is wrong:
+If the reported timezone is wrong, you can modify it with these commands:
 ```bash
 # List all available installed timezones
 find /usr/share/zoneinfo -type f | sed 's|/usr/share/zoneinfo/||' | sort
@@ -454,8 +479,10 @@ sudo timedatectl set-timezone Asia/Singapore
 sudo timedatectl set-timezone Australia/Sydney
 ```
 
-
 ## 3.7 Verify that the SD card is healthy
+
+NOTE: If the card is not healthy, the first boot process probably flagged issues and may have failed.
+
 Run:
 
 ```bash
@@ -510,7 +537,12 @@ If you see:
 
 …then your SD card is fully initialized and ready, and you can safely continue to the next step of the upgrade.
 
-If instead errors appear, replace the SD card and restart this process at Step 2.
+
+**BUT:** If instead you see EXT4 errors such as ‘checksum invalid’, ‘Corrupt inode bitmap’, ‘Filesystem failed CRC’, or ‘Card stuck being busy’, stop immediately.
+
+These errors indicate SD card failures. You are not going to be happy if you use this card to upgrade your system. It is already failing!
+
+Replace the SD card and restart the upgrade at Step 2.
 
 
 #### 3.8 Optional: Update system packages
@@ -958,7 +990,7 @@ It should be rare, but worst-case you may need to re-install DGUS-Reloaded from 
 ## 🎉 Upgrade Is Complete!
 Your DGUS‑Reloaded installation is now running on:
 
- * Python 3.11 (or higher)
+ * The latest in-service Python (e.g.: Python 3.13, in Mainsail 3.0.0)
  * The latest Moonraker
  * The latest MainsailOS
 
@@ -1147,11 +1179,39 @@ timedatectl
 ## 10 — SD Card Errors in dmesg
 
 Symptoms:
- * Read/write failures
- * “mmc0: timeout”
- * “I/O error”
+
+You see errors reported in the response to this command:
+```bash
+ sudo dmesg | grep mmc
+```
+
+❌ What these errors mean (plain English)
+1. “checksum invalid”
+EXT4 tried to read an inode (a file metadata structure) and the checksum didn’t match.
+This means data corruption.
+
+2. “Corrupt inode bitmap”
+The inode allocation map is damaged.
+This is a structural filesystem failure, not a simple bad file.
+
+3. “Filesystem failed CRC”
+CRC failures mean the SD card is returning incorrect data.
+This is almost always hardware failure.
+
+4. “Card stuck being busy!”
+The SD card controller is waiting for the card to respond, and it never does.
+This is a classic sign of:
+
+worn‑out flash cells
+
+failing controller
+
+counterfeit SD card
+
+or a card that is dying under load
 
 Fixes:
  * Replace SD card
- * Reflash MainsailOS
- * Avoid low‑quality cards
+   Then:
+   * Reflash MainsailOS (i.e. roll back your upgrade to the beginning of Step 2)
+ * Avoid using low‑quality cards
