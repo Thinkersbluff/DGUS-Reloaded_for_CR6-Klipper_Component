@@ -830,6 +830,7 @@ Your system now contains your restored Klipper, Moonraker, Mainsail, scripts, an
 Before attempting any prints, verify that all components are functioning correctly.
 
 #### 5.1 Verify Moonraker is fully operational
+
 On the Pi:
 
 ```bash
@@ -896,14 +897,86 @@ If Klipper reports configuration errors, fix them before continuing.
 
 NOTE: If you previously used custom Python virtual environments, verify that your restored configuration does not reference old Python 3.9 paths.
 
-#### 5.4 Verify DGUS‑Reloaded Pi-Side scripts and macros
+#### 5.4 Verify the DGUS‑Reloaded Pi-Side scripts
 
-In Mainsail:
+On the Pi:
 
- * Open Machine → Macros
- * Confirm your macros are present
- * Confirm DGUS‑Reloaded Pi-Side scripts appear under printer_data/config/scripts
- * Run a simple macro (e.g., STATUS_READY) to confirm Klipper responds normally
+ 1. Run: 
+   ```bash
+   ~/printer_data/config/scripts/test_syntax_host.sh
+   ```
+   Verify that the response is: 
+   ```Code
+   Running syntax checks for scripts in: /home/pi/printer_data/config/scripts
+   Checking: /home/pi/printer_data/config/scripts/backup_klipper.sh
+   Checking: /home/pi/printer_data/config/scripts/git_ignore.sh
+   Checking: /home/pi/printer_data/config/scripts/manage_t5uid1_patches.sh
+   Checking: /home/pi/printer_data/config/scripts/restore_klipper.sh
+   Checking: /home/pi/printer_data/config/scripts/test_syntax_host.sh
+   All syntax checks passed
+   ```
+ 2. Run:
+    ```Code
+    ~/printer_data/config/scripts/backup_klipper.sh
+    ```
+    Verify the response.
+    Example:
+    ```Code
+    Creating backup of /home/pi/klipper -> /home/pi/klipper_backups/klipper.20260817_111308.tar.gz
+    Recorded commit SHA in /home/pi/klipper_backups/klipper.20260817_111308.commit
+    Backup complete: /home/pi/klipper_backups/klipper.20260817_111308.tar.gz
+    Backups kept in: /home/pi/klipper_backups
+    ```
+  3. Run:
+  ```Code
+   ~/printer_data/config/scripts/manage_t5uid1_patches.sh reapply
+   ```
+
+   Verify the response is:
+
+   ```Code
+   Backing up current files to /home/pi/.dgus_patch_backups/reapply_20260817112606
+   Adding DGUS lines back to Kconfig and Makefile (idempotent)
+   Done. You may now run make to build klipper.bin for your board.
+
+   ```
+   Run:
+    ```Code
+   ~/printer_data/config/scripts/manage_t5uid1_patches.sh status
+
+   Verify the response is:
+   ```Code
+   Kconfig:
+     contains t5uid1 include
+   Makefile:
+     contains t5uid1 include
+   ```
+
+   Run:
+  ```Code
+   ~/printer_data/config/scripts/manage_t5uid1_patches.sh prepare
+   ```
+
+   Verify the response is:
+
+   ```Code
+   Backing up originals to /home/pi/.dgus_patch_backups/prepare_20260817112152
+   Removing DGUS lines from Kconfig and Makefile (preferred: restore tracked files)
+   Restoring tracked files to HEAD using git restore
+   Done. You can now update Klipper (git pull) and then run '/home/pi/printer_data/config/scripts/manage_t5uid1_patches.sh reapply'.
+   ```
+
+  Run:
+    ```Code
+   ~/printer_data/config/scripts/manage_t5uid1_patches.sh status
+
+   Verify the response is:
+   ```Code
+   Kconfig:
+     does NOT contain t5uid1 include
+   Makefile:
+     does NOT contain t5uid1 include
+  ```
 
 If Pi-Side scripts fail to run:
 
@@ -917,7 +990,17 @@ If Pi-Side scripts fail to run:
  ```
  * Check Moonraker logs for script‑related errors
 
-#### 5.5 Verify printer hardware connectivity
+  If any of the above scripts is missing, find thaat script in 6-Pi-side_scripts/printer_data/config/scripts and copy it to the pi, then repeat the test.
+
+
+#### 5.5 Verify the DGUS‑Reloaded Macros
+In Mainsail:
+ * Open Machine → Macros
+ * Confirm your macros are present
+ * Run a simple macro in the Mainsail CONSOLE (e.g., DUMP_VARIABLES). Confirm Klipper responds normally.
+
+
+#### 5.6 Verify printer hardware connectivity
 
 In Mainsail:
 
@@ -937,7 +1020,7 @@ If the MCU is offline:
  * Rebuild firmware if needed
  * Reflash MCU
 
-#### 5.6 Verify your restored Mainsail settings
+#### 5.7 Verify your restored Mainsail settings
 
 Check:
  * Camera settings (if applicable)
@@ -949,7 +1032,7 @@ Check:
 
 Ensure everything matches your Bullseye system.
 
-#### 5.7 Verify your restored Moonraker configuration
+#### 5.8 Verify your restored Moonraker configuration
 
 Check:
 
@@ -965,7 +1048,7 @@ Restart Moonraker if needed:
 sudo systemctl restart moonraker
 ```
 
-#### 5.8 Verify your restored Klipper backups
+#### 5.9 Verify your restored Klipper backups
 
 If you restored klipper_backups/, confirm:
 
@@ -980,7 +1063,7 @@ You should see:
 
 These allow rollback or firmware rebuilds if needed.
 
-#### 5.9 Perform a controlled test of basic printer functions
+#### 5.10 Perform a controlled test of basic printer functions
 
 In Mainsail:
 
@@ -995,7 +1078,7 @@ In Mainsail:
 
 Everything should behave normally.
 
-#### 5.10 Only proceed to Step 6 (Optional: Rebuild MCU Firmware) once all checks pass
+#### 5.11 Only proceed to Step 6 (Optional: Rebuild MCU Firmware) once all checks pass
 
 This ensures:
 
