@@ -101,7 +101,6 @@ From a second processor on the same network, running a Linux terminal, back up t
 scp -r pi@mainsailos.local:/home/pi/printer_data ./backup_printer_data
 scp -r pi@mainsailos.local:/home/pi/klipper_backups ./backup_klipper_backups
 scp -r pi@mainsailos.local:/home/pi/klipper/klippy/extras/t5uid1 ./backup_dgus-reloaded
-scp -r pi@mainsailos.local:/usr/local/*.sh ./backup_usr_local
 
 ```
 
@@ -135,10 +134,14 @@ If it helps relieve your mind:
 ### 🧩 Step 2 — Flash the Newest MainsailOS
 
 NB: Perform this step on your Windows or macOS laptop, not on the Pi.  
-Tips: 
+
+**Tips:** 
  * Using a new SD card is recommended. This preserves your current system and allows easy rollback or dual‑boot simply by swapping SD cards.
- * Format the card on your computer, before beginning the Mainsail flashing process.  If there are any problems on the card, you want to find those before you spend the time to flash and boot.  Booting MainsailOS will NOT succeed if there are errors on the card.
- * SD cards can and do wear out, with use.  It is very frustrating to suddenly have to rebuild your system because the card has failed.  It is worth your money to buy a High Endurance Card (like the ones meant for use in security cameras.)
+ * Format and test the card on your computer, before beginning the Mainsail flashing process.  
+   * If there are any problems on the card, you want to find those before you spend the time to flash and boot.  
+   * Booting MainsailOS will NOT succeed if there are errors on the card and step 7 is a long way into this process.
+   * The "gold-standard" SD card test utilities are both free: H2TESTw on Windows and F3 on macOS or Linux systems
+ * SD cards can and do wear out, with use.  It is very frustrating to suddenly have to rebuild your system because the card has failed.  It is worth your money to invest in a High Endurance Card (like the ones meant for use in security cameras.)  A 32Gb or 64Gb SDXC card should be large enough for this application.
 
 
 #### Option A — Use Raspberry Pi Imager’s built‑in MainsailOS (recommended for flashing Pi Hosts)
@@ -221,7 +224,22 @@ When the Pi boots from the newly‑flashed SD card, MainsailOS performs several 
 
 Before restoring your backups (at step 4), complete the following verifications:
 
-#### 3.1 Verify network connectivity
+#### 3.1 Verify SSH access
+From your laptop (substitute <new-ip> with the ip of the new Host before running the command):
+
+```bash
+ssh pi@<new-ip>
+
+or 
+ssh pi@mainsailos.local
+```
+
+If SSH fails:
+ * Ensure SSH was enabled in Raspberry Pi Imager
+ * Reflash and reconfigure
+ * Try Ethernet temporarily
+
+#### 3.2 Verify network connectivity
 
 Check that the Pi has a valid IP:
 
@@ -247,20 +265,6 @@ If the Pi did not connect:
    * Re‑enter the local Wi‑Fi SSID and password into Raspberry Pi Imager
    * Ensure correct Wi‑Fi country capital is set (e.g., Ottawa for Canada)
 
-#### 3.2 Verify SSH access
-From your laptop (substitute <new-ip> with the ip of the new Host before running the command):
-
-```bash
-ssh pi@<new-ip>
-
-or 
-ssh pi@mainsailos.local
-```
-
-If SSH fails:
- * Ensure SSH was enabled in Raspberry Pi Imager
- * Reflash and reconfigure
- * Try Ethernet temporarily
 
 #### 3.3 Confirm the filesystem expanded correctly
 
@@ -554,8 +558,7 @@ sudo apt update
 sudo apt upgrade -y
 sudo apt autoremove -y
 ```
-This ensures Bookworm is fully up to date before restoring your Klipper/Moonraker environment.
-
+This ensures our MainsailOS installation is fully up to date before restoring our Klipper/Moonraker environment.
 
 
 #### 3.9 Only proceed to Step 4 (Restore Backups) once all checks pass
@@ -582,12 +585,10 @@ Replace <new-ip> with the IP address of your Bookworm Pi.
 **NB: scp -r  overwrites existing directories, replacing their previous contents.**
 
 ```bash
-scp -r ./backup_dgus-reloaded pi@<new-ip>:/home/pi/klipper/klippy/extras/t5uid1 
-scp -r ./backup_printer_data pi@<new-ip>:/home/pi/printer_data
-scp -r ./backup_klipper_backups pi@<new-ip>:/home/pi/klipper_backups
-scp -r ./backup_usr_local/*.sh pi@<new-ip>:/usr/local
+scp -r .\backup_dgus-reloaded\. pi@mainsailos.local:/home/pi/klipper/klippy/extras/t5uid1 
+scp -r .\backup_printer_data\. pi@mainsailos.local:/home/pi/printer_data/
+scp -r .\backup_klipper_backups\. pi@mainsailos.local:/home/pi/klipper_backups
 ```
-   **WARNING: Do NOT restore arbitrary directories under /usr/local. Only restore the .sh helper scripts you previously installed.**
 
 This restores:
 * All of the DGUS‑Reloaded files: 
@@ -595,9 +596,10 @@ This restores:
    * ~/printer_data/config/scripts/
  * All of the Mainsail Klipper Machine files in ~/printer_data/config, where most of your customizations and macros reside
  * The local klipper_backup directory and files
- * The script `reset_cr6_mcu_comms.sh`, which restarts klipper when the printer is powered-on
 
-NOTE: Moonraker may temporarily report Klipper as ‘Incomplete’ or ‘Out of Date’ immediately after restoring printer_data. This should resolve automatically once restore_klipper.sh completes.
+NOTES: 
+ * Moonraker may temporarily report Klipper as ‘Incomplete’ or ‘Out of Date’ immediately after restoring printer_data. This should resolve automatically once restore_klipper.sh completes.
+ * If you are restoring these directories from a Windows PowerShell window, SCP may print warnings about timestamps or permissions. These warnings are harmless and do not indicate a failed restore.
 
 
 #### Ensure That All Script Files are Executable
@@ -608,15 +610,13 @@ Use SSH to issue the following two commands to the upgraded Host:
 
 ```bash
 sed -i 's/\r$//' ~/printer_data/config/scripts/*.sh
-sed -i 's/\r$//' /usr/local/*.sh
 ```
-This strips the Windows carriage return (\r) at the end of every line in every .sh file in each of the two directories.
+This strips any Windows carriage return (\r) at the end of every line in every .sh file in ~printer_data/config/scripts.
 
-2. Ensure that all of the .sh files are executable on this Linux host
+1. Ensure that all of the .sh files are executable on this Linux host
 
 ```bash
 chmod +x ~/printer_data/config/scripts/*.sh
-chmod +x  /usr/local/*.sh
 ```
 This sets the executable bit on every script in the two directories.
 
@@ -631,8 +631,56 @@ Choose the most recent archive, which you made at step 1.
 This should completely restore the local klipper git repository to your system.
 Later, we will use Moonraker and Mainsail to confirm that Klipper has been fully restored (or to repair any issues with that repository that Moonraker flags.)
 
+When the restore script finishes, it prompts you to verify the results by running:
+
+```bash
+sudo journalctl -u klipper -n 200 --no-pager
+```
+
+If the restore completes and journalctl -u klipper shows a clean stop/start cycle with no errors, then the Klipper restore was successful.
+
 #### Re-install Stable_Z_Home
-Follow step 5 in the 1-Installation_Manual.md.
+Follow step 5 in the 1-Installation_Manual.md, to reinstall the Stable_Z_Home.py application.
+
+Repeated here for convenience:
+
+From an SSH session on the Pi:
+
+### 5a. Clone the `stable_z_home` repository
+
+```bash
+cd ~
+git clone https://github.com/matthewlloyd/Klipper-Stable-Z-Home.git
+```
+
+### 5b. Create a symlink in the Klipper extras directory
+
+```bash
+cd ~/klipper/klippy/extras
+ln -s ~/Klipper-Stable-Z-Home/stable_z_home.py
+```
+NB: Linux file and folder names are case-sensitive. 
+
+### 5c. Verify
+
+```bash
+ls -la ~/klipper/klippy/extras/stable_z_home.py
+```
+
+Note:  
+If you had previously installed Stable‑Z‑Home on the system you backed up, the symlink
+
+```Code
+~/klipper/klippy/extras/stable_z_home.py
+```
+will be restored automatically by restore_klipper.sh.
+You only need to re‑clone the repository itself:
+
+```Code
+git clone https://github.com/matthewlloyd/Klipper-Stable-Z-Home.git
+```
+
+If the symlink already exists, you can skip the ln -s command.
 
 #### Re-Install KIAUH and gcode_shell_command
 Some of the macros in DGUS-Reloaded rely on the gcode_shell_command.py.  You can either comment-out those macros or perform this installation.
@@ -657,6 +705,10 @@ Navigate to (E)xtensions and select 1) G-Code Shell Command.
 
    TIP: Make note of the other things that KIAUH allows you to install.  Add anything else that you would like, either now or later.
 
+   e.g.: 
+    * If you have a screen attached to the pi and want KlipperScreen to launch automatically at power-up, install KlipperScreen and accept the default options to also install the X11 graphical backend.
+    * If you have a webcam and want to use CrowsNest, install that.
+
 #### Re-Create the .service and .rules files
 
 The .service and .rules files cannot just be copied from 6-Pi-side_scripts, they must be created.
@@ -673,7 +725,7 @@ Example:
 1. Open 6-Pi-side_scripts/etc/systemd/system/pushover_pause_monitor.service
 2. Create the file on the host
 ```bash
-nano /etc/systemd/system/pushover_pause_monitor.service
+sudo nano /etc/systemd/system/pushover_pause_monitor.service
 ```
 3. Copy the contents of 6-Pi-side_scripts/etc/systemd/system/pushover_pause_monitor.service
 4. Paste those contents into the nano editor
@@ -683,9 +735,7 @@ nano /etc/systemd/system/pushover_pause_monitor.service
 Repeat steps 1-6 for each of:
  * 6-Pi-side_scripts/etc/systemd/system/reset_cr6_mcu_comms.service
  * 6-Pi-side_scripts/etc/udev/rules.d/99-reset_cr6_mcu_comms.rules  (NB: Be sure to use the version of the rules that correspond to your printer's motherboard.)
-
-
-#### ⭐ Restart Required Services
+ * 6-Pi-side_scripts/usr/local/reset_cr6_mcu_comms.sh
 After restoring the above files, via SSH on the new host:
 
 Restart systemd:
@@ -728,6 +778,50 @@ From your laptop:
    * Confirm that there are no notifications being reported (bell icon at top right of page)
       * Troubleshoot and resolve any problems shown.
 
+**Possible Issues and Their Fixes**
+1. Moonraker Update Manager reports:
+```Code
+Moonraker Repo has untracked source files: ['moonraker/components/timelapse.py']
+```
+Reason:
+ * Older versions of Moonraker included a built‑in timelapse.py file inside
+~/moonraker/moonraker/components/.
+
+ * Modern Moonraker removed that file. Timelapse is now provided by the
+Moonraker‑Timelapse plugin, located at:
+~/moonraker-timelapse/component/timelapse.py
+
+ * The plugin installs a symlink inside Moonraker’s components directory:
+moonraker/components/timelapse.py → ~/moonraker-timelapse/component/timelapse.py
+
+ * Moonraker’s Update Manager does not recognize symlinks as “tracked” files,
+so it flags the symlink as “untracked” even though it is correct and required.
+
+Fix:
+No fix is required.  
+This warning is harmless and expected when using Moonraker‑Timelapse.
+
+Do NOT delete the symlink.  
+Removing it will break Timelapse and remove the Timelapse menu from Mainsail.
+
+2. Moonraker Update Manager reports:
+```Code
+Klipper Repo has untracked source files:
+['klippy/extras/gcode_shell_command.py', 'klippy/extras/stable_z_home.py']
+```
+Reason:
+These files were manually added to your Klipper installation:
+
+ * gcode_shell_command.py (Klipper’s shell‑command extension)
+
+ * stable_z_home.py (Stable‑Z‑Home module)
+
+They are not part of the official Klipper Git repository, so Moonraker correctly reports them as “untracked.”
+
+Fix:
+No fix is required.  
+These files are intentionally present and must remain in place.
+They do not need to be tracked by Git.
 ---
 
 ### 🧩 Step 5 — Confirm Everything Works Before Printing
@@ -1215,3 +1309,25 @@ Fixes:
    Then:
    * Reflash MainsailOS (i.e. roll back your upgrade to the beginning of Step 2)
  * Avoid using low‑quality cards
+
+## 11 - "Option 'z_offset' in section 'probe' must be specified"
+
+If Mainsail|Klipper starts reporting this message, open printer.cfg and scroll down to the bottom of the file.
+
+If you find this line at the bottom of printer.cfg: `[include shell_command.cfg]`, it means that KIAUH has written a required section into printer.cfg, but it has not "noticed" that it has written the line inside the section of printer.cfg where Klipper writes changes when you select "Save Config".
+
+Delete the line from there.
+Make sure that line does appear in printer.cfg, but only once.
+If you already had gcode_command_shell.py installed before performing this upgrade, that line is already in your printer.cfg.  You can just delete it from the end of the printer.cfg file.
+If this is the first time that you have installed gcode_command_shell.py on your system, move that line to where your other include statements are, in printer.cfg.  Make sure it exists only once.
+
+Now click Save & Restart to save your changes to printer.cfg and restart Klipper. 
+Confirm that the error has now been cleared.
+
+ ## 12 - Directory .... is not writable
+
+Example: You try to run: `nano /etc/systemd/system/pushover_pause_monitor.service`.
+When you select Ctrl-O to write the file, nano responds instead that `Directory /etc/systemd/system is not writeable.
+
+This is because you need to have system admin authority to make changes in that directory.
+The fix is to instead run:  `sudo nano /etc/systemd/system/pushover_pause_monitor.service`
