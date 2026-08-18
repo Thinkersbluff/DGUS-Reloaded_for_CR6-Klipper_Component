@@ -347,11 +347,17 @@ From an SSH session on the Pi, run:
 ls /dev/serial/by-id/*
 ```
 
-The output will look something like this (your exact ID will differ):
+If you have a BTT Motherboard, the output will look something like this (your exact ID will differ):
 
-```
+```Code
 /dev/serial/by-id/usb-Klipper_stm32f103xe_36FFD8054255373740662057-if00
 ```
+
+If your have a Creality motherboard, the output will always look like this:
+
+```Code
+/dev/serial/by-id/****
+
 Copy the full path string of the printer device.  
 
 >**TIP:** If the ls command returns multiple device IDs, unplug the printer and re-run the command. Then plug it back in and re-run the command.  The string you need to copy is the one that disappears/reappears, when you unplug, replug the printer.
@@ -506,6 +512,187 @@ OrcaSlicer sends `M73 R..` and `M73 P..` messages by default. Ensure the option
 
 Any slicer that can be configured to emit `M73 P` and `M73 R` messages will work.
 Consult your slicer's documentation for how to enable these.
+
+## Step 12 - (Optional) - Configure Your Host to Send External Notifications
+
+If your MainsailOS is running Python 3.11 or higher, you can configure Moonraker to send notifications.  
+DGUS-Reloaded for CR6 is now distributed with sample notifiers and with a PushOver-specific integration solution to exploit this feature.
+
+**Motivation:** My printer now pings my Apple Watch, whenever M600 pauses the printer for a `Filament Change`. Hopefully, now I won't lose any more prints because I did not hear the printer beeping for attention before Klipper's 10-minute timeout disabled the motors and "forgot" the toolhead's current position!
+
+**IMPORTANT TO KNOW:** 
+  * Moonraker requires Python 3.11 or higher, to send notifications via Aspire.  Any new installation of MainsailOS now automatically includes that python upgrade and support for notifications.  If you are still running Bullseye with Python 3.9, you will need to migrate your system to a newer version of MainsailOS, to activate this feature. (See [5-Upgrading_Existing_MainsailOS_Installation.md](5-Upgrading_Existing_MainsailOS_Installation.md))
+
+  * The pushover_pause_monitor.py application bypasses Moonraker, to send messages directly to PushOver.
+
+  * Both notification systems rely on you having your own PushOver account (user-key and API token).  Both systems read the same ~printer_data/moonraker.secrets text file to find those two parameters.
+
+### 12.1  Create your own PushOver Account
+
+If you do not already have a PushOver account, you will need to decide whether you wish to open one.  At the time of writing this manual, it cost $4.99US for a one-time licensing fee, after a 30-day free trial.  See https://pushover.net/ for details.
+
+### 12.2 Create an API
+
+When logged into your account on pushover.net, the top menu includes a link for creating an API.  Click that link and follow the instructions, to create a new API token.
+
+### 12.3 Create ~printer_data/moonraker.secrets on your Pi
+
+SSH into mainsailos.local and create the file:
+
+```bash
+nano ~/printer_data/moonraker.secrets
+```
+
+Copy/paste this code into that new file, 
+
+```code
+[pushover_creds]
+token = <YOUR ACTUAL API TOKEN>
+user_key = <YOUR ACTUAL USER_KEY>
+```
+Replace the <YOUR ACTUAL...> placeholders with your own actual user_key and API token.
+
+Ctrl-O & Enter in nano to write the file.
+Ctrl-X to exit nano
+
+Verify that your moonraker.secrets file is present and correct.
+```bash
+cat ~/printer_data/moonraker.secrets
+```
+
+Restrict access to the contents of moonraker.secrets to the user "pi", by running:
+
+```bash
+chmod 600 ~/printer_data/moonraker.secrets
+```
+Ensure the file ownership is now correct:
+```bash 
+ls -l ~/printer_data/moonraker.secrets
+```
+Expected response:
+```code
+-rw------- 1 pi pi …
+```
+
+This prevents other applications, scripts, users, etc.. from accessing those credentials, while still allowing your user account and any applications running under your user account.
+
+
+
+### 12.4 Activate native Moonraker notifications (via Aspire)
+
+DGUS-Reloaded is now configured to support Moonraker notifications.
+The file moonraker_pushover.conf defines two default notifiers, which you can use as-is or tailor to your preferences.
+
+Ensure that moonraker_pushover.conf is present in ~/printer_data/config/
+
+In moonraker.conf, uncomment [include moonraker_pushover.conf]
+
+
+### 12.5 Activate Emergency Pushover Notifications (DGUS-Reloaded Add-on)
+
+
+The Moonraker/Aspire API does not support specifying the message priority.
+
+If you want to send emergency priority messages via PushOver, you need to use the pushover_pause_monitor.py and .service modules distributed with DGUS_Reloaded for CR6.
+
+#### Install and Activate pushover_pause_monitor.py
+
+If it is not already there, copy the file pushover_pause_monitor.py from Installation_Files/6-Pi-side_scripts/printer_data/config/scripts to ~printer_data/config/scripts on the pi.
+
+Then make the .py module executable.
+```bash
+chmod +x ~/printer_data/config/scripts/pushover_pause_monitor.py
+```
+
+#### Install and Activate pushover_pause_monitor.service 
+
+Find and open the file Installation_files/6-Pi-side_scripts/etc/systemd\system\pushover_pause_monitor.service.   Copy the contents of that file to the clipboard.
+
+On the Pi host, create that .service file:
+```bash
+sudo nano /etc/systemd/system/pushover_pause_monitor.service
+```
+Paste the contents into that new file and write it to the Pi with Ctrl-O, Enter, Ctrl-X.
+
+Run this command sequence on the Pi:
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable pushover_pause_monitor.service
+sudo systemctl start pushover_pause_monitor.service
+```
+
+Confirm that the service is now running correctly and review the log:
+
+```bash
+systemctl status pushover_pause_monitor.service
+journalctl -u pushover_pause_monitor.service -n 50 --no-pager
+```
+
+Confirm that the service is now reported to be Active and there are no errors in the log.
+
+
+### 12.6 Configure your "Platform" to Receive/Announce PushOver Notifications
+
+This part can be a little confusing at first.
+"platform" refers to IOS or Android, for instance.
+
+If you have configured your iPhone with "Do not disturb" instructions, you will need to enable the iPhone to generate Critical Alerts from emergency priority PushOver notifications, or they will be suppressed during the Do Not Disturb interval.
+
+There are also options for sending alerts to different "devices" (e.g. iPad, iPhone)
+The Apple Watch can echo the iPhone notifications.
+
+Have faith, as long as the .py and .service modules are active, you will eventually succeed at configuring these notifications.
+
+
+### 12.7 Test the PushOver Pause Monitor Notification
+
+There are several ways to test the PushOver functionality.
+
+1. In Mainsail, run the macro: TEST_PUSHOVER.
+
+   This is probably the easiest way to quickly confirm that the Moonraker notification system is "wired-up".
+
+2. With the printer powered up and connected to/communicating with the Pi host:
+
+   In the Mainsail Console: 
+   * Send SET_FLAG_M600
+   * Send PAUSE
+   * Confirm that you receive an emergency priority message from PushOver:
+     `M600 Event — Print Paused. Check filament!`
+   * Do not acknowledge that message, until it repeats at least once.
+
+  This method verifies that the pushover_pause_monitor system is correctly polling Moonraker to determine the state of the printer and of the macro variables.
+
+  Forcing the flag and the printer state does, however, should be undone after the test and before you use the printer for anything else.
+  To "fix" that, when you are finished your test, select "Restart Firmware" in Mainsail, to reset your printer system.
+
+3. Run a short print 
+    * After the printer completes the purge line, send an M600 command via the console.
+    * Confirm that the printer:
+      * Parks the toolhead
+      * Starts beeping continuously
+      * Sends a (Moonraker/Aspire) PushOver alert that the printer state has changed to Paused
+      * Sends an (DGUS-Reloaded) Emergency Priority PushOver alert that there has been an M600 Event and the printer needs a filament change.
+    * Select Tune on the printer paused screen.
+      * Confirm that the beeping stops.
+    * At this point, you can STOP the print to terminate the notifications test.
+
+**Troubleshooting Guidelines, if the above tests fail:**
+
+| Symptom | Likely Cause | Resolution |
+|---|---|---|
+| No Pushover alert during M600 pause | `pushover_pause_monitor.service` not running | Run `systemctl status pushover_pause_monitor.service` and enable/start it with `sudo systemctl enable --now pushover_pause_monitor.service` |
+| Service fails to start | `.py` script not executable | Run `chmod +x ~/printer_data/config/scripts/pushover_pause_monitor.py` and `sudo systemctl daemon-reload` |
+| Service starts but immediately exits | Incorrect `ExecStart=` path in `.service` file | Ensure the path is `/home/pi/printer_data/config/scripts/pushover_pause_monitor.py` |
+| Service running but no alerts | `moonraker.secrets` missing or unreadable | Verify file exists with `ls -l ~/printer_data/moonraker.secrets` and fix permissions using `chmod 600 ~/printer_data/moonraker.secrets` |
+| Alerts fail silently | Wrong key names in `moonraker.secrets` | Must use: `token = ...` and `user_key = ...` |
+| Moonraker notifications work, but emergency alerts do not | Using Aspire notifier instead of emergency monitor | Emergency priority is **only** available via `pushover_pause_monitor.py` |
+| Moonraker startup error referencing `moonraker_pushover.conf` | Missing file or incorrect include | Ensure `~/printer_data/config/moonraker_pushover.conf` exists and `[include moonraker_pushover.conf]` is uncommented in `moonraker.conf` |
+| TEST_PUSHOVER works but M600 alerts do not | `SET_FLAG_M600` macro not setting `m600_pause` | Confirm macro sets: `SET_GCODE_VARIABLE MACRO=SET_FLAG_M600 VARIABLE=m600_pause VALUE=True` |
+| M600 alert fires but beeping does not stop | Missing `BEEP_STOP` macro or Moonraker cannot send gcode | Verify `BEEP_STOP` exists and is callable via `printer/gcode/script` |
+| Alerts suppressed on iPhone | iOS “Do Not Disturb” blocking critical alerts | Enable **Critical Alerts** for Pushover in iOS Settings |
+| Alerts appear on phone but not Apple Watch | Watch not mirroring notifications | On iPhone: Settings → Notifications → Pushover → **Mirror to Apple Watch** |
+
 
 ---
 
