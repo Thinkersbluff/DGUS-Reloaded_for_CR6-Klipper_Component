@@ -12,8 +12,7 @@ Last Updated: 16 August 2026
 - [Step 4 — Restore Your Backups](#-step-4--restore-your-backups)
 - [Step 5 — Confirm Everything Works Before Printing](#-step-5--confirm-everything-works-before-printing)
 - [Step 6 — Activate External Notifications)](#-step-6--activate-external-notifications)
-- [Step 7 — Validate Moonraker](#-step-7--validate-moonraker)
-- [Step 8 — Verify Some DGUS-Reloaded Functionality](#-step-8--verify-some-dgus-reloaded-functionality)
+- [Step 7 — Verify Some DGUS-Reloaded Functionality](#-step-7--verify-some-dgus-reloaded-functionality)
 - [Troubleshooting Appendix](#-troubleshooting-appendix)
 
 ## Applies To: 
@@ -990,14 +989,17 @@ If Pi-Side scripts fail to run:
  ```
  * Check Moonraker logs for script‑related errors
 
-  If any of the above scripts is missing, find thaat script in 6-Pi-side_scripts/printer_data/config/scripts and copy it to the pi, then repeat the test.
+  If any of the above scripts is missing, find that script in Installation_Files/6-Pi-side_scripts/printer_data/config/scripts and copy it to the pi, then repeat the test.
 
 
 #### 5.5 Verify the DGUS‑Reloaded Macros
+
 In Mainsail:
  * Open Machine → Macros
  * Confirm your macros are present
  * Run a simple macro in the Mainsail CONSOLE (e.g., DUMP_VARIABLES). Confirm Klipper responds normally.
+
+Power-cycle the printer and confirm that the display switches to the HOME screen and confirms "Printer Ready" at the end of the power-up routine.
 
 
 #### 5.6 Verify printer hardware connectivity
@@ -1026,11 +1028,11 @@ Check:
  * Camera settings (if applicable)
  * Timelapse configuration
  * History and job logs
- * Custom UI settings
+ * Custom Mainsail UI settings
  * Printer profiles
  * Temperature presets
 
-Ensure everything matches your Bullseye system.
+Ensure everything matches your previous configuration.
 
 #### 5.8 Verify your restored Moonraker configuration
 
@@ -1039,7 +1041,6 @@ Check:
  * API keys
  * Update manager configuration
  * Notifications
- * Plugins
  * Timelapse settings
  * File paths
 
@@ -1063,22 +1064,7 @@ You should see:
 
 These allow rollback or firmware rebuilds if needed.
 
-#### 5.10 Perform a controlled test of basic printer functions
-
-In Mainsail:
-
- * Heat the hotend to 150 °C*
- * Heat the bed to 50 °C
- * Home all axes
- * Move the toolhead 10 mm in X/Y/Z
- * Run a small test macro (e.g., STATUS_READY)
- * Run a dry‑run of a simple gcode file (no filament)
-
-*Ensure filament is removed before heating.  This prevents accidental filament cooking.
-
-Everything should behave normally.
-
-#### 5.11 Only proceed to Step 6 (Optional: Rebuild MCU Firmware) once all checks pass
+#### 5.10 Only proceed to Step 6 (Optional: Rebuild MCU Firmware) once all checks pass
 
 This ensures:
 
@@ -1088,36 +1074,18 @@ This ensures:
  * The Pi-Side Scripts are functional
  * Hardware is responding
  * No configuration errors remain
- * The system is ready for firmware rebuild or printing
+ * The system is now ready for printing
 
 ---
 
 ## 🧩 Step 6 — Activate External Notifications
 **Optional**
 
-If your new MainsailOS is running Python 3.11 or higher, you can now configure Moonraker to send notifications.
-DGUS-Reloaded for CR6 is now distributed with sample notifiers and with a PushOver-specific integration solution to exploit this feature.
-
-**Motivation:** My printer now pings my Apple Watch, whenever M600 pauses the printer for a `Filament Change`. Hoping this means I don't lose any more prints because I did not hear the printer beeping for attention before Klipper's 10-minute timeout disabled the motors and "forgot" the toolhead's current position!
+See section 12 of 1-Installation_Manual, for instructions on how to either restore this functionality or to activate it for the first time, after this upgrade.
 
 ---
 
-### 🧩 Step 7 — Validate Moonraker
-
-Check via SSH to the Host:
-
-```bash
-systemctl status moonraker
-journalctl -u moonraker -n 200 --no-pager
-```
-Ensure:
-
- * No “unparsed config section” warnings in Moonraker.log or Mainsail Notifications
- * No Python errors
-
----
-
-### 🧩 Step 8 — Verify Some DGUS-Reloaded Functionality
+### 🧩 Step 7 — Verify Some DGUS-Reloaded Functionality
 
 DGUS-Reloaded is now a complex system, with a wide variety of dependencies on macros, variables, 3rd-party scripts, Klipper routines, etc..  If the previous steps have all worked, you should now be able to page through a few menus on the stock display and to run any of the functions.  
 
@@ -1126,7 +1094,7 @@ Check:
  * Klipper does not report any problems when you perform a Firmware Restart in Mainsail
  * Stock display boots to the Main Menu (Home) screen when you power-cycle the printer
  * Stock display responds to inputs and button presses
- * Display Information page confirms that the installed klipper component version matches the display version.
+ * Display Information page confirms that the installed t5uid1 version matches the display version.
  * `Prepare-> Move -> Home All` works correctly
  * `Calibrate->Auto Bed Leveling->Load Profile` cycles through your most recent set of bed meshes
  * On the `Setup` screen:
@@ -1134,6 +1102,7 @@ Check:
    * If you edit any value, that change persists when you power-cycle the printer. 
    * If you use Calibrate->PID, that function uses the new value that you edited.
  * The displayed temperature settings follow the PID cycling and closely match the values displayed in the Mainsail Temperature window.
+ * **Be suire to clean all filament residue from the nozzle before you start a print!**
  * Try to print a model with no filament inserted into the printer and with the Filament Runout Sensor Enabled.
    * Verify that the printer pauses and parks the toolhead, when it starts to draw the purge line (The runout sensor is disabled before that point...)
      * If you have implemented external notifications, verify that you receive an `M600 event` alert.
@@ -1141,7 +1110,7 @@ Check:
      * Verify that the printer starts beeping continuously. - the Console should echo that information.
      * Verify that selecting the Tune menu switches to the Tune page and stops the continous beeping - the Console should again echo that information..
      * Verify that you can not now resume the *print unless/until you insert some filament. (Check using Mainsail as well as the UI, to command the resume)
-   * Use the Tune menu Change Filament function to insert some filament.
+   * Use the Tune menu Change Filament function to Load filament.
    * Return to the Print Paused menu and verify that Resume now restarts the print.
    * Pause the print
      * Confirm that the printer parks the head but you do not get continuous beeping
@@ -1153,6 +1122,7 @@ Check:
    * Either Stop the print or allow it to complete, as you wish.
      * Verify that the display switches to the Print Finished screen.
      * Verify that the displayed timer information has correctly reported the actual total time and that the printing time value is less than the total time, because that timer stopped counting while the printer was paused.
+   * If you allow the print to complete, and you have implemented notifications, confirm that you receive a PushOver alert that the print has completed, when the part cooling fan switches off.
 
  * Verify that no errors appear in the klippy.log for this test session.
 
