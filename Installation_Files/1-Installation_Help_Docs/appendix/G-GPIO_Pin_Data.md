@@ -165,7 +165,7 @@ This board is electrically similar to 4.5.3 but with:
 | | | | | |
 | PB0 | Bed Heater | ✔️ | Same as 4.5.x | Marlin |
 | PB1 | Bed Thermistor | ✔️ | Same as 4.5.x | Marlin |
-| PB2 | Optical Probe Activation | ⚠️ Unverified | Spare GPIO | Marlin |
+| PB2 | Optical Probe Activation | ✔️ | Probe Enable Signal in Marlin. Not used in Klipper. | Marlin |
 | PB3–PB15 | LCD / Steppers / UART | ✔️ | Same as 4.5.x | Marlin |
 | | | | | |
 | PC0 | Filament Sensor | ⚠️ Unverified | Same as 4.5.x | Marlin |
@@ -201,7 +201,7 @@ These are the sources referenced in the above tables:
    * DGUS‑Reloaded CR‑6 configs
    (Used to confirm probe, fan, heater, LCD, SDIO routing)
 
- * STM32F103C8T6 Datasheet
+ * [STM32F103RET6 Datasheet](https://www.st.com/resource/en/datasheet/stm32f103re.pdf)
    Used for crystal pins, USB pins, ADC pins, BOOT1 (PB2), 5V tolerance
 
 
@@ -213,24 +213,13 @@ You now have:
  * Every unverified / routing unknown pin marked
  * These pins are candidates for safe GPIO reassignment:
    * PA3 
-     * Marlin-verified to be wired to the signal pin on reserved connector J3 on the 4.5.2 motherboard.  
-  
-     * Possibly also connected to J3 on 4.5.3 
-     * Measure, to verify continuity between the signal pin on J3 and pin 17 on the STM32 LQFP‑64 (64-pin) package
-     * Using the above photo as a visual reference:
-       * The STM32F103RCT6 (or RET6) chip is square.
-       * The pin‑1 indicator is the small dot on one corner.
-       * Pin numbers increase counter‑clockwise around the package.
-     * Pin 17 is on the left side of the MCU package.
-     * It is the 5th pin down from the top‑left corner (when the text on the chip is upright).
-  
-     * Possibly also connected to J707 on 1.1.0.3 motherboard 
-       * J707 is labeled as "reserved connector J3" in Creality's annotated photo of that motherboard.
-       * On a Creality 1.1.0.3 board, test for continuity to pin 13 on the STM32 LQFP‑48 MCU package. That pin is located near the lower‑left corner of the chip when the text is upright.
-  
+     * Marlin-verified to be wired to the signal pin on reserved connector J3 on the 4.5.2 motherboard.
+       * NOTE: Although J707 is labelled "Reserve connector J3" in Creality's photo of the 1.1.0.3, PA3 (pin 28 on the STM32 64-pin package) does not ring continuity to any of the 4 3-pin connectors J704-J707.
    * PB2 
-     * Used as the optical sensor signal pin in the Community Firmware Marlin pins file.  
+     * Used as the optical sensor signal pin in the Community Firmware Marlin pins file.
+       * Signal pin on J705 of 1.1.0.3 motherboard
      * The optical sensor is not used in Klipper.
+     * 
   
    * PC1–PC3
   
