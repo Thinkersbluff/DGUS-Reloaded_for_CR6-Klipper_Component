@@ -31,7 +31,7 @@ The boards' maps are structured identically, so you can easily diff them.
 
 ## 🟦 CREALITY 4.5.2
 
-[![4.5.2 Thumbnail](https://cr6-community.firmware.wiki/images/4.5.2_thumb.jpg)](https://cr6-community.firmware.wiki/images/4.5.2_full.jpg)
+[![4.5.2 Thumbnail](https://user-images.githubusercontent.com/36551518/162257740-e127402d-8512-4769-b223-45379f0c8396.png)
 
 
 ### Full GPIO Map (Verified + Unverified)
@@ -94,7 +94,7 @@ The boards' maps are structured identically, so you can easily diff them.
 
 ## 🟦 CREALITY 4.5.3
 
-[![4.5.3 Thumbnail](https://cr6-community.firmware.wiki/images/4.5.3_thumb.jpg)](https://cr6-community.firmware.wiki/images/4.5.3_full.jpg)
+[![4.5.3 Thumbnail](https://user-images.githubusercontent.com/36551518/162257804-8ad60c80-5942-4d10-9fb0-1f1588cabb02.png)
 
 ### Differences from 4.5.2:
 
@@ -139,7 +139,7 @@ The boards' maps are structured identically, so you can easily diff them.
 
 ## 🟦 CREALITY 1.1.0.3
 
-[![1.1.0.3 Thumbnail](https://cr6-community.firmware.wiki/images/1.1.0.3_thumb.jpg)](https://cr6-community.firmware.wiki/images/1.1.0.3_full.jpg)
+[![1.1.0.3 Thumbnail](https://user-images.githubusercontent.com/36551518/162259301-2d5b5bdf-805c-48fa-a4d7-64a25cd79884.jpg)
 
 ### Differences from 4.5.3:
 
