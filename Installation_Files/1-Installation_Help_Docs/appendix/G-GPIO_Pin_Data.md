@@ -212,15 +212,19 @@ You now have:
  * Every verified pin marked
  * Every unverified / routing unknown pin marked
  * These pins are candidates for safe GPIO reassignment:
-   * PA3 
-     * Marlin-verified to be wired to the signal pin on reserved connector J3 on the 4.5.2 motherboard.
-       * NOTE: Although J707 is labelled "Reserve connector J3" in Creality's photo of the 1.1.0.3, PA3 (pin 28 on the STM32 64-pin package) does not ring continuity to any of the 4 3-pin connectors J704-J707.
-   * PB2 
-     * Used as the optical sensor signal pin in the Community Firmware Marlin pins file.
+  * PB2 
+     * Used as the optical sensor (Probe Enable) signal pin in the Community Firmware Marlin pins file.
+       * Signal pin on J1 of the 4.5.2 motherboard.
+       * Signal pin on J2 of the 4.5.3 motherboard.
        * Signal pin on J705 of 1.1.0.3 motherboard
      * The optical sensor is not used in Klipper.
-     * 
+     * The STM32 also samples the state of PB2 (="BOOT1") at boot. Creality have an internal pull-down resistor on BOOT0, so the chip always boots normally, regardless of the state of PB2, since it can never "see" BOOT0=BOOT1=1.
+     * The above circumstances make PB2 a safe candidate _for use with Klipper_ on all 3 CR6 motherboards and on the BTT SKR CR6 motherboard.
+  * PA3 
+     * Marlin-verified to be wired to the signal pin on reserved connector J3 on the 4.5.2 motherboard.
+       * NOTE: Although J707 is labelled "Reserve connector J3" in Creality's photo of the 1.1.0.3, PA3 (pin 28 on the STM32 64-pin package) does NOT ring continuity to ANY of the 4 3-pin connectors J704-J707. It is not an available option on that board.
+       * If it is available on the 4.5.3, then the J3 signal pin should ring continuity to pin 17 on the MCU.
   
-   * PC1–PC3
+  * PC1–PC3
   
-   * PC13–PC15
+  * PC13–PC15
