@@ -20,15 +20,14 @@ Provide these tables in a markdown format that I can copy/paste into a .md file.
 
 Below is the full STM32F103 GPIO map for each Creality board, with:
 
- * All 51 MCU pins are listed
- * Verified pins (from Marlin + Klipper + CR‑6 community firmware)
- * Citations for every verified pin
+ * All 51 MCU pins listed
+ * Citations for every verified pin (from Marlin + Klipper + CR‑6 community firmware)
  * Unverified pins clearly marked
- * Routing unknown clearly marked
+ * "Routing unknown" clearly marked
 
-Because these boards are multilayer, no optical tracing is possible, so every unverified pin is explicitly labeled as such.
+Because these boards are multilayered, no optical tracing is possible, so every unverified pin is explicitly labeled as such.
 
-The agent has structured each board’s map identically so you can diff them easily.
+The boards' maps are structured identically, so you can easily diff them.
 
 ## 🟦 CREALITY 4.5.2
 
@@ -55,7 +54,7 @@ The agent has structured each board’s map identically so you can diff them eas
 | PA13 | SWDIO | ✔️ | Debug | STM32F103 datasheet |
 | PA14 | SWCLK | ✔️ | Debug | STM32F103 datasheet |
 | PA15 | LCD / EXP2 | ✔️ | Display | Marlin |
-
+| | | | | |
 | PB0 | Bed Heater | ✔️ | MOSFET gate | Marlin |
 | PB1 | Bed Thermistor | ✔️ | ADC input | Marlin |
 | PB2 | Optical Probe Activation (unused) | ⚠️ Unverified routing | Candidate spare GPIO | CR6Community Wiki |
@@ -72,7 +71,7 @@ The agent has structured each board’s map identically so you can diff them eas
 | PB13 | Stepper driver | ✔️ | Z Dir | Marlin |
 | PB14 | Stepper driver | ✔️ | Z Enable | Marlin |
 | PB15 | LCD / EXP2 | ✔️ | Display | Marlin |
-
+| | | | | |
 | PC0 | Filament Sensor (unused on CR‑6) | ⚠️ Unverified routing | Present on some 4.5.x | Marlin |
 | PC1 | ADC | ⚠️ Unverified | Possibly unused | STM32F103 datasheet |
 | PC2 | ADC | ⚠️ Unverified | Possibly unused | STM32F103 datasheet |
@@ -89,7 +88,7 @@ The agent has structured each board’s map identically so you can diff them eas
 | PC13 | LED / NC | ⚠️ Unverified | Often unused | Community |
 | PC14 | NC | ⚠️ Unverified | Not routed | Community |
 | PC15 | NC | ⚠️ Unverified | Not routed | Community |
-
+| | | | | |
 | PD0 | Crystal | ✔️ | 8 MHz | STM32F103 datasheet |
 | PD1 | Crystal | ✔️ | 8 MHz | STM32F103 datasheet |
 
@@ -119,12 +118,12 @@ The agent has structured each board’s map identically so you can diff them eas
 | PA6 | Fan PWM | ✔️ | Same as 4.5.2 | Marlin |
 | PA7 | Hotend Heater | ✔️ | Same as 4.5.2 | Marlin |
 | PA8–PA15 | LCD | ✔️ | Same as 4.5.2 | Marlin |
-
+| | | | | |
 | PB0 | Bed Heater | ✔️ | Same as 4.5.2 | Marlin |
 | PB1 | Bed Thermistor | ✔️ | Same as 4.5.2 | Marlin |
 | PB2 | Optical Probe Activation | ⚠️ Unverified | Candidate spare | CR6Community Wiki |
 | PB3–PB15 | LCD / Steppers / UART | ✔️ | Same as 4.5.2 | Marlin |
-
+| | | | | |
 | PC0 | Filament Sensor | ⚠️ Unverified | Same as 4.5.2 | Marlin |
 | PC1–PC3 | ADC | ⚠️ Unverified | Same as 4.5.2 | STM32F103 datasheet |
 | PC4 | Hotend Thermistor | ✔️ | Same as 4.5.2 | Marlin |
@@ -133,7 +132,7 @@ The agent has structured each board’s map identically so you can diff them eas
 | PC13 | NC | ⚠️ Unverified | Same as 4.5.2 | Community |
 | PC14 | NC | ⚠️ Unverified | More consistently NC | Community |
 | PC15 | NC | ⚠️ Unverified | More consistently NC | Community |
-
+| | | | | |
 | PD0 | Crystal | ✔️ | Same as 4.5.2 | STM32F103 datasheet |
 | PD1 | Crystal | ✔️ | Same as 4.5.2 | STM32F103 datasheet |
 
@@ -163,12 +162,12 @@ This board is electrically similar to 4.5.3 but with:
 | PA6 | Fan PWM | ✔️ | Same as 4.5.x | Marlin |
 | PA7 | Hotend Heater | ✔️ | Same as 4.5.x | Marlin |
 | PA8–PA15 | LCD | ✔️ | Different LCD mapping | Marlin |
-
+| | | | | |
 | PB0 | Bed Heater | ✔️ | Same as 4.5.x | Marlin |
 | PB1 | Bed Thermistor | ✔️ | Same as 4.5.x | Marlin |
 | PB2 | Optical Probe Activation | ⚠️ Unverified | Spare GPIO | Marlin |
 | PB3–PB15 | LCD / Steppers / UART | ✔️ | Same as 4.5.x | Marlin |
-
+| | | | | |
 | PC0 | Filament Sensor | ⚠️ Unverified | Same as 4.5.x | Marlin |
 | PC1–PC3 | ADC | ⚠️ Unverified | Same as 4.5.x | STM32F103 datasheet |
 | PC4 | Hotend Thermistor | ✔️ | Same as 4.5.x | Marlin |
@@ -177,7 +176,7 @@ This board is electrically similar to 4.5.3 but with:
 | PC13 | NC | ⚠️ Unverified | Same as 4.5.x | Community |
 | PC14 | NC | ⚠️ Unverified | Same as 4.5.x | Community |
 | PC15 | NC | ⚠️ Unverified | Same as 4.5.x | Community |
-
+| | | | | |
 | PD0 | Crystal | ✔️ | Same as 4.5.x | STM32F103 datasheet |
 | PD1 | Crystal | ✔️ | Same as 4.5.x | STM32F103 datasheet |
 
