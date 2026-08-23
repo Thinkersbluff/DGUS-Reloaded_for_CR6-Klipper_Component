@@ -68,6 +68,7 @@ This guide helps you maintain and troubleshoot an existing DGUS-Reloaded install
 - [Appendix C: Force Klipper Version](appendix/C-Force_Klipper_Version.md)
 - [Appendix D: Config Files Reference](appendix/D-Config_Files_Reference.md) *(placeholder)*
 - [Appendix F: Travel Test Macros Reference](appendix/F-Travel_Test_Macros_Reference.md)
+- [Appendix G: GPIO Pin Data](appendix/G-GPIO_Pin_Data)]
 
 ### Technical Reference
 - [scripts/README.md](../scripts/README.md) — Script syntax and usage
