@@ -449,8 +449,8 @@ These are pins where Marlin assigns a function, but you can safely reclaim the p
 
 ✔️ PC13 — SUICIDE_PIN  
     Source: pins_BTT_SKR_CR6.h  
-    Used by Marlin: YES (power‑kill / watchdog circuit)  
-    Used by Klipper: NO  
+    Used by Marlin: OPTIONAL (power‑kill / watchdog circuit)  
+    Used by Klipper: OPTIONAL  
     Electrically routed to: J28  
     *NOTE:* This pin is electrically active and likely hard-wired for purpose.  Not likely to be readily repurposed for general GPIO use.
 
