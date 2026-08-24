@@ -104,7 +104,7 @@ These are pins that are not assigned a purpose by either Marlin, Klipper or both
     Source:  [BLTouch mod guide (spamwax)](https://github.com/spamwax/CR-6-Mods/blob/main/BL%20Touch/Adding%20%22BL%20Touch%22%20as%20probe%20and%20Z%20end-stop.md)  
     Used by Marlin: YES  
     Used by Klipper: NO  
-    Electrically routed to: The signal pin on connector J1.
+    Electrically routed to: The signal pin on connector J3.
 
 ✔️ PC6 — Routed to Connector J1  
       Source: pins_CREALITY_V452.h  
