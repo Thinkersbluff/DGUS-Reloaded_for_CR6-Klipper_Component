@@ -333,6 +333,87 @@ These are pins that Marlin assigns to named 3‑pin connectors on the 4.5.3 boar
   → No known Marlin assignment  
   → No known Klipper assignment  
 
+## BTT SKR CR6 v1.0
+
+[![SKR CR6 v1.0 Thumbnail](https://user-images.githubusercontent.com/36551518/192142774-d5500af4-7ef0-41ef-8e0e-2436ed213f85.jpg)
+
+Trusted source:
+
+```Code
+   - pins_BTT_SKR_CR6.h  (board‑specific definitions)
+```
+
+### Full STM32F103 GPIO Map
+
+| MCU Pin | Marlin Function | Source File |
+|--------|------------------|-------------|
+| PA0    | TEMP_0_PIN       | SKR_CR6 |
+| PA1    | PROBE_TARE_PIN   | SKR_CR6 |
+| PA2    | (not assigned)   | SKR_CR6 |
+| PA3    | (not assigned)   | SKR_CR6 |
+| PA4    | ONBOARD_SD_CS_PIN | SKR_CR6 |
+| PA5    | (not assigned)   | SKR_CR6 |
+| PA6    | (not assigned)   | SKR_CR6 |
+| PA7    | (not assigned)   | SKR_CR6 |
+| PA8    | NEOPIXEL_PIN     | SKR_CR6 |
+| PA9    | BTN_EN1 (if CR10_STOCKDISPLAY) | SKR_CR6 |
+| PA10   | BTN_EN2 (if CR10_STOCKDISPLAY) | SKR_CR6 |
+| PA11   | (not assigned)   | SKR_CR6 |
+| PA12   | (not assigned)   | SKR_CR6 |
+| PA13   | LED_CONTROL_PIN / CASE_LIGHT_PIN | SKR_CR6 |
+| PA14   | USB_CONNECT_PIN  | SKR_CR6 |
+| PA15   | BTN_ENC (if CR10_STOCKDISPLAY) | SKR_CR6 |
+| PB0    | Z_STEP_PIN       | SKR_CR6 |
+| PB1    | Z_ENABLE_PIN     | SKR_CR6 |
+| PB2    | Y_DIR_PIN        | SKR_CR6 |
+| PB3    | E0_STEP_PIN      | SKR_CR6 |
+| PB4    | E0_DIR_PIN       | SKR_CR6 |
+| PB5    | BEEPER_PIN (if CR10_STOCKDISPLAY) | SKR_CR6 |
+| PB6    | IIC_EEPROM_SCL   | SKR_CR6 |
+| PB7    | IIC_EEPROM_SDA   | SKR_CR6 |
+| PB8    | LCD_PINS_RS (if CR10_STOCKDISPLAY) | SKR_CR6 |
+| PB9    | LCD_PINS_D4 (if CR10_STOCKDISPLAY) | SKR_CR6 |
+| PB10   | Y_STEP_PIN       | SKR_CR6 |
+| PB11   | Y_ENABLE_PIN     | SKR_CR6 |
+| PB12   | X_DIR_PIN        | SKR_CR6 |
+| PB13   | X_STEP_PIN       | SKR_CR6 |
+| PB14   | X_ENABLE_PIN     | SKR_CR6 |
+| PB15   | LCD_PINS_ENABLE (if CR10_STOCKDISPLAY) | SKR_CR6 |
+| PC0    | X_STOP_PIN       | SKR_CR6 |
+| PC1    | Y_STOP_PIN       | SKR_CR6 |
+| PC2    | PROBE_ACTIVATION_SWITCH_PIN | SKR_CR6 |
+| PC3    | TEMP_BED_PIN     | SKR_CR6 |
+| PC4    | SD_DETECT_PIN    | SKR_CR6 |
+| PC5    | Z_DIR_PIN        | SKR_CR6 |
+| PC6    | FAN_PIN          | SKR_CR6 |
+| PC7    | CONTROLLER_FAN_PIN | SKR_CR6 |
+| PC8    | HEATER_0_PIN     | SKR_CR6 |
+| PC9    | HEATER_BED_PIN   | SKR_CR6 |
+| PC10   | (not assigned)   | SKR_CR6 |
+| PC11   | (not assigned)   | SKR_CR6 |
+| PC12   | (not assigned)   | SKR_CR6 |
+| PC13   | SUICIDE_PIN      | SKR_CR6 |
+| PC14   | Z_STOP_PIN       | SKR_CR6 |
+| PC15   | FIL_RUNOUT_PIN   | SKR_CR6 |
+| PD0    | (not assigned)   | SKR_CR6 |
+| PD1    | (not assigned)   | SKR_CR6 |
+| PD2    | E0_ENABLE_PIN    | SKR_CR6 |
+
+### Conditionally Usable Pins
+
+These are pins that Marlin assigns to specific functions on the SKR‑CR6 board, but which Klipper does not use, making them candidates for conditional reuse if the user understands the electrical routing on the SKR‑CR6 PCB.
+
+Unlike the Creality 4.5.x boards, the SKR‑CR6 does not expose J‑connectors (J1/J2/J3/J4/J705).
+All routing is through standard headers, stepper sockets, endstop connectors, and fan/heater terminals.
+
+✔ Pins Assigned by Marlin but Typically Unused by Klipper
+
+✔️ PC13 — SUICIDE_PIN  
+    Source: pins_BTT_SKR_CR6.h  
+    Used by Marlin: YES (power‑kill / watchdog circuit)  
+    Used by Klipper: NO  
+    Electrically routed to: Power‑control circuit  
+    *NOTE:* This pin is electrically active and should be reused **only with caution**.
 
 # 📚 Citations Used
 
