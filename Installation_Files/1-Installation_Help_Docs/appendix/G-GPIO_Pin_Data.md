@@ -414,6 +414,30 @@ All routing is through standard headers, stepper sockets, endstop connectors, an
     Used by Klipper: NO  
     Electrically routed to: J14 (Z-STOP)
 
+### Trade‑off repurposable pins (SKR‑CR6)
+
+These are pins where Marlin assigns a function, but you can safely reclaim the pin if you’re willing to lose that feature.
+
+✔️ PA8 — NEOPIXEL_PIN  
+    Condition: No NeoPixel strip connected; NeoPixel feature disabled in firmware.  
+    Trade‑off: Lose addressable LED lighting.  
+    Verdict: Excellent general‑purpose GPIO candidate if you don’t use NeoPixels.
+
+✔️ PB5 — BEEPER_PIN (CR10_STOCKDISPLAY only)  
+    Condition: Either no CR10 LCD, or you don’t care about beeps.  
+    Trade‑off: Lose LCD beeper feedback.  
+    Verdict: Easy to sacrifice; good candidate for repurposing.
+
+✔️ PA9, PA10, PA15 — BTN_EN1 / BTN_EN2 / BTN_ENC (CR10_STOCKDISPLAY only)  
+    Condition: No CR10‑style LCD on EXP3; `CR10_STOCKDISPLAY` disabled.  
+    Trade‑off: Lose rotary encoder + buttons on that LCD.  
+    Verdict: If you use a different display (TFT, DWIN, or none), these become clean GPIOs.
+
+✔️ PB8, PB9, PB15 — LCD_PINS_RS / LCD_PINS_D4 / LCD_PINS_ENABLE (CR10_STOCKDISPLAY only)  
+    Condition: No CR10‑style LCD; `CR10_STOCKDISPLAY` disabled.  
+    Trade‑off: Lose classic character LCD support.  
+    Verdict: Strong GPIO candidates when using a non‑CR10 display.
+
 ### Remaining pins
 
 ✔️ PC12 — PWR_DET  
