@@ -352,10 +352,11 @@ Trusted source:
 | PA2    | (not assigned)   | SKR_CR6 |
 | PA3    | (not assigned)   | SKR_CR6 |
 | PA4    | ONBOARD_SD_CS_PIN | SKR_CR6 |
-| PA5    | (not assigned)   | SKR_CR6 |
+| PA5    | SD Card CLK    | BTT SKR-CR6-Pin.pdf |
 | PA6    | (not assigned)   | SKR_CR6 |
-| PA7    | (not assigned)   | SKR_CR6 |
+| PA7    | SD Card MOSI   | BTT SKR-CR6-Pin.pdf |
 | PA8    | NEOPIXEL_PIN     | SKR_CR6 |
+| PA8    | SD Card MISO   | BTT SKR-CR6-Pin.pdf |
 | PA9    | BTN_EN1 (if CR10_STOCKDISPLAY) | SKR_CR6 |
 | PA10   | BTN_EN2 (if CR10_STOCKDISPLAY) | SKR_CR6 |
 | PA11   | (not assigned)   | SKR_CR6 |
@@ -389,9 +390,9 @@ Trusted source:
 | PC7    | CONTROLLER_FAN_PIN | SKR_CR6 |
 | PC8    | HEATER_0_PIN     | SKR_CR6 |
 | PC9    | HEATER_BED_PIN   | SKR_CR6 |
-| PC10   | (not assigned)   | SKR_CR6 |
-| PC11   | (not assigned)   | SKR_CR6 |
-| PC12   | (not assigned)   | SKR_CR6 |
+| PC10   | UART Tx4   | BTT SKR-CR6-Pin.pdf |
+| PC11   | UART Rx4   | BTT SKR-CR6-Pin.pdf |  
+| PC12   | PWR_DET          | BTT SKR-CR6-Pin.pdf |
 | PC13   | SUICIDE_PIN      | SKR_CR6 |
 | PC14   | Z_STOP_PIN       | SKR_CR6 |
 | PC15   | FIL_RUNOUT_PIN   | SKR_CR6 |
@@ -407,23 +408,42 @@ Unlike the Creality 4.5.x boards, the SKR‑CR6 does not expose J‑connectors (
 All routing is through standard headers, stepper sockets, endstop connectors, and fan/heater terminals.
 
 ✔ Pins Assigned by Marlin but Typically Unused by Klipper
+✔️ PC2 — Routed to Connector J14  
+    Source: pins_BTT_SKR_CR6.h  
+    Used by Marlin: YES (Probe Enable)  
+    Used by Klipper: NO  
+    Electrically routed to: J14 (Z-STOP)
+
+### Remaining pins
+
+✔️ PC12 — PWR_DET  
+    Source: pins_BTT_SKR_CR6.h  
+    Used by Marlin: OPTIONAL (power-detection, triggers automated shut-down routine if power is lost and a UPS is attached.)  
+    Used by Klipper: OPTIONAL  
+    Electrically routed to: J26  
+    *NOTE:* This pin is electrically active and likely hard-wired for purpose.  Not likely to be readily repurposed for general GPIO use.
 
 ✔️ PC13 — SUICIDE_PIN  
     Source: pins_BTT_SKR_CR6.h  
     Used by Marlin: YES (power‑kill / watchdog circuit)  
     Used by Klipper: NO  
-    Electrically routed to: Power‑control circuit  
-    *NOTE:* This pin is electrically active and should be reused **only with caution**.
+    Electrically routed to: J28  
+    *NOTE:* This pin is electrically active and likely hard-wired for purpose.  Not likely to be readily repurposed for general GPIO use.
+
+
 
 # 📚 Citations Used
 
 These are the sources referenced in the above tables:
 
- * CR6Community Marlin pins files
+ * CR6Community Marlin pins files (Used for all verified pin assignments) 
    * [pins_CREALITY_V4_5_2.h](https://github.com/CR6Community/Marlin/blob/extui/Marlin/src/pins/stm32f1/pins_CREALITY_V452.h)
    * [pins_CREALITY_V4_5_3.h](https://github.com/CR6Community/Marlin/blob/extui/Marlin/src/pins/stm32f1/pins_CREALITY_V453.h)
    * [pins_CREALITY_45x.h](https://github.com/CR6Community/Marlin/blob/extui/Marlin/src/pins/stm32f1/pins_CREALITY_V45x.h)
-   (Used for all verified pin assignments)
+   * [pins_BTT_SKR_CR6.h](https://github.com/CR6Community/Marlin/blob/extui/Marlin/src/pins/stm32f1/pins_BTT_SKR_CR6.h)
+
+ * [BTT GitHub for BTT SKR CR6 motherboard](https://github.com/bigtreetech/BIGTREETECH-SKR-CR6/blob/master/)
+ * [BTT SKR-CR6-Pin.pdf](https://github.com/bigtreetech/BIGTREETECH-SKR-CR6/blob/master/Hardware/BTT%20SKR-CR6-Pin.pdf)
 
  * [STM32F103RET6 Datasheet](https://www.st.com/resource/en/datasheet/stm32f103re.pdf)
 
