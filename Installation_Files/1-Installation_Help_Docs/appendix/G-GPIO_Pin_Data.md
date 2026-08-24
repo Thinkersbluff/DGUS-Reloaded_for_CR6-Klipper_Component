@@ -100,20 +100,20 @@ Trusted Sources:
 
 These are pins that are not assigned a purpose by either Marlin, Klipper or both, but which are known to be electrically routed to a available connector on the 4.5.2 motherboard.
 
-✔️ PA3 — Routed to Reserved Connector J3
-    Source:  [BLTouch mod guide (spamwax)](https://github.com/spamwax/CR-6-Mods/blob/main/BL%20Touch/Adding%20%22BL%20Touch%22%20as%20probe%20and%20Z%20end-stop.md)
-    Used by Marlin: YES
-    Used by Klipper: NO
+✔️ PA3 — Routed to Reserved Connector J3  
+    Source:  [BLTouch mod guide (spamwax)](https://github.com/spamwax/CR-6-Mods/blob/main/BL%20Touch/Adding%20%22BL%20Touch%22%20as%20probe%20and%20Z%20end-stop.md)  
+    Used by Marlin: YES  
+    Used by Klipper: NO  
     Electrically routed to: The signal pin on connector J1.
 
-✔️ PC6 — Routed to Connector J1
-      Source: pins_CREALITY_V452.h
-      Used by Marlin: YES
-      Used by Klipper: NO
+✔️ PC6 — Routed to Connector J1  
+      Source: pins_CREALITY_V452.h  
+      Used by Marlin: YES  
+      Used by Klipper: NO  
       Electrically routed to: The signal pin on connector J1.
 
-✔️ These rRemaining pins are “not assigned; routing unknown”:
-    PB2, PB10, PB12, PB13, PB14, PC0, PC1, PC13–PC15
+✔️ These rRemaining pins are “not assigned; routing unknown”:  
+    PB2, PB10, PB12, PB13, PB14, PC0, PC1, PC13–PC15  
     → No confirmed routing
     → No known Marlin assignment
     → No known Klipper assignment
@@ -205,7 +205,7 @@ These are pins that Marlin assigns to named 3‑pin connectors on the 4.5.3 boar
 
 ✔️ PB2 — Routed to Reserved Connector J2  
     Source: pins_CREALITY_V453.h  
-    Used by Marlin: YES  (Probe_ENable)
+    Used by Marlin: YES  (Probe_ENable)  
     Used by Klipper: NO  
     Electrically routed to: Connector J2
 
@@ -221,10 +221,10 @@ These are pins that Marlin assigns to named 3‑pin connectors on the 4.5.3 boar
     Used by Klipper: NO  
     Electrically routed to: Connector J4
 
-✔️ These remaining pins are “not assigned; routing unknown”:
-    PA1, PA2, PA3, PC0, PC1, PC6, PC13–PC15, PB10
-    → No confirmed routing
-    → No known Marlin assignment
+✔️ These remaining pins are “not assigned; routing unknown”:  
+    PA1, PA2, PA3, PC0, PC1, PC6, PC13–PC15, PB10  
+    → No confirmed routing  
+    → No known Marlin assignment  
     → No known Klipper assignment
 
 ## 🟦 CREALITY 1.1.0.3
@@ -328,7 +328,7 @@ These are pins that Marlin assigns to named 3‑pin connectors on the 4.5.3 boar
   These pins appear in neither pins_CREALITY_V453.h nor pins_CREALITY_V45x.h,
   and continuity testing has found no routing to any external connectors on an actual 1.1.0.3 board.
 
-  PA1, PA2, PA3, PC0, PC1, PC6, PC13–PC15, PB10
+  PA1, PA2, PA3, PC0, PC1, PC6, PC13–PC15, PB10  
   → No confirmed routing  
   → No known Marlin assignment  
   → No known Klipper assignment  
