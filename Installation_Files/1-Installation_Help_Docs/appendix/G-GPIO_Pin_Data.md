@@ -345,7 +345,6 @@ These are the sources referenced in the above tables:
    (Used for all verified pin assignments)
 
  * [STM32F103RET6 Datasheet](https://www.st.com/resource/en/datasheet/stm32f103re.pdf)
-   Used for crystal pins, USB pins, ADC pins, BOOT1 (PB2), 5V tolerance
 
 
 # 🧩 What this document gives you
