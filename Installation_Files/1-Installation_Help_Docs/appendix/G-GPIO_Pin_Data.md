@@ -41,7 +41,7 @@ The boards' maps are structured identically, so you can easily diff them.
 | PA0 | X Step | ✔️ | Stepper driver | Marlin pins_CREALITY_V4_5_2.h |
 | PA1 | X Dir | ✔️ | Stepper driver | Marlin pins_CREALITY_V4_5_2.h |
 | PA2 | X Enable | ✔️ | Stepper driver | Marlin pins_CREALITY_V4_5_2.h |
-| PA3 | J3 Header Signal | ⚠️ Unverified routing | Reported in Marlin as J3 signal | CR6Community Wiki |
+| PA3 | J3 Header Signal | ✔️ User-verified routing | Reported in Marlin as J3 signal | CR6Community Wiki |
 | PA4 | Z-Min Endstop / Strain Gauge Input | ✔️ | CR‑6 daughterboard signal | Marlin pins_CREALITY_V4_5_2.h |
 | PA5 | Probe Tare (CR‑6 only) | ✔️ | TARE_PROBE line | CR6Community Wiki |
 | PA6 | Fan PWM | ✔️ | Part cooling fan | Marlin pins_CREALITY_V4_5_2.h |
@@ -109,7 +109,7 @@ The boards' maps are structured identically, so you can easily diff them.
 
 | MCU Pin | Function | Verified? | Notes | Source |
 |--------|----------|-----------|-------|--------|
-| PA0 | X Step | ✔️ | Same as 4.5.2 | Marlin pins_CREALITY_V4_5_3.h |
+| PA0 | X Step | ✔️ | Same as 4.5.2. Also connected to J1 | Marlin pins_CREALITY_V4_5_3.h |
 | PA1 | X Dir | ✔️ | Same as 4.5.2 | Marlin |
 | PA2 | X Enable | ✔️ | Same as 4.5.2 | Marlin |
 | PA3 | NC | ⚠️ Unverified | Marlin notes J3 removed | CR6Community Wiki |
@@ -117,12 +117,15 @@ The boards' maps are structured identically, so you can easily diff them.
 | PA5 | Probe Tare | ✔️ | Same as 4.5.2 | CR6Community Wiki |
 | PA6 | Fan PWM | ✔️ | Same as 4.5.2 | Marlin |
 | PA7 | Hotend Heater | ✔️ | Same as 4.5.2 | Marlin |
-| PA8–PA15 | LCD | ✔️ | Same as 4.5.2 | Marlin |
+| PA8–PA14 | LCD | ✔️ | Same as 4.5.2 | Marlin |
+| PA15 | LCD | ✔️ | Same as 4.5.2. Also connected to J3 | Marlin |
 | | | | | |
 | PB0 | Bed Heater | ✔️ | Same as 4.5.2 | Marlin |
 | PB1 | Bed Thermistor | ✔️ | Same as 4.5.2 | Marlin |
 | PB2 | Optical Probe Activation | ⚠️ Unverified | Candidate spare | CR6Community Wiki |
-| PB3–PB15 | LCD / Steppers / UART | ✔️ | Same as 4.5.2 | Marlin |
+| PB3–PB11 | LCD / Steppers / UART | ✔️ | Same as 4.5.2 | Marlin |
+| PB12 | LCD / Steppers / UART | ✔️ | Same as 4.5.2. Also connected to J4. | Marlin |
+| PB13–PB15 | LCD / Steppers / UART | ✔️ | Same as 4.5.2 | Marlin |
 | | | | | |
 | PC0 | Filament Sensor | ⚠️ Unverified | Same as 4.5.2 | Marlin |
 | PC1–PC3 | ADC | ⚠️ Unverified | Same as 4.5.2 | STM32F103 datasheet |
@@ -185,10 +188,10 @@ This board is electrically similar to 4.5.3 but with:
 
 These are the sources referenced in the above tables:
 
- * Marlin pins files
-   * pins_CREALITY_V4_5_2.h
-   * pins_CREALITY_V4_5_3.h
-   * pins_CREALITY_1_1_0_3.h
+ * CR6Community Marlin pins files
+   * [pins_CREALITY_V4_5_2.h](https://github.com/CR6Community/Marlin/blob/extui/Marlin/src/pins/stm32f1/pins_CREALITY_V452.h)
+   * [pins_CREALITY_V4_5_3.h](https://github.com/CR6Community/Marlin/blob/extui/Marlin/src/pins/stm32f1/pins_CREALITY_V453.h)
+   * [pins_CREALITY_1_1_0_3.h](https://github.com/CR6Community/Marlin/blob/extui/Marlin/src/pins/stm32f1/pins_CREALITY_V45x.h)
    (Used for all verified pin assignments)
 
  * CR6Community Wiki
@@ -222,8 +225,9 @@ You now have:
      * The above circumstances make PB2 a safe candidate _for use with Klipper_ on all 3 CR6 motherboards and on the BTT SKR CR6 motherboard.
   * PA3 
      * Marlin-verified to be wired to the signal pin on reserved connector J3 on the 4.5.2 motherboard.
-       * NOTE: Although J707 is labelled "Reserve connector J3" in Creality's photo of the 1.1.0.3, PA3 (pin 28 on the STM32 64-pin package) does NOT ring continuity to ANY of the 4 3-pin connectors J704-J707. It is not an available option on that board.
-       * If it is available on the 4.5.3, then the J3 signal pin should ring continuity to pin 17 on the MCU.
+     * NOTES:
+      * On 4.5.3, J3 is connected to PA0 instead of PA3. PA3 is not mapped to any of the reserved connectors on that board.
+      * Although J707 is labelled "Reserve connector J3" in Creality's photo of the 1.1.0.3, PA3 (pin 28 on the STM32 64-pin package) does NOT ring continuity to ANY of the 4 3-pin connectors J704-J707. It is not an available option on that board.
   
   * PC1–PC3
   
