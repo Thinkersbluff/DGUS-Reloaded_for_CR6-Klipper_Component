@@ -35,7 +35,7 @@ This guide helps you maintain and troubleshoot an existing DGUS-Reloaded install
 | **"I need detailed MCU firmware rebuild steps"** | [Appendix A: Rebuilding MCU Firmware](appendix/A-Rebuilding_MCU_Firmware.md) |
 | **"I need to restore a previous backup"** | [Appendix B: Backup & Restore](appendix/B-Backup_Restore_Klipper.md) |
 | **"I want script syntax and usage details"** | [scripts/README.md](../scripts/README.md) |
-| **"I need to upgrade from Bullseye to Bookworm (required to implement PushOver/notifications)"** | [5-Upgrade_Guide-Bullseye_to_Bookworm.md](5-Upgrade_Guide-Bullseye_to_Bookworm.md)|
+| **"I need to upgrade my MainsailOS and want to migrate the existing DGUS-Reloaded installation "** | [5-Upgrading_Existing_MainsailOS_Installation](5-Upgrading_Existing_MainsailOS_Installation.md)|
 
 ---
 
@@ -66,7 +66,8 @@ This guide helps you maintain and troubleshoot an existing DGUS-Reloaded install
 - [Appendix A: Rebuilding MCU Firmware](appendix/A-Rebuilding_MCU_Firmware.md)
 - [Appendix B: Backup & Restore Klipper](appendix/B-Backup_Restore_Klipper.md)
 - [Appendix C: Force Klipper Version](appendix/C-Force_Klipper_Version.md)
-- [Appendix D: Config Files Reference](appendix/D-Config_Files_Reference.md) *(placeholder)*
+- [Appendix D: Config Files Reference](appendix/D-Config_Files_Reference.md)
+- [Appendix E: Pi-Side Recovery Setup](appendix/E-Pi-Side_Recovery_Setup.md)
 - [Appendix F: Travel Test Macros Reference](appendix/F-Travel_Test_Macros_Reference.md)
 - [Appendix G: GPIO Pin Data](appendix/G-GPIO_Pin_Data)]
 
