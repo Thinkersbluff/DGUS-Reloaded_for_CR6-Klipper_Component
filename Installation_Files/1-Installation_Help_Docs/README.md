@@ -1,4 +1,4 @@
-Last Updated: 9 March 2026
+Last Updated: 25 August 2026
 
 # Introduction
 
@@ -133,6 +133,28 @@ This is the **primary update playbook**—it orchestrates multiple maintenance t
 
 ---
 
+## 5-Upgrading_Existing_MainsailOS_Installation.md
+**Safe MainsailOS-to-MainsailOS upgrade path.**
+
+Use this guide when your printer is already running DGUS-Reloaded and you want to upgrade to a newer  release of MainsailOS.
+
+This document provides:
+- Pre-upgrade backup steps
+- How to perform the MainsailOS upgrade
+- Upgraded Host verification checklist
+- How to restore DGUS-Reloaded to the upgraded system (including Pi-Side scripts)
+- DGUS-Reloaded verification checklist
+- When/how to update Klipper host software
+- When/how to rebuild MCU firmware
+- Final verification checklist
+
+**Use this when:**
+- You want to update the Python on your host (e.g. from 3.9 to 3.11 or higher)
+- You want to make use of new Moonraker features that depend on a higher version of Python
+- Release notes declare dependency on a higher version of MainsailOS than you have installed
+
+---
+
 # Appendices (Detailed Procedures)
 
 The appendices contain **in-depth step-by-step procedures** for complex tasks. They are referenced by the core maintenance documents but can also be used standalone.
@@ -188,7 +210,7 @@ Covers:
 
 ---
 
-## appendix/D-Config_Files_Reference.md
+## appendix/D-Slicer_Integration_Tips.md
 **Configuration file reference guide.** *(Placeholder for future expansion)*
 
 Will eventually cover:
@@ -196,6 +218,11 @@ Will eventually cover:
 - Critical settings to review
 - Board-specific differences
 - Common customization patterns
+
+---
+
+## appendix/E-Pi-Side_Recovery_Setup.md
+
 
 ---
 

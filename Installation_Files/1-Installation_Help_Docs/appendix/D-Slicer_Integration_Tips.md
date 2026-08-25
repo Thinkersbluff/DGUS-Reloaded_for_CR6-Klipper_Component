@@ -1,6 +1,7 @@
-# Appendix D: Optional Slicer Integration Tips
+# Appendix D: Slicer Integration Tips
+**OPtional**
 
-Last Updated: 9 March 2026
+Last Updated: 25 August 2026
 
 ## Purpose
 
