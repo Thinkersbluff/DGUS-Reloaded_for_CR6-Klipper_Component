@@ -31,11 +31,14 @@ This guide helps you maintain and troubleshoot an existing DGUS-Reloaded install
 | **"Klipper updated and now shows MCU mismatch warning"** | [3-Common Maintenance Tasks § Rebuilding MCU Firmware](3-Common_Maintenance_Tasks.md#task-4-rebuilding-mcu-firmware-after-host-update) |
 | **"Klipper updated and now won't start at all"** | [3-Common Maintenance Tasks § Handling Update Breakage](3-Common_Maintenance_Tasks.md#task-3-handling-update-breakage) |
 | **"I want to back up before attempting an update"** | [3-Common Maintenance Tasks § Backup Before Update](3-Common_Maintenance_Tasks.md#task-1-backup-before-update) |
+| **"I want help to test my belt tension"** | [Appendix F: Travel Test Macros Reference](appendix/F-Travel_Test_Macros_Reference.md) |
 | **"I need to force Klipper to a specific version"** | [Appendix C: Force Klipper Version](appendix/C-Force_Klipper_Version.md) |
 | **"I need detailed MCU firmware rebuild steps"** | [Appendix A: Rebuilding MCU Firmware](appendix/A-Rebuilding_MCU_Firmware.md) |
 | **"I need to restore a previous backup"** | [Appendix B: Backup & Restore](appendix/B-Backup_Restore_Klipper.md) |
 | **"I want script syntax and usage details"** | [scripts/README.md](../scripts/README.md) |
+| **"I need help to implement/debug the automatic recovery feature"** | [Appendix E: Pi-Side Recovery Setup](appendix/E-Pi-Side_Recovery_Setup.md) |
 | **"I need to upgrade my MainsailOS and want to migrate the existing DGUS-Reloaded installation "** | [5-Upgrading_Existing_MainsailOS_Installation](5-Upgrading_Existing_MainsailOS_Installation.md)|
+| **"I need to find a spare GPIO signal pin OR I need to validate/correct an existing pin definition in my printer.cfg"** | [Appendix G: GPIO Pin Data](appendix/G-GPIO_Pin_Data.md) |
 
 ---
 
@@ -66,7 +69,7 @@ This guide helps you maintain and troubleshoot an existing DGUS-Reloaded install
 - [Appendix A: Rebuilding MCU Firmware](appendix/A-Rebuilding_MCU_Firmware.md)
 - [Appendix B: Backup & Restore Klipper](appendix/B-Backup_Restore_Klipper.md)
 - [Appendix C: Force Klipper Version](appendix/C-Force_Klipper_Version.md)
-- [Appendix D: Config Files Reference](appendix/D-Config_Files_Reference.md)
+- [Appendix D: Slicer_Integration_Tips](appendix/D-Slicer_Integration_Tips.md)
 - [Appendix E: Pi-Side Recovery Setup](appendix/E-Pi-Side_Recovery_Setup.md)
 - [Appendix F: Travel Test Macros Reference](appendix/F-Travel_Test_Macros_Reference.md)
 - [Appendix G: GPIO Pin Data](appendix/G-GPIO_Pin_Data)]
