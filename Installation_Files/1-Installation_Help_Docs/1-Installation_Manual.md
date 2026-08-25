@@ -485,6 +485,8 @@ print progress and time remaining:
 - **`M73 R<minutes>`** — sends estimated time remaining to the display
 - **`M117 <message>`** — sends a status text line to the display
 
+See also [Appendix D - Slicer_Integration_Tips.md](appendix/D-Slicer_Integration_Tips.md)
+
 Configure your slicer's start gcode to call the `START_PRINT` macro:
 
 ```

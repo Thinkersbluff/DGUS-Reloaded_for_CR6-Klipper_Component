@@ -72,7 +72,7 @@ This guide helps you maintain and troubleshoot an existing DGUS-Reloaded install
 - [Appendix D: Slicer_Integration_Tips](appendix/D-Slicer_Integration_Tips.md)
 - [Appendix E: Pi-Side Recovery Setup](appendix/E-Pi-Side_Recovery_Setup.md)
 - [Appendix F: Travel Test Macros Reference](appendix/F-Travel_Test_Macros_Reference.md)
-- [Appendix G: GPIO Pin Data](appendix/G-GPIO_Pin_Data)]
+- [Appendix G: GPIO Pin Data](appendix/G-GPIO_Pin_Data.md)]
 
 ### Technical Reference
 - [scripts/README.md](../scripts/README.md) — Script syntax and usage

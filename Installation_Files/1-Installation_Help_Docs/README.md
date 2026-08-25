@@ -211,7 +211,63 @@ Covers:
 ---
 
 ## appendix/D-Slicer_Integration_Tips.md
-**Configuration file reference guide.** *(Placeholder for future expansion)*
+**Enabling display of Slicer-supplied data**
+
+Covers:
+- Integration with Cura or OrcaSlicer, to enable:
+  - Real-time print progress (%) display on the touchscreen
+  - Remaining print time display
+  - Layer information during printing
+
+**Referenced by:**
+ - 1-Installation_Manual (Step 11 (Optional): Configure Your Slicer)
+
+---
+
+## appendix/E-Pi-Side_Recovery_Setup.md
+**Enabling automatic restoration of mcu communications after power-cycling the printer**
+
+Covers:
+ - How to install a three-file Pi-side recovery mechanism that:
+  - Detects when the CR6 motherboard USB device re-appears on the Pi after printer power-on
+  - Waits for the stable device path to be ready
+  - Automatically restarts Klipper to restore mcu communications
+
+**Referenced by:**
+ - 1-Installation_Manual (Step 9b: Verify Klipper is ready)
+
+---
+
+## appendix/F-Travel_Test_Macros_Reference.md
+**Using repeated rapid x or Y axis movements to validate current belt tensions**
+CAUTION: Of limited value on Creality systems, without the TMC UART capabilities available on the BTT motherboard.
+
+Covers:
+ - which macros support this function
+ - how to run those macros
+ - how to interpret the results
+
+**Referenced by:**
+ - 3-Common_Maintenance_Tasks.md (Related documents)
+
+---
+
+## appendix/G-GPIO_Pin_Data.md
+**GPIO Pin Data reference for all four CR6 motherboards**
+
+Covers:
+ - from which authoritative source(s) the pin data has been extracted
+ - STM32F103RET6 pin IDs
+ - The function(s) assigned to each pin ID in Marlin/Klipper, per motherboard
+ - Which GPIO pins may be repurposed in user mods (if electrically available on the board)
+
+**Referenced by:**
+ - n/a
+ - 
+---
+
+## appendix/H-Printer_Data_Configuration_Reference.md
+**Printer_data Configuration file reference guide.** *(Placeholder for future expansion)*
 
 Will eventually cover:
 - Purpose of each `.cfg` file in `~/printer_data/config/`
@@ -219,10 +275,8 @@ Will eventually cover:
 - Board-specific differences
 - Common customization patterns
 
----
-
-## appendix/E-Pi-Side_Recovery_Setup.md
-
+**Referenced by:**
+ - TBD
 
 ---
 
