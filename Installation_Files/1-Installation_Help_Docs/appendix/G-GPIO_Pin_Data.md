@@ -102,7 +102,7 @@ These are pins that are not assigned a purpose by either Marlin, Klipper or both
 
 ✔️ PA3 — Routed to Reserved Connector J3  
     Source:  [BLTouch mod guide (spamwax)](https://github.com/spamwax/CR-6-Mods/blob/main/BL%20Touch/Adding%20%22BL%20Touch%22%20as%20probe%20and%20Z%20end-stop.md)  
-    Used by Marlin: YES  
+    Used by Marlin: NO  
     Used by Klipper: NO  
     Electrically routed to: The signal pin on connector J3.
 
