@@ -479,7 +479,7 @@ This section provides a high-level overview of the macros included with DGUS-Rel
 **Limitations:**
 - Cannot directly measure belt tension (that still requires manual tools)
 - Can reveal symptoms: vibration, skipped steps, driver faults
-- Creality motherboards: no TMC diagnostics available
+- Creality motherboards: no TMC diagnostics available, because their TMC drivers are in standalone mode.
 
 **See also:** [3-Common Maintenance Tasks § Validate and Adjust Belt Tension](3-Common_Maintenance_Tasks.md#task-7-validate-and-adjust-belt-tension-using-travel-tests)  
 **Detailed reference:** [Appendix F: Travel Test Macros Reference](appendix/F-Travel_Test_Macros_Reference.md)

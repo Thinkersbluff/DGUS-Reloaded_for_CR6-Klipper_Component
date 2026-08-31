@@ -233,9 +233,10 @@ Travel tests run rapid linear motion cycles to stress the belt and motors. This 
 ### Important Limitations
 
 ⚠️ **Travel tests reveal symptoms but do NOT directly measure belt tension.** You will still need:
-- A belt tension gauge (recommended: Luthier's gauge or similar)
-- Manual tensioning procedure specific to your CR6 motherboard
+- Incremental manual tensioning adjustments (belt no tighter than necessary to prevent slipping and not so tight that the bed/toolhead becomes stiff to slide.)
 - Multiple test iterations (adjust tension → test → repeat)
+
+⚠️ **TMC diagnostic helper macros (e.g., X_TRAVEL_TEST_WITH_TMC, TMC_SNAPSHOT) require UART-enabled TMC2209 drivers**. The TMC drivers on Creality boards (4.5.2/4.5.3/ERA/1.1.0.3) are configured in "standalone" mode, which lacks UART communication. These diagnostic macros do not work on those boards.
 
 ### How (Quick Start)
 
