@@ -1,4 +1,4 @@
-/home/pi/printer_data/config/scripts/pushover_pause_monitor.py#!/usr/bin/env python3
+#!/usr/bin/env python3
 import json
 import os
 import time
