@@ -1,9 +1,10 @@
 # Compatibility and Version Mapping
 
 ## Current pairing
-| Klipper Component | DWIN Component | Status |
-|-------------------|----------------|--------|
-| 2.0.0             | 1.0.0          | Current |
+| Klipper Component | DWIN Component | Status   |
+|-------------------|----------------|----------|
+| 2.0.3             | 2.0.3          | Current  |
+| 2.0.0             | 1.0.0          | Deprecated |
 | 1.4.4             | 0.5.3          | Deprecated |
 | 1.4.3             | 0.5.2          | Deprecated |
 

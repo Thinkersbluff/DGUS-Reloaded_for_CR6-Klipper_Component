@@ -26,4 +26,4 @@ For each claimed fix:
 - artifact references (logs/screenshots/commit hash).
 
 ## Fast return workflow
-Use `SOPs/00-Quick_Primer.md` every time returning to the project.
+Use [SOPs/00-Quick_Primer.md](\SOPs\00-Quick_Primer.md) every time returning to the project.
