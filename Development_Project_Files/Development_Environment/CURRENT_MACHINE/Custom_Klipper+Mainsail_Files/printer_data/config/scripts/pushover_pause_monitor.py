@@ -1,0 +1,87 @@
+#!/usr/bin/env python3
+import json
+import os
+import time
+import requests
+import configparser
+
+
+SECRETS_PATH = os.path.expanduser("~/printer_data/moonraker.secrets")
+MOONRAKER_URL = "http://localhost:7125"
+
+# --- Load Pushover credentials from moonraker.secrets ---
+config = configparser.ConfigParser()
+config.read(SECRETS_PATH)
+
+pushover_token = config["pushover_creds"]["token"]
+pushover_user_key = config["pushover_creds"]["user_key"]
+
+# --- Helper: query Moonraker pause state ---
+def is_paused():
+    try:
+        r = requests.post(
+            f"{MOONRAKER_URL}/printer/objects/query",
+            json={"objects": {"pause_resume": ["is_paused"]}},
+            timeout=3
+        )
+        return r.json()["result"]["status"]["pause_resume"]["is_paused"]
+    except Exception:
+        return False
+
+def m600_pause_flag():
+    try:
+        r = requests.post(
+            f"{MOONRAKER_URL}/printer/objects/query",
+            json={"objects": {"gcode_macro SET_FLAG_M600": ["m600_pause"]}},
+            timeout=3
+        )
+        return r.json()["result"]["status"]["gcode_macro SET_FLAG_M600"]["m600_pause"]
+    except Exception:
+        return False
+
+# --- Helper: send emergency Pushover alert ---
+def send_emergency_pushover(msg):
+    requests.post(
+        "https://api.pushover.net/1/messages.json",
+        data={
+            "token": pushover_token,
+            "user": pushover_user_key,
+            "message": msg,
+            "priority": 2,
+            "retry": 60,
+            "expire": 3600
+        },
+        timeout=5
+    )
+
+# --- Helper: send BEEP_STOP to Klipper ---
+def stop_beeping():
+    try:
+        requests.post(
+            f"{MOONRAKER_URL}/printer/gcode/script",
+            json={"script": "BEEP_STOP"},
+            timeout=3
+        )
+    except Exception:
+        pass
+
+# --- Main loop ---
+was_paused = False
+
+while True:
+    paused = is_paused()
+    m600_flag = m600_pause_flag()
+
+    if paused and m600_flag:
+        if not was_paused:
+            # First detection of M600 pause
+            send_emergency_pushover("M600 Event — Print Paused. Check filament!")
+            was_paused = True
+        # Do NOT send repeating alerts here
+    else:
+        if was_paused:
+            # Pause ended — stop beeping
+            stop_beeping()
+            was_paused = False
+
+    time.sleep(10)
