@@ -1,3 +1,14 @@
-*.sh text eol=lf 
+# NOTE:  after adding or changing a rule, run 'git add -A --renormalize' once 
+# to ensure the already-tracked copies are re-indexed under the new attribute.
+# Text files — normalized to LF in repository, LF on checkout
+*.py text eol=lf
+*.sh text eol=lf
 *.cfg text eol=lf
-*.conf text eol=lf 
+*.conf text eol=lf
+
+# Windows-native tooling — CRLF required on checkout
+*.bat text eol=crlf
+*.ps1 text eol=crlf
+
+# Firmware images — binary, never normalize
+Installation_Files/4-klipper.bin_files/** binary
