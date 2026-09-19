@@ -1399,13 +1399,24 @@ class T5UID1:
             self.start_routine('print_end')
 
     def cmd_M73(self, gcmd):
-        """Custom M73 function"""
-        # The message format may be M73 P_ R_ or M73 P_ or M73 R_
-        if gcmd.get_int('P', 0):
-            progress = gcmd.get_int('P', 0)
-            self._print_progress = min(100, max(0, progress))
-        if gcmd.get_int('R', 0):
-            self._latest_rvalue = gcmd.get_int('R', 0)
+        """Custom M73 function with float-safe parsing"""
+        # Read raw values as floats (None if missing)
+        p_val = gcmd.get_float('P', None)
+        r_val = gcmd.get_float('R', None)
+
+        # Process P (print progress)
+        if p_val is not None:
+            # Clamp to [0, 100], round to nearest integer for display
+            progress = int(round(min(100.0, max(0.0, p_val))))
+            self._print_progress = progress
+
+        # Process R (remaining time)
+        if r_val is not None:
+            # R is normally an integer number of minutes, but slicers may emit floats
+            # Store the raw float or round—your choice. Here we round.
+            self._latest_rvalue = int(round(r_val))
+
+        # Pass through to original M73 handler if present
         if self._original_M73 is not None:
             self._original_M73(gcmd)
 
